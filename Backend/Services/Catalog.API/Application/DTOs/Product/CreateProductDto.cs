@@ -1,4 +1,4 @@
-﻿namespace Catalog.API.Application.DTOs
+﻿namespace Catalog.API.Application.DTOs.Product
 {
     public class CreateProductDto
     {

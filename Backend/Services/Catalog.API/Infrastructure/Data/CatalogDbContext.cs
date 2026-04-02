@@ -1,4 +1,4 @@
-﻿using Catalog.API.Domain.Entities;
+using Catalog.API.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Catalog.API.Infrastructure.Data
@@ -9,5 +9,7 @@ namespace Catalog.API.Infrastructure.Data
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<MediaAsset> MediaAssets { get; set; }
     }
 }

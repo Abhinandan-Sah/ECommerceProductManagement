@@ -1,4 +1,4 @@
-﻿using Catalog.API.Application.DTOs;
+﻿using Catalog.API.Application.DTOs.Product;
 using Catalog.API.Application.Interfaces;
 using Catalog.API.Domain.Entities;
 using Catalog.API.Domain.Enums;
@@ -18,9 +18,9 @@ namespace Catalog.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAllProductsAsync()
+        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAllProductsAsync([FromQuery] Guid? categoryId, [FromQuery] PublishStatus? status)
         {
-            var products = await _repository.GetAllProductsAsync();
+            var products = await _repository.GetAllProductsAsync(categoryId, status);
 
             // Map the List of Entities to a List of DTOs
             var response = products.Select(p => new ProductResponseDto
@@ -37,7 +37,7 @@ namespace Catalog.API.Controllers
             return Ok(response); // Returns HTTP 200
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetProductById")]
         public async Task<ActionResult<ProductResponseDto?>> GetProductByIdAsync(Guid id)
         {
             var product = await _repository.GetProductByIdAsync(id);
@@ -93,7 +93,46 @@ namespace Catalog.API.Controllers
             };
 
             // Returns HTTP 201 Created and points to the GET endpoint to view the new item
-            return CreatedAtAction(nameof(GetProductByIdAsync), new { id = response.Id }, response);
+            return CreatedAtRoute("GetProductById", new { id = response.Id }, response);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,ProductManager")]
+        public async Task<ActionResult> UpdateProductAsync(Guid id, [FromBody] UpdateProductDto updateDto)
+        {
+            var existingProduct = await _repository.GetProductByIdAsync(id);
+
+            if(existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            existingProduct.Name = updateDto.Name;
+            existingProduct.SKU = updateDto.SKU;
+            existingProduct.Brand = updateDto.Brand;
+            existingProduct.Description = updateDto.Description;
+            existingProduct.CategoryId = updateDto.CategoryId;
+            existingProduct.PublishStatus = updateDto.PublishStatus;
+            existingProduct.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateProductAsync(existingProduct);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles ="Admin")]
+        public async Task<ActionResult> DeleteProductAsync(Guid id)
+        {
+            var product = await _repository.GetProductByIdAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            await _repository.DeleteProductAsync(product);
+
+            return NoContent();
         }
     }
 }
