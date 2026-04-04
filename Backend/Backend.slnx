@@ -4,9 +4,11 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Folder Name="/ApiGateways/">
+    <Project Path="ApiGateways/Gateway.API/Gateway.API.csproj" Id="269ef50e-e107-4bbc-8a22-73955c5d9b44" />
+  </Folder>
   <Folder Name="/Services/">
     <Project Path="Services/Catalog.API/Catalog.API.csproj" Id="15866b3b-ba28-40d9-b7fb-f6ec9d32f841" />
     <Project Path="Services/Identity.API/Identity.API.csproj" />
   </Folder>
-  <Project Path="API Gateway/ApiGateway.csproj" Id="d9e591f3-08d5-46e9-a353-16a74d330501" />
 </Solution>
