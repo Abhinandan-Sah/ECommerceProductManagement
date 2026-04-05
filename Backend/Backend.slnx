@@ -10,5 +10,7 @@
   <Folder Name="/Services/">
     <Project Path="Services/Catalog.API/Catalog.API.csproj" Id="15866b3b-ba28-40d9-b7fb-f6ec9d32f841" />
     <Project Path="Services/Identity.API/Identity.API.csproj" />
+    <Project Path="Services/Reporting.API/Reporting.API.csproj" Id="3013a65b-7a59-4000-8c59-2786dabf789b" />
+    <Project Path="Services/Workflow.API/Workflow.API.csproj" Id="a09f2d78-1e63-4f81-a754-c978d4a5218c" />
   </Folder>
 </Solution>

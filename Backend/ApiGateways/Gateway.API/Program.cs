@@ -1,3 +1,4 @@
+using Gateway.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
@@ -48,6 +49,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

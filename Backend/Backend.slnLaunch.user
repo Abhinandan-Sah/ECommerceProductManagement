@@ -11,6 +11,14 @@
         "Action": "Start"
       },
       {
+        "Path": "Services\\Workflow.API\\Workflow.API.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Services\\Reporting.API\\Reporting.API.csproj",
+        "Action": "Start"
+      },
+      {
         "Path": "ApiGateways\\Gateway.API\\Gateway.API.csproj",
         "Action": "Start"
       }
