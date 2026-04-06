@@ -18,4 +18,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Application\Interfaces\Services\" />
+    <Folder Include="Application\Interfaces\Repositories\" />
+    <Folder Include="Application\Services\" />
+  </ItemGroup>
+
 </Project>

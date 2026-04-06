@@ -13,4 +13,7 @@
     <Project Path="Services/Reporting.API/Reporting.API.csproj" Id="3013a65b-7a59-4000-8c59-2786dabf789b" />
     <Project Path="Services/Workflow.API/Workflow.API.csproj" Id="a09f2d78-1e63-4f81-a754-c978d4a5218c" />
   </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/Shared.Messaging/Shared.Messaging.csproj" Id="3ddb35fc-8e15-45c9-a4a6-19797e965b7f" />
+  </Folder>
 </Solution>
