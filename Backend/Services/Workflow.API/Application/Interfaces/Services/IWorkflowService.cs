@@ -1,22 +1,17 @@
-﻿using Workflow.API.Application.DTOs;
-using Workflow.API.Domain.Entities;
-using Workflow.API.Domain.Enums;
+using Workflow.API.Application.DTOs;
 
-namespace Workflow.API.Application.Interfaces
+namespace Workflow.API.Application.Interfaces.Services
 {
-    public interface IWorkflowRepository
+    public interface IWorkflowService
     {
         // ─── Pricing ─────────────────────────────────────────────
         Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request);
-        Task<Price?> GetPricingByProductIdAsync(Guid productId);
 
         // ─── Inventory ───────────────────────────────────────────
         Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request);
-        Task<Inventory?> GetInventoryByProductIdAsync(Guid productId);
 
         // ─── Approval Workflow ───────────────────────────────────
         Task<bool> SubmitForReviewAsync(Guid productId, Guid submittedByUserId);
         Task<bool> UpdateStatusAsync(Guid productId, UpdateStatusRequestDto request, Guid actionByUserId);
-        Task<Approval?> GetCurrentApprovalStatusAsync(Guid productId);
     }
 }

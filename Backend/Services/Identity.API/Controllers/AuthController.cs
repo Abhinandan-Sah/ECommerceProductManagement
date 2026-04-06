@@ -1,6 +1,6 @@
 using Identity.API.Application.DTOs.Auth;
 using Identity.API.Application.DTOs.User;
-using Identity.API.Application.Interfaces;
+using Identity.API.Application.Interfaces.Services;
 using Identity.API.Application.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,21 +11,21 @@ namespace Identity.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _authRepo;
+        private readonly IAuthService _authService;
 
-        public AuthController(IAuthRepository authRepo)
+        public AuthController(IAuthService authService)
         {
-            _authRepo = authRepo;
+            _authService = authService;
         }
 
         // POST /api/auth/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            var emailExists = await _authRepo.EmailExistsAsync(request.Email);
+            var emailExists = await _authService.EmailExistsAsync(request.Email);
             if (emailExists) return Conflict(new { message = "A user with this email already exists." });
 
-            await _authRepo.RegisterAsync(request);
+            await _authService.RegisterAsync(request);
             return StatusCode(201, new { message = "User registered successfully." });
         }
 
@@ -33,7 +33,7 @@ namespace Identity.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var result = await _authRepo.LoginAsync(request);
+            var result = await _authService.LoginAsync(request);
             if (result == null) return Unauthorized(new { message = "Invalid email or password." });
             return Ok(result);
         }
@@ -42,7 +42,7 @@ namespace Identity.API.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
-            var result = await _authRepo.RefreshTokenAsync(request.RefreshToken);
+            var result = await _authService.RefreshTokenAsync(request.RefreshToken);
             if (result == null) return Unauthorized(new { message = "Invalid or expired refresh token." });
             return Ok(result);
         }
@@ -52,7 +52,7 @@ namespace Identity.API.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] RefreshTokenRequestDto request)
         {
-            var success = await _authRepo.LogoutAsync(request.RefreshToken);
+            var success = await _authService.LogoutAsync(request.RefreshToken);
             if (!success) return BadRequest(new { message = "Invalid or already revoked token." });
             return Ok(new { message = "Logged out successfully." });
         }
@@ -61,7 +61,7 @@ namespace Identity.API.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
-            var resetToken = await _authRepo.ForgotPasswordAsync(request.Email);
+            var resetToken = await _authService.ForgotPasswordAsync(request.Email);
 
             // Always return 200 — prevents attackers from knowing which emails are registered
             if (resetToken == null)
@@ -75,7 +75,7 @@ namespace Identity.API.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
-            var success = await _authRepo.ResetPasswordAsync(request);
+            var success = await _authService.ResetPasswordAsync(request);
             if (!success) return BadRequest(new { message = "Invalid or expired reset token." });
             return Ok(new { message = "Password reset successfully. Please log in with your new password." });
         }
@@ -88,7 +88,7 @@ namespace Identity.API.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var success = await _authRepo.ChangePasswordAsync(userId.Value, request);
+            var success = await _authService.ChangePasswordAsync(userId.Value, request);
             if (!success) return BadRequest(new { message = "Current password is incorrect." });
             return Ok(new { message = "Password changed successfully. Please log in again." });
         }
@@ -101,7 +101,7 @@ namespace Identity.API.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var profile = await _authRepo.GetProfileAsync(userId.Value);
+            var profile = await _authService.GetProfileAsync(userId.Value);
             if (profile == null) return NotFound(new { message = "User not found." });
             return Ok(profile);
         }

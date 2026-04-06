@@ -1,5 +1,5 @@
 using Identity.API.Application.DTOs.User;
-using Identity.API.Application.Interfaces;
+using Identity.API.Application.Interfaces.Services;
 using Identity.API.Domain.Enums;
 using Identity.API.Application.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -12,11 +12,11 @@ namespace Identity.API.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly IUserRepository _userRepo;
+        private readonly IUserService _userService;
 
-        public UsersController(IUserRepository userRepo)
+        public UsersController(IUserService userService)
         {
-            _userRepo = userRepo;
+            _userService = userService;
         }
 
         // GET /api/users?page=1&pageSize=20&search=john&role=Admin  [Admin only]
@@ -28,8 +28,8 @@ namespace Identity.API.Controllers
             [FromQuery] string? search = null,
             [FromQuery] string? role = null)
         {
-            var users = await _userRepo.GetAllUsersAsync(page, pageSize, search, role);
-            var total = await _userRepo.GetUsersCountAsync(search, role);
+            var users = await _userService.GetAllUsersAsync(page, pageSize, search, role);
+            var total = await _userService.GetUsersCountAsync(search, role);
 
             return Ok(new
             {
@@ -52,7 +52,7 @@ namespace Identity.API.Controllers
             if (!isAdmin && currentUserId != id)
                 return Forbid();
 
-            var user = await _userRepo.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound(new { message = "User not found." });
             return Ok(user);
         }
@@ -64,14 +64,14 @@ namespace Identity.API.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var user = await _userRepo.GetUserByIdAsync(userId.Value);
+            var user = await _userService.GetUserByIdAsync(userId.Value);
             if (user == null) return NotFound(new { message = "User not found." });
 
             // Check if another user already has that email
-            var emailTaken = await _userRepo.IsEmailTakenAsync(request.Email, userId.Value);
+            var emailTaken = await _userService.IsEmailTakenAsync(request.Email, userId.Value);
             if (emailTaken) return Conflict(new { message = "Email is already in use by another account." });
 
-            var updatedUser = await _userRepo.UpdateProfileAsync(userId.Value, request);
+            var updatedUser = await _userService.UpdateProfileAsync(userId.Value, request);
             return Ok(updatedUser);
         }
 
@@ -80,14 +80,14 @@ namespace Identity.API.Controllers
         [HttpPut("{id:guid}/role")]
         public async Task<IActionResult> SetUserRole(Guid id, [FromBody] UpdateRoleRequestDto request)
         {
-            var user = await _userRepo.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound(new { message = "User not found." });
 
             // Validate that the role string is a known Role enum value
             if (!Enum.TryParse<Role>(request.Role, true, out var role))
                 return BadRequest(new { message = $"Invalid role. Valid values: {string.Join(", ", Enum.GetNames<Role>())}" });
 
-            await _userRepo.UpdateUserRoleAsync(id, role);
+            await _userService.UpdateUserRoleAsync(id, role);
             return Ok(new { message = $"User role updated to {role}." });
         }
 
@@ -102,10 +102,10 @@ namespace Identity.API.Controllers
             if (id == currentUserId && !request.IsActive)
                 return BadRequest(new { message = "You cannot deactivate your own account." });
 
-            var user = await _userRepo.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound(new { message = "User not found." });
 
-            await _userRepo.SetUserActiveAsync(id, request.IsActive);
+            await _userService.SetUserActiveAsync(id, request.IsActive);
             return Ok(new { message = $"User account {(request.IsActive ? "activated" : "deactivated")}." });
         }
 
@@ -120,10 +120,10 @@ namespace Identity.API.Controllers
             if (id == currentUserId)
                 return BadRequest(new { message = "You cannot delete your own account." });
 
-            var user = await _userRepo.GetUserByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound(new { message = "User not found." });
 
-            await _userRepo.DeleteUserAsync(id);
+            await _userService.DeleteUserAsync(id);
             return Ok(new { message = "User deleted successfully." });
         }
     }

@@ -1,118 +1,73 @@
-﻿using Catalog.API.Application.DTOs.Category;
-using Catalog.API.Application.Interfaces;
+using Catalog.API.Application.DTOs.Category;
+using Catalog.API.Application.Interfaces.Services;
 using Catalog.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Catalog.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")] // Resolves to: /api/categories
+    [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _repository;
+        private readonly ICategoryService _service;
 
-        public CategoriesController(ICategoryRepository repository)
+        public CategoriesController(ICategoryService service)
         {
-            _repository = repository;
+            _service = service;
         }
 
-        // GET: /api/categories
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetAllCategoriesAsync()
         {
-            var categories = await _repository.GetAllCategoriesAsync();
-
-            var response = categories.Select(c => new CategoryResponseDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                ParentCategoryId = c.ParentCategoryId
-            });
-
+            var response = await _service.GetAllCategoriesAsync();
             return Ok(response);
         }
 
-        // GET: /api/categories/{id}
         [HttpGet("{id}", Name = "GetCategoryById")]
         public async Task<ActionResult<CategoryResponseDto>> GetCategoryByIdAsync(Guid id)
         {
-            var category = await _repository.GetCategoryByIdAsync(id);
-
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            var response = new CategoryResponseDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                ParentCategoryId = category.ParentCategoryId,
-                ParentCategoryName = category.ParentCategory != null ? category.ParentCategory.Name : "None"
-            };
-
+            var response = await _service.GetCategoryByIdAsync(id);
+            if (response == null) return NotFound();
             return Ok(response);
         }
 
-        // POST: /api/categories
         [HttpPost]
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<ActionResult<CategoryResponseDto>> AddCategoryAsync([FromBody] CreateCategoryDto newCategoryDto)
         {
-            // Map DTO -> Entity
-            var categoryEntity = new Category
-            {
-                Name = newCategoryDto.Name,
-                ParentCategoryId = newCategoryDto.ParentCategoryId
-            };
-
-            // Save via Repo
-            var savedCategory = await _repository.AddCategoryAsync(categoryEntity);
-
-            // Map Entity -> DTO
-            var response = new CategoryResponseDto
-            {
-                Id = savedCategory.Id,
-                Name = savedCategory.Name,
-                ParentCategoryId = savedCategory.ParentCategoryId
-            };
-
+            var response = await _service.AddCategoryAsync(newCategoryDto);
             return CreatedAtRoute("GetCategoryById", new { id = response.Id }, response);
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,ProductManager")]
-        public async Task<ActionResult> UpdateCategoryAsync(Guid id, [FromBody]Category newCategory)
+        public async Task<ActionResult> UpdateCategoryAsync(Guid id, [FromBody] Category newCategory)
         {
-            var existingCategory = await _repository.GetCategoryByIdAsync(id);
-
-            if (existingCategory == null)
+            try
+            {
+                await _service.UpdateCategoryAsync(id, newCategory);
+                return NoContent();
+            }
+            catch (InvalidOperationException)
             {
                 return NotFound();
             }
-
-            existingCategory.Name = newCategory.Name;
-            await _repository.UpdateCategoryAsync(existingCategory);
-
-            return NoContent();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteCategoryAsync(Guid id)
         {
-            var category = await _repository.GetCategoryByIdAsync(id);
-
-            if (category == null)
+            try
+            {
+                await _service.DeleteCategoryAsync(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException)
             {
                 return NotFound();
             }
-
-            await _repository.DeleteCategoryAsync(category);
-
-            return NoContent();
         }
     }
 }

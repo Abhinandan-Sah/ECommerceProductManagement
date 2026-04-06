@@ -1,6 +1,6 @@
-﻿using Catalog.API.Domain.Entities;
+using Catalog.API.Domain.Entities;
 
-namespace Catalog.API.Application.Interfaces
+namespace Catalog.API.Application.Interfaces.Repositories
 {
     public interface IMediaAssetRepository
     {

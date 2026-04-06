@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Workflow.API.Application.Interfaces;
+using Workflow.API.Application.Interfaces.Repositories;
+using Workflow.API.Application.Interfaces.Services;
+using Workflow.API.Application.Services;
 using Workflow.API.Infrastructure.Data;
 using Workflow.API.Infrastructure.Repositories;
 
@@ -13,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IWorkflowRepository, WorkflowRepository>();
+builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 
 
 builder.Services.AddOpenApi();

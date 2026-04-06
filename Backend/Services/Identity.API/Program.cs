@@ -1,4 +1,6 @@
-using Identity.API.Application.Interfaces;
+using Identity.API.Application.Interfaces.Repositories;
+using Identity.API.Application.Interfaces.Services;
+using Identity.API.Application.Services;
 using Identity.API.Infrastructure.Data;
 using Identity.API.Infrastructure.Repositories;
 using Identity.API.Infrastructure.Security;
@@ -50,6 +52,8 @@ builder.Services.AddAuthorization();
 // ─────────────────────────────────────────
 // Application Services
 // ─────────────────────────────────────────
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddControllers();
 

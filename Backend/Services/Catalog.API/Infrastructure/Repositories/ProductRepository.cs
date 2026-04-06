@@ -1,4 +1,4 @@
-﻿using Catalog.API.Application.Interfaces;
+using Catalog.API.Application.Interfaces.Repositories;
 using Catalog.API.Domain.Entities;
 using Catalog.API.Domain.Enums;
 using Catalog.API.Infrastructure.Data;

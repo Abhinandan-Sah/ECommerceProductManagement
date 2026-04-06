@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Workflow.API.Application.DTOs;
-using Workflow.API.Application.Interfaces;
+using Workflow.API.Application.Interfaces.Services;
 
 namespace Workflow.API.Controllers
 {
@@ -11,11 +11,11 @@ namespace Workflow.API.Controllers
     [Authorize] // Enforces that EVERY endpoint requires a valid JWT token
     public class WorkflowController : ControllerBase
     {
-        private readonly IWorkflowRepository _repository;
+        private readonly IWorkflowService _service;
 
-        public WorkflowController(IWorkflowRepository repository)
+        public WorkflowController(IWorkflowService service)
         {
-            _repository = repository;
+            _service = service;
         }
 
         // Helper method to extract the UserId from the JWT Token
@@ -30,7 +30,7 @@ namespace Workflow.API.Controllers
         [HttpPut("products/{id:guid}/pricing")]
         public async Task<IActionResult> UpdatePricing(Guid id, [FromBody] UpdatePricingRequestDto request)
         {
-            var success = await _repository.UpdatePricingAsync(id, request);
+            var success = await _service.UpdatePricingAsync(id, request);
             if (!success) return BadRequest(new { message = "Failed to update pricing." });
 
             return Ok(new { message = "Pricing saved successfully." });
@@ -41,7 +41,7 @@ namespace Workflow.API.Controllers
         [HttpPut("products/{id:guid}/inventory")]
         public async Task<IActionResult> UpdateInventory(Guid id, [FromBody] UpdateInventoryRequestDto request)
         {
-            var success = await _repository.UpdateInventoryAsync(id, request);
+            var success = await _service.UpdateInventoryAsync(id, request);
             if (!success) return BadRequest(new { message = "Failed to update inventory." });
 
             return Ok(new { message = "Inventory saved successfully." });
@@ -55,7 +55,7 @@ namespace Workflow.API.Controllers
             var userId = GetUserId();
             if (userId == Guid.Empty) return Unauthorized();
 
-            var success = await _repository.SubmitForReviewAsync(id, userId);
+            var success = await _service.SubmitForReviewAsync(id, userId);
             if (!success) return BadRequest(new { message = "Failed to submit product for review." });
 
             return Ok(new { message = "Product successfully submitted for review." });
@@ -70,7 +70,7 @@ namespace Workflow.API.Controllers
             var userId = GetUserId();
             if (userId == Guid.Empty) return Unauthorized();
 
-            var success = await _repository.UpdateStatusAsync(id, request, userId);
+            var success = await _service.UpdateStatusAsync(id, request, userId);
             if (!success) return BadRequest(new { message = "Product must be submitted before it can be approved/rejected." });
 
             return Ok(new { message = $"Product status successfully updated to {request.NewStatus}." });

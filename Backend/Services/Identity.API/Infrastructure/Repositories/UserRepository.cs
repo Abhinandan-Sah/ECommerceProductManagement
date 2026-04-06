@@ -1,5 +1,4 @@
-using Identity.API.Application.DTOs.User;
-using Identity.API.Application.Interfaces;
+using Identity.API.Application.Interfaces.Repositories;
 using Identity.API.Domain.Entities;
 using Identity.API.Domain.Enums;
 using Identity.API.Infrastructure.Data;
@@ -16,8 +15,7 @@ namespace Identity.API.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(
-            int page, int pageSize, string? search, string? role)
+        public async Task<IEnumerable<User>> GetAllUsersAsync(int page, int pageSize, string? search, string? role)
         {
             var query = BuildFilterQuery(search, role);
 
@@ -25,7 +23,6 @@ namespace Identity.API.Infrastructure.Repositories
                 .OrderBy(u => u.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(u => MapToDto(u))
                 .ToListAsync();
         }
 
@@ -34,10 +31,9 @@ namespace Identity.API.Infrastructure.Repositories
             return await BuildFilterQuery(search, role).CountAsync();
         }
 
-        public async Task<UserResponseDto?> GetUserByIdAsync(Guid id)
+        public async Task<User?> GetUserByIdAsync(Guid id)
         {
-            var user = await _context.Users.FindAsync(id);
-            return user == null ? null : MapToDto(user);
+            return await _context.Users.FindAsync(id);
         }
 
         public async Task<bool> IsEmailTakenAsync(string email, Guid excludeUserId)
@@ -45,60 +41,27 @@ namespace Identity.API.Infrastructure.Repositories
             return await _context.Users.AnyAsync(u => u.Email == email && u.Id != excludeUserId);
         }
 
-        public async Task<UserResponseDto> UpdateProfileAsync(Guid id, UpdateProfileRequestDto request)
+        public async Task UpdateUserAsync(User user)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            user!.FullName  = request.FullName;
-            user.Email     = request.Email;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return MapToDto(user);
-        }
-
-        public async Task UpdateUserRoleAsync(Guid id, Role role)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return;
-
-            user.Role      = role;
-            user.UpdatedAt = DateTime.UtcNow;
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 
-        public async Task SetUserActiveAsync(Guid id, bool isActive)
+        public async Task DeleteUserAsync(User user)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return;
-
-            user.IsActive  = isActive;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            // Revoke all refresh tokens when deactivating (force logout everywhere)
-            if (!isActive)
-            {
-                var tokens = await _context.RefreshTokens
-                    .Where(r => r.UserId == id && !r.IsRevoked)
-                    .ToListAsync();
-                tokens.ForEach(r => { r.IsRevoked = true; r.RevokedReason = "Account deactivated"; });
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteUserAsync(Guid id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return;
-
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
 
-        // ─────────────────────────────────────────────
-        // Private helpers
-        // ─────────────────────────────────────────────
+        public async Task RevokeRefreshTokensAsync(Guid userId, string reason)
+        {
+            var tokens = await _context.RefreshTokens
+                .Where(r => r.UserId == userId && !r.IsRevoked)
+                .ToListAsync();
+            
+            tokens.ForEach(r => { r.IsRevoked = true; r.RevokedReason = reason; });
+            await _context.SaveChangesAsync();
+        }
 
         private IQueryable<User> BuildFilterQuery(string? search, string? role)
         {
@@ -112,16 +75,5 @@ namespace Identity.API.Infrastructure.Repositories
 
             return query;
         }
-
-        private static UserResponseDto MapToDto(User user) => new()
-        {
-            Id        = user.Id,
-            FullName  = user.FullName,
-            Email     = user.Email,
-            Role      = user.Role.ToString(),
-            IsActive  = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        };
     }
 }

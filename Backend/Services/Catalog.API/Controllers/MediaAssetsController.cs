@@ -1,7 +1,6 @@
-﻿using Catalog.API.Application.DTOs;
+using Catalog.API.Application.DTOs;
 using Catalog.API.Application.DTOs.MediaAsset;
-using Catalog.API.Application.Interfaces;
-using Catalog.API.Domain.Entities;
+using Catalog.API.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,53 +10,25 @@ namespace Catalog.API.Controllers
     [Route("api/products/{productId}/media")]
     public class MediaAssetsController : ControllerBase
     {
-        private readonly IMediaAssetRepository _mediaRepository;
-        private readonly IProductRepository _productRepository;
+        private readonly IMediaAssetService _service;
 
-        public MediaAssetsController(
-            IMediaAssetRepository mediaRepository,
-            IProductRepository productRepository)
+        public MediaAssetsController(IMediaAssetService service)
         {
-            _mediaRepository = mediaRepository;
-            _productRepository = productRepository;
+            _service = service;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MediaAssetResponseDto>>> GetMediaByProductAsync(Guid productId)
         {
-            var product = await _productRepository.GetProductByIdAsync(productId);
-            if (product == null) return NotFound($"Product {productId} not found.");
-
-            var media = await _mediaRepository.GetMediaByProductIdAsync(productId);
-
-            var response = media.Select(m => new MediaAssetResponseDto
-            {
-                Id = m.Id,
-                ProductId = m.ProductId,
-                Url = m.Url,
-                SortOrder = m.SortOrder,
-                AltText = m.AltText
-            });
-
+            var response = await _service.GetMediaByProductAsync(productId);
             return Ok(response);
         }
 
         [HttpGet("{id}", Name = "GetMediaById")]
         public async Task<ActionResult<MediaAssetResponseDto>> GetMediaByIdAsync(Guid productId, Guid id)
         {
-            var media = await _mediaRepository.GetMediaByIdAsync(id);
-
-            if (media == null || media.ProductId != productId) return NotFound();
-
-            var response = new MediaAssetResponseDto
-            {
-                Id = media.Id,
-                ProductId = media.ProductId,
-                Url = media.Url,
-                SortOrder = media.SortOrder,
-                AltText = media.AltText
-            };
-
+            var response = await _service.GetMediaByIdAsync(productId, id);
+            if (response == null) return NotFound();
             return Ok(response);
         }
 
@@ -65,28 +36,7 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ContentExecutive")]
         public async Task<ActionResult<MediaAssetResponseDto>> AddMediaAsync(Guid productId, [FromBody] CreateMediaAssetDto dto)
         {
-            var product = await _productRepository.GetProductByIdAsync(productId);
-            if (product == null) return NotFound($"Product {productId} not found.");
-
-            var mediaEntity = new MediaAsset
-            {
-                ProductId = productId,
-                Url = dto.Url,
-                SortOrder = dto.SortOrder,
-                AltText = dto.AltText
-            };
-
-            var saved = await _mediaRepository.AddMediaAsync(mediaEntity);
-
-            var response = new MediaAssetResponseDto
-            {
-                Id = saved.Id,
-                ProductId = saved.ProductId,
-                Url = saved.Url,
-                SortOrder = saved.SortOrder,
-                AltText = saved.AltText
-            };
-
+            var response = await _service.AddMediaAsync(productId, dto);
             return CreatedAtRoute("GetMediaById", new { productId, id = response.Id }, response);
         }
 
@@ -94,12 +44,15 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ContentExecutive")]
         public async Task<ActionResult> DeleteMediaAsync(Guid productId, Guid id)
         {
-            var media = await _mediaRepository.GetMediaByIdAsync(id);
-
-            if (media == null || media.ProductId != productId) return NotFound();
-
-            await _mediaRepository.DeleteMediaAsync(media);
-            return NoContent();
+            try
+            {
+                await _service.DeleteMediaAsync(productId, id);
+                return NoContent();
+            }
+            catch (InvalidOperationException)
+            {
+                return NotFound();
+            }
         }
     }
 }
