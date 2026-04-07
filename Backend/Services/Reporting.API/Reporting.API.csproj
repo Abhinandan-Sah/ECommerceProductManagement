@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\Services\**" />
+    <Content Remove="Controllers\Services\**" />
+    <EmbeddedResource Remove="Controllers\Services\**" />
+    <None Remove="Controllers\Services\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
@@ -21,7 +28,6 @@
 
   <ItemGroup>
     <Folder Include="Application\" />
-    <Folder Include="Controllers\Services\" />
     <Folder Include="Infrastructure\Repositories\" />
   </ItemGroup>
 
