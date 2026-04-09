@@ -4,6 +4,7 @@ using Identity.API.Application.Interfaces.Repositories;
 using Identity.API.Application.Interfaces.Services;
 using Identity.API.Domain.Entities;
 using Identity.API.Domain.Enums;
+using Identity.API.Domain.Exceptions;
 using Identity.API.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
 
@@ -15,13 +16,16 @@ namespace Identity.API.Application.Services
         private readonly IUserRepository _userRepo;
         private readonly JwtTokenGenerator _jwtGenerator;
         private readonly IConfiguration _config;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IAuthRepository authRepo, IUserRepository userRepo, JwtTokenGenerator jwtGenerator, IConfiguration config)
+        public AuthService(IAuthRepository authRepo, IUserRepository userRepo,
+            JwtTokenGenerator jwtGenerator, IConfiguration config, ILogger<AuthService> logger)
         {
             _authRepo = authRepo;
             _userRepo = userRepo;
             _jwtGenerator = jwtGenerator;
             _config = config;
+            _logger = logger;
         }
 
         public async Task<bool> EmailExistsAsync(string email)
@@ -31,6 +35,8 @@ namespace Identity.API.Application.Services
 
         public async Task RegisterAsync(RegisterRequestDto request)
         {
+            _logger.LogInformation("Registering new user with email: {Email}", request.Email);
+
             var user = new User
             {
                 FullName = request.FullName,
@@ -40,21 +46,40 @@ namespace Identity.API.Application.Services
             };
 
             await _authRepo.AddUserAsync(user);
+
+            _logger.LogInformation("User {UserId} registered successfully", user.Id);
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto request)
         {
+            _logger.LogInformation("Login attempt for email: {Email}", request.Email);
+
             var user = await _authRepo.GetUserByEmailAsync(request.Email);
 
-            if (user == null) return null;
-            if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash)) return null;
-            if (!user.IsActive) return null;
+            if (user == null)
+            {
+                _logger.LogWarning("Login failed — email not found: {Email}", request.Email);
+                return null;
+            }
+            if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                _logger.LogWarning("Login failed — invalid password for email: {Email}", request.Email);
+                return null;
+            }
+            if (!user.IsActive)
+            {
+                _logger.LogWarning("Login failed — account deactivated for email: {Email}", request.Email);
+                return null;
+            }
 
+            _logger.LogInformation("User {UserId} logged in successfully", user.Id);
             return await IssueTokensAsync(user);
         }
 
         public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
         {
+            _logger.LogInformation("Refreshing token");
+
             var stored = await _authRepo.GetRefreshTokenAsync(refreshToken);
 
             if (stored == null || !stored.IsActive) return null;
@@ -63,6 +88,7 @@ namespace Identity.API.Application.Services
             stored.IsRevoked = true;
             stored.RevokedReason = "Replaced by new token";
 
+            _logger.LogInformation("Token refreshed for user {UserId}", stored.UserId);
             return await IssueTokensAsync(stored.User);
         }
 
@@ -76,11 +102,15 @@ namespace Identity.API.Application.Services
             stored.RevokedReason = "User logged out";
             
             await _authRepo.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserId} logged out successfully", stored.UserId);
             return true;
         }
 
         public async Task<string?> ForgotPasswordAsync(string email)
         {
+            _logger.LogInformation("Forgot password request for email: {Email}", email);
+
             var user = await _authRepo.GetUserByEmailAsync(email);
             if (user == null) return null;
 
@@ -100,11 +130,14 @@ namespace Identity.API.Application.Services
             await _authRepo.AddResetTokenAsync(resetToken);
             await _authRepo.SaveChangesAsync();
 
+            _logger.LogInformation("Password reset token generated for user {UserId}", user.Id);
             return resetToken.Token;
         }
 
         public async Task<bool> ResetPasswordAsync(ResetPasswordRequestDto request)
         {
+            _logger.LogInformation("Password reset attempt");
+
             var tokenRecord = await _authRepo.GetResetTokenAsync(request.Token);
 
             if (tokenRecord == null || !tokenRecord.IsValid) return false;
@@ -116,11 +149,14 @@ namespace Identity.API.Application.Services
             await _authRepo.RevokeAllRefreshTokensAsync(tokenRecord.UserId, "Password was reset");
             await _authRepo.SaveChangesAsync();
 
+            _logger.LogInformation("Password reset successfully for user {UserId}", tokenRecord.UserId);
             return true;
         }
 
         public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto request)
         {
+            _logger.LogInformation("Password change attempt for user {UserId}", userId);
+
             var user = await _userRepo.GetUserByIdAsync(userId);
             if (user == null) return false;
 
@@ -132,11 +168,14 @@ namespace Identity.API.Application.Services
             await _authRepo.RevokeAllRefreshTokensAsync(userId, "Password changed");
             await _userRepo.UpdateUserAsync(user);
 
+            _logger.LogInformation("Password changed successfully for user {UserId}", userId);
             return true;
         }
 
         public async Task<UserResponseDto?> GetProfileAsync(Guid userId)
         {
+            _logger.LogInformation("Fetching profile for user {UserId}", userId);
+
             var user = await _userRepo.GetUserByIdAsync(userId);
             return user == null ? null : MapToDto(user);
         }

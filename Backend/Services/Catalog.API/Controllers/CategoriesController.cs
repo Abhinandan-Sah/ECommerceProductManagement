@@ -44,30 +44,16 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<ActionResult> UpdateCategoryAsync(Guid id, [FromBody] Category newCategory)
         {
-            try
-            {
-                await _service.UpdateCategoryAsync(id, newCategory);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
-                return NotFound();
-            }
+            await _service.UpdateCategoryAsync(id, newCategory);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteCategoryAsync(Guid id)
         {
-            try
-            {
-                await _service.DeleteCategoryAsync(id);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
-                return NotFound();
-            }
+            await _service.DeleteCategoryAsync(id);
+            return NoContent();
         }
     }
 }

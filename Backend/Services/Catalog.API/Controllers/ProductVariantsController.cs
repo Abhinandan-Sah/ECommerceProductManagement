@@ -20,9 +20,6 @@ namespace Catalog.API.Controllers
         public async Task<ActionResult<IEnumerable<ProductVariantResponseDto>>> GetVariantsByProductAsync(Guid productId)
         {
             var response = await _service.GetVariantsByProductAsync(productId);
-            // Since our old implementation checked if the product existed first inside the controller,
-            // we should probably do a check or return empty if no variants, but old one returned 404 if product not found.
-            // Our Service doesn't check for Product existence on GET all variants to avoid an extra DB call, it just returns empty list if no variants.
             return Ok(response);
         }
 
@@ -46,30 +43,16 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<ActionResult> UpdateVariantAsync(Guid productId, Guid id, [FromBody] UpdateProductVariantDto dto)
         {
-            try
-            {
-                await _service.UpdateVariantAsync(productId, id, dto);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
-                return NotFound();
-            }
+            await _service.UpdateVariantAsync(productId, id, dto);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteVariantAsync(Guid productId, Guid id)
         {
-            try
-            {
-                await _service.DeleteVariantAsync(productId, id);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
-                return NotFound();
-            }
+            await _service.DeleteVariantAsync(productId, id);
+            return NoContent();
         }
     }
 }

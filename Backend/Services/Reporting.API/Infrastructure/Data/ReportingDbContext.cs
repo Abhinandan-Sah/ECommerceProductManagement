@@ -39,11 +39,19 @@ namespace Reporting.API.Infrastructure.Data
             {
                 entity.ToTable("AuditLogs");
                 entity.HasKey(a => a.Id);
+
+                // Core identity + action information.
                 entity.Property(a => a.EntityName).IsRequired().HasMaxLength(100);
                 entity.Property(a => a.Action).IsRequired().HasMaxLength(100);
+                entity.Property(a => a.ByUserId).IsRequired();
+
+                // JSON payloads for before/after state.
                 entity.Property(a => a.OldValues).HasColumnType("NVARCHAR(MAX)");
                 entity.Property(a => a.NewValues).HasColumnType("NVARCHAR(MAX)");
+
+                // Persistence timestamps (no separate ActionTime column).
                 entity.Property(a => a.CreatedAt).HasColumnType("DATETIME2").IsRequired().HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(a => a.UpdatedAt).HasColumnType("DATETIME2");
             });
         }
     }

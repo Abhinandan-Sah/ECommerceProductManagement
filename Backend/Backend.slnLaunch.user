@@ -1,6 +1,6 @@
 [
   {
-    "Name": "New Profile",
+    "Name": "Launcher",
     "Projects": [
       {
         "Path": "Services\\Identity.API\\Identity.API.csproj",

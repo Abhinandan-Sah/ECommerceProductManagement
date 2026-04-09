@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Catalog.API.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20260402064844_InitialCreate")]
+    [Migration("20260408074131_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -49,6 +49,39 @@ namespace Catalog.API.Infrastructure.Data.Migrations
                     b.HasIndex("ParentCategoryId");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Catalog.API.Domain.Entities.MediaAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AltText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("MediaAssets");
                 });
 
             modelBuilder.Entity("Catalog.API.Domain.Entities.Product", b =>
@@ -135,6 +168,17 @@ namespace Catalog.API.Infrastructure.Data.Migrations
                     b.Navigation("ParentCategory");
                 });
 
+            modelBuilder.Entity("Catalog.API.Domain.Entities.MediaAsset", b =>
+                {
+                    b.HasOne("Catalog.API.Domain.Entities.Product", "Product")
+                        .WithMany("MediaAssets")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Catalog.API.Domain.Entities.Product", b =>
                 {
                     b.HasOne("Catalog.API.Domain.Entities.Category", "Category")
@@ -164,6 +208,8 @@ namespace Catalog.API.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Catalog.API.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("MediaAssets");
+
                     b.Navigation("Variants");
                 });
 #pragma warning restore 612, 618

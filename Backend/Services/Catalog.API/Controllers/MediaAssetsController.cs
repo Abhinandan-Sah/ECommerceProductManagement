@@ -44,15 +44,8 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ContentExecutive")]
         public async Task<ActionResult> DeleteMediaAsync(Guid productId, Guid id)
         {
-            try
-            {
-                await _service.DeleteMediaAsync(productId, id);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
-                return NotFound();
-            }
+            await _service.DeleteMediaAsync(productId, id);
+            return NoContent();
         }
     }
 }

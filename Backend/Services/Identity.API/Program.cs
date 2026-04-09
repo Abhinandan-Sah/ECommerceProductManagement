@@ -2,16 +2,26 @@ using Identity.API.Application.Interfaces.Repositories;
 using Identity.API.Application.Interfaces.Services;
 using Identity.API.Application.Services;
 using Identity.API.Infrastructure.Data;
+using Identity.API.Infrastructure.Middleware;
 using Identity.API.Infrastructure.Repositories;
 using Identity.API.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-
+using Serilog;
 using System.Text;
 
+// ─────────────────────────────────────────
+// Serilog Bootstrap
+// ─────────────────────────────────────────
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // ─────────────────────────────────────────
 // Database
@@ -114,6 +124,9 @@ if (app.Environment.IsDevelopment())
         options.DisplayRequestDuration();
     });
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");

@@ -1,12 +1,18 @@
 ﻿namespace Shared.Messaging
 {
-    // This is the exact envelope that will travel through RabbitMQ
+    // Shared event contract used by Workflow (publisher) and Reporting (consumer).
     public class ProductStatusChangedEvent
     {
+        // Product whose status changed.
         public Guid ProductId { get; set; }
+
+        // Status before update.
         public string OldStatus { get; set; } = string.Empty;
+
+        // Status after update.
         public string NewStatus { get; set; } = string.Empty;
+
+        // User who performed the status update.
         public Guid ChangedByUserId { get; set; }
-        public DateTime Timestamp { get; set; }
     }
 }

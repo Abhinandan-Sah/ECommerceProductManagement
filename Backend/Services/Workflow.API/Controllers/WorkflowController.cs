@@ -30,9 +30,7 @@ namespace Workflow.API.Controllers
         [HttpPut("products/{id:guid}/pricing")]
         public async Task<IActionResult> UpdatePricing(Guid id, [FromBody] UpdatePricingRequestDto request)
         {
-            var success = await _service.UpdatePricingAsync(id, request);
-            if (!success) return BadRequest(new { message = "Failed to update pricing." });
-
+            await _service.UpdatePricingAsync(id, request);
             return Ok(new { message = "Pricing saved successfully." });
         }
 
@@ -41,9 +39,7 @@ namespace Workflow.API.Controllers
         [HttpPut("products/{id:guid}/inventory")]
         public async Task<IActionResult> UpdateInventory(Guid id, [FromBody] UpdateInventoryRequestDto request)
         {
-            var success = await _service.UpdateInventoryAsync(id, request);
-            if (!success) return BadRequest(new { message = "Failed to update inventory." });
-
+            await _service.UpdateInventoryAsync(id, request);
             return Ok(new { message = "Inventory saved successfully." });
         }
 
@@ -55,9 +51,7 @@ namespace Workflow.API.Controllers
             var userId = GetUserId();
             if (userId == Guid.Empty) return Unauthorized();
 
-            var success = await _service.SubmitForReviewAsync(id, userId);
-            if (!success) return BadRequest(new { message = "Failed to submit product for review." });
-
+            await _service.SubmitForReviewAsync(id, userId);
             return Ok(new { message = "Product successfully submitted for review." });
         }
 
@@ -70,9 +64,7 @@ namespace Workflow.API.Controllers
             var userId = GetUserId();
             if (userId == Guid.Empty) return Unauthorized();
 
-            var success = await _service.UpdateStatusAsync(id, request, userId);
-            if (!success) return BadRequest(new { message = "Product must be submitted before it can be approved/rejected." });
-
+            await _service.UpdateStatusAsync(id, request, userId);
             return Ok(new { message = $"Product status successfully updated to {request.NewStatus}." });
         }
     }
