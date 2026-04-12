@@ -1,18 +1,29 @@
 ﻿namespace Shared.Messaging
 {
-    // Shared event contract used by Workflow (publisher) and Reporting (consumer).
+    /// <summary>
+    /// Event published when a product's workflow status changes in the system.
+    /// Used for audit logging and cross-service notifications.
+    /// </summary>
     public class ProductStatusChangedEvent
     {
-        // Product whose status changed.
+        /// <summary>
+        /// The unique identifier of the product whose status changed.
+        /// </summary>
         public Guid ProductId { get; set; }
 
-        // Status before update.
+        /// <summary>
+        /// The workflow status before the change was applied.
+        /// </summary>
         public string OldStatus { get; set; } = string.Empty;
 
-        // Status after update.
+        /// <summary>
+        /// The workflow status after the change was applied.
+        /// </summary>
         public string NewStatus { get; set; } = string.Empty;
 
-        // User who performed the status update.
+        /// <summary>
+        /// The unique identifier of the user who performed the status change.
+        /// </summary>
         public Guid ChangedByUserId { get; set; }
     }
 }

@@ -7,9 +7,6 @@ using Ocelot.Provider.Polly;
 using Serilog;
 using System.Text;
 
-// ─────────────────────────────────────────
-// Serilog Bootstrap
-// ─────────────────────────────────────────
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
@@ -18,24 +15,26 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// 1. Load the Ocelot Configuration File
 builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 
-// ─────────────────────────────────────────
-// JWT Authentication
-// ─────────────────────────────────────────
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
     ?? throw new InvalidOperationException("JwtSettings:Secret is not configured");
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
+    ?? throw new InvalidOperationException("JwtSettings:Issuer is not configured");
+var jwtAudiences = builder.Configuration.GetSection("JwtSettings:Audiences").Get<string[]>()
+    ?? throw new InvalidOperationException("JwtSettings:Audiences is not configured");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudiences = jwtAudiences,
             ClockSkew = TimeSpan.Zero,
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSecret))
@@ -44,19 +43,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// ─────────────────────────────────────────
-// CORS
-// ─────────────────────────────────────────
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("CorsSettings:AllowedOrigins is not configured");
+
+if (allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException("CorsSettings:AllowedOrigins cannot be empty");
+}
+
+if (allowedOrigins.Any(origin => origin.Contains("*")))
+{
+    throw new InvalidOperationException("CorsSettings:AllowedOrigins cannot contain wildcard origins");
+}
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
+    options.AddPolicy("RestrictedOrigins", policy =>
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
-
-// 2. Register Ocelot Services
 builder.Services.AddOcelot(builder.Configuration).AddPolly();
 
 builder.Services.AddSwaggerForOcelot(builder.Configuration);
@@ -71,12 +78,11 @@ app.UseSwaggerForOcelotUI(opt =>
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseSerilogRequestLogging();
 
-app.UseCors("AllowAll");
+app.UseCors("RestrictedOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 3. Execute Ocelot Middleware
 await app.UseOcelot();
 
 app.Run();

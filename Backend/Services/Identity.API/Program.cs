@@ -12,9 +12,6 @@ using Microsoft.OpenApi;
 using Serilog;
 using System.Text;
 
-// ─────────────────────────────────────────
-// Serilog Bootstrap
-// ─────────────────────────────────────────
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
@@ -23,34 +20,31 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// ─────────────────────────────────────────
-// Database
-// ─────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<IdentityDBContext>(options =>
     options.UseSqlServer(connectionString));
 
-// ─────────────────────────────────────────
-// Repositories
-// ─────────────────────────────────────────
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// ─────────────────────────────────────────
-// JWT Authentication
-// ─────────────────────────────────────────
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
     ?? throw new InvalidOperationException("JwtSettings:Secret is not configured");
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
+    ?? throw new InvalidOperationException("JwtSettings:Issuer is not configured");
+var jwtAudience = builder.Configuration["JwtSettings:Audience"]
+    ?? throw new InvalidOperationException("JwtSettings:Audience is not configured");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = false,
-            ValidateAudience         = false,
+            ValidateIssuer           = true,
+            ValidateAudience         = true,
             ValidateLifetime         = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer              = jwtIssuer,
+            ValidAudience            = jwtAudience,
             ClockSkew                = TimeSpan.Zero,
             IssuerSigningKey         = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSecret))
@@ -59,28 +53,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// ─────────────────────────────────────────
-// Application Services
-// ─────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddControllers();
 
-// ─────────────────────────────────────────
-// CORS
-// ─────────────────────────────────────────
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowAll", policy =>
-//        policy.AllowAnyOrigin()
-//              .AllowAnyHeader()
-//              .AllowAnyMethod());
-//});
-
-// ─────────────────────────────────────────
-// Swagger with JWT bearer support
-// ─────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -110,9 +87,6 @@ builder.Services.AddSwaggerGen(options =>
 
 });
 
-// ─────────────────────────────────────────
-// Build & Configure Pipeline
-// ─────────────────────────────────────────
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -129,7 +103,6 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

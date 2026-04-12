@@ -6,6 +6,7 @@ namespace Identity.API.Application.DTOs.Auth
     {
         [Required]
         [EmailAddress]
+        [MaxLength(256, ErrorMessage = "Email cannot exceed 256 characters")]
         public string Email { get; set; } = string.Empty;
     }
 }

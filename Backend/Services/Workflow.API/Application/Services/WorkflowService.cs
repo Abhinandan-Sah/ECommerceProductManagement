@@ -26,6 +26,14 @@ namespace Workflow.API.Application.Services
         {
             _logger.LogInformation("Updating pricing for product {ProductId}", productId);
 
+            // Business rule validation: SalePrice must be less than or equal to MRP
+            if (request.SalePrice > request.MRP)
+            {
+                _logger.LogWarning("Sale price {SalePrice} cannot be greater than MRP {MRP} for product {ProductId}",
+                    request.SalePrice, request.MRP, productId);
+                throw new BadRequestException("Sale price cannot be greater than MRP.");
+            }
+
             var price = await _repository.GetPricingByProductIdAsync(productId);
 
             if (price == null)
@@ -101,7 +109,6 @@ namespace Workflow.API.Application.Services
                 throw new BadRequestException("Product must be submitted before it can be approved/rejected.");
             }
 
-            // Capture old status for audit trail event.
             var oldStatus = approval.Status.ToString();
 
             approval.Status = request.NewStatus;

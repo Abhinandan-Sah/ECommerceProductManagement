@@ -3,6 +3,7 @@ using Catalog.API.Application.Interfaces.Services;
 using Catalog.API.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Catalog.API.Controllers
 {
@@ -17,17 +18,22 @@ namespace Catalog.API.Controllers
             _service = service;
         }
 
+        private bool CanViewUnpublishedProducts()
+        {
+            return User.IsInRole("Admin") || User.IsInRole("ProductManager") || User.IsInRole("ContentExecutive");
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAllProductsAsync([FromQuery] Guid? categoryId, [FromQuery] PublishStatus? status)
         {
-            var response = await _service.GetAllProductsAsync(categoryId, status);
+            var response = await _service.GetAllProductsAsync(categoryId, status, CanViewUnpublishedProducts());
             return Ok(response);
         }
 
         [HttpGet("{id}", Name = "GetProductById")]
         public async Task<ActionResult<ProductResponseDto?>> GetProductByIdAsync(Guid id)
         {
-            var response = await _service.GetProductByIdAsync(id);
+            var response = await _service.GetProductByIdAsync(id, CanViewUnpublishedProducts());
             if (response == null) return NotFound();
             return Ok(response);
         }

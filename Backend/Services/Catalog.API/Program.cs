@@ -11,9 +11,6 @@ using Microsoft.OpenApi;
 using Serilog;
 using System.Text;
 
-// ─────────────────────────────────────────
-// Serilog Bootstrap
-// ─────────────────────────────────────────
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
@@ -22,30 +19,18 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// ─────────────────────────────────────────
-// Controllers
-// ─────────────────────────────────────────
 builder.Services.AddControllers();
 
-// ─────────────────────────────────────────
-// Repositories
-// ─────────────────────────────────────────
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
 builder.Services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 
-// ─────────────────────────────────────────
-// Services
-// ─────────────────────────────────────────
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
 builder.Services.AddScoped<IMediaAssetService, MediaAssetService>();
 
-// ─────────────────────────────────────────
-// Swagger / OpenAPI
-// ─────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -75,33 +60,34 @@ builder.Services.AddSwaggerGen(options =>
     });
 
 });
-// ─────────────────────────────────────────
-// JWT Authentication
-// ─────────────────────────────────────────
+
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
     ?? throw new InvalidOperationException("JwtSettings:Secret is not configured");
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
+    ?? throw new InvalidOperationException("JwtSettings:Issuer is not configured");
+var jwtAudience = builder.Configuration["JwtSettings:Audience"]
+    ?? throw new InvalidOperationException("JwtSettings:Audience is not configured");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            ClockSkew = TimeSpan.Zero,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
         };
     });
 
-// ─────────────────────────────────────────
-// Database
-// ─────────────────────────────────────────
+builder.Services.AddAuthorization();
+
 builder.Services.AddDbContext<CatalogDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ─────────────────────────────────────────
-// Build & Configure Pipeline
-// ─────────────────────────────────────────
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

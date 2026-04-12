@@ -18,7 +18,6 @@ namespace Identity.API.Controllers
             _authService = authService;
         }
 
-        // POST /api/auth/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
@@ -29,7 +28,6 @@ namespace Identity.API.Controllers
             return StatusCode(201, new { message = "User registered successfully." });
         }
 
-        // POST /api/auth/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
@@ -38,7 +36,6 @@ namespace Identity.API.Controllers
             return Ok(result);
         }
 
-        // POST /api/auth/refresh
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
@@ -47,7 +44,6 @@ namespace Identity.API.Controllers
             return Ok(result);
         }
 
-        // POST /api/auth/logout  [Authorize]
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] RefreshTokenRequestDto request)
@@ -57,21 +53,16 @@ namespace Identity.API.Controllers
             return Ok(new { message = "Logged out successfully." });
         }
 
-        // POST /api/auth/forgot-password
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
-            var resetToken = await _authService.ForgotPasswordAsync(request.Email);
+            await _authService.ForgotPasswordAsync(request.Email);
 
-            // Always return 200 — prevents attackers from knowing which emails are registered
-            if (resetToken == null)
-                return Ok(new { message = "If this email is registered, a reset token will be sent." });
-
-            // TODO: Email this token to the user in production. Returning it here for development only.
-            return Ok(new { message = "Reset token generated.", resetToken });
+            // Always return the same generic message regardless of whether email exists
+            // This prevents email enumeration attacks
+            return Ok(new { message = "If this email is registered, a reset link will be sent." });
         }
 
-        // POST /api/auth/reset-password
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
@@ -80,7 +71,6 @@ namespace Identity.API.Controllers
             return Ok(new { message = "Password reset successfully. Please log in with your new password." });
         }
 
-        // POST /api/auth/change-password  [Authorize]
         [Authorize]
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
@@ -93,7 +83,6 @@ namespace Identity.API.Controllers
             return Ok(new { message = "Password changed successfully. Please log in again." });
         }
 
-        // GET /api/auth/profile  [Authorize]
         [Authorize]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
@@ -106,7 +95,6 @@ namespace Identity.API.Controllers
             return Ok(profile);
         }
 
-        // GET /api/auth/admin  [Authorize(Roles = "Admin")]
         [Authorize(Roles = "Admin")]
         [HttpGet("admin")]
         public IActionResult GetAdminData()

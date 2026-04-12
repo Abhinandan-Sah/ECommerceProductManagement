@@ -7,51 +7,51 @@ using System.Threading.Tasks;
 
 namespace Gateway.API.Middleware
 {
+    /// <summary>
+    /// Middleware that catches unhandled exceptions during request processing and returns standardized error responses.
+    /// In Development environment, includes exception details for debugging. In Production, only returns generic error messages.
+    /// </summary>
     public class GlobalExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
+        public GlobalExceptionHandlerMiddleware(
+            RequestDelegate next, 
+            ILogger<GlobalExceptionHandlerMiddleware> logger,
+            IWebHostEnvironment environment)
         {
             _next = next;
             _logger = logger;
+            _environment = environment;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                // This line passes the request to Ocelot.
-                // If anything goes wrong during routing, it falls into the catch block.
                 await _next(context);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "The API Gateway caught an unhandled exception.");
-                await HandleExceptionAsync(context, ex);
+                await HandleExceptionAsync(context, ex, _environment);
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception, IWebHostEnvironment environment)
         {
-            // 1. Force the response to be JSON
             context.Response.ContentType = "application/json";
-
-            // 2. Set the standard 500 Internal Server Error code
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            // 3. Create a standardized error object
             var errorResponse = new
             {
                 StatusCode = context.Response.StatusCode,
                 Message = "An internal server error occurred while routing your request.",
-                // NOTE: We expose the exception message here for your training environment.
-                // In a real production app, you would hide the exception details from the client!
-                DeveloperDetails = exception.Message
+                Detail = environment.IsDevelopment() ? exception.Message : null
             };
 
-            // 4. Serialize and return the JSON
             var jsonResponse = JsonSerializer.Serialize(errorResponse);
             return context.Response.WriteAsync(jsonResponse);
         }

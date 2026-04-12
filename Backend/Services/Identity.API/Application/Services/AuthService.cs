@@ -112,7 +112,11 @@ namespace Identity.API.Application.Services
             _logger.LogInformation("Forgot password request for email: {Email}", email);
 
             var user = await _authRepo.GetUserByEmailAsync(email);
-            if (user == null) return null;
+            if (user == null)
+            {
+                // Return null but don't log anything to prevent email enumeration via logs
+                return null;
+            }
 
             var existing = await _authRepo.GetActiveResetTokensAsync(user.Id);
             foreach (var t in existing)
@@ -129,6 +133,14 @@ namespace Identity.API.Application.Services
 
             await _authRepo.AddResetTokenAsync(resetToken);
             await _authRepo.SaveChangesAsync();
+
+            // In development: Log the reset URL for testing
+            // In production: This should be replaced with email service (SendGrid, SMTP)
+            var resetUrl = $"https://app.example.com/reset-password?token={resetToken.Token}";
+            _logger.LogWarning("PASSWORD RESET TOKEN (Development Only): User {UserId}, URL: {ResetUrl}", user.Id, resetUrl);
+            
+            // TODO: In production, send email with reset URL instead of logging
+            // await _emailService.SendPasswordResetEmailAsync(user.Email, resetUrl);
 
             _logger.LogInformation("Password reset token generated for user {UserId}", user.Id);
             return resetToken.Token;

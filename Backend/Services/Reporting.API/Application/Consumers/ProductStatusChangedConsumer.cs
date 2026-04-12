@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace Reporting.API.Application.Consumers
 {
     /// <summary>
-    /// Listens for ProductStatusChangedEvent from Workflow.API or Catalog.API
+    /// Listens for ProductStatusChangedEvent from Workflow.API
     /// and creates an audit log entry.
     /// </summary>
     public class ProductStatusChangedConsumer : IConsumer<ProductStatusChangedEvent>

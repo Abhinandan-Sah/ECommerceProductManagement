@@ -10,17 +10,22 @@ namespace Catalog.API.Application.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly ILogger<ProductService> _logger;
 
-        public ProductService(IProductRepository repository, ILogger<ProductService> logger)
+        public ProductService(IProductRepository repository, ICategoryRepository categoryRepository, ILogger<ProductService> logger)
         {
             _repository = repository;
+            _categoryRepository = categoryRepository;
             _logger = logger;
         }
 
-        public async Task<IEnumerable<ProductResponseDto>> GetAllProductsAsync(Guid? categoryId = null, PublishStatus? status = null)
+        public async Task<IEnumerable<ProductResponseDto>> GetAllProductsAsync(Guid? categoryId = null, PublishStatus? status = null, bool canViewUnpublished = false)
         {
             _logger.LogInformation("Fetching all products (CategoryId: {CategoryId}, Status: {Status})", categoryId, status);
+
+            if (!canViewUnpublished)
+                status = PublishStatus.Published;
 
             var products = await _repository.GetAllProductsAsync(categoryId, status);
             return products.Select(p => new ProductResponseDto
@@ -35,12 +40,15 @@ namespace Catalog.API.Application.Services
             });
         }
 
-        public async Task<ProductResponseDto?> GetProductByIdAsync(Guid id)
+        public async Task<ProductResponseDto?> GetProductByIdAsync(Guid id, bool canViewUnpublished = false)
         {
             _logger.LogInformation("Fetching product {ProductId}", id);
 
             var product = await _repository.GetProductByIdAsync(id);
             if (product == null) return null;
+
+            if (!canViewUnpublished && product.PublishStatus != PublishStatus.Published)
+                return null;
 
             return new ProductResponseDto
             {
@@ -57,6 +65,14 @@ namespace Catalog.API.Application.Services
         public async Task<ProductResponseDto> AddProductAsync(CreateProductDto dto)
         {
             _logger.LogInformation("Adding new product: {ProductName}", dto.Name);
+
+            // Business rule validation: Category must exist
+            var category = await _categoryRepository.GetCategoryByIdAsync(dto.CategoryId);
+            if (category == null)
+            {
+                _logger.LogWarning("Cannot create product - Category {CategoryId} does not exist", dto.CategoryId);
+                throw new BadRequestException($"Category with ID {dto.CategoryId} does not exist.");
+            }
 
             var productEntity = new Product
             {
@@ -90,6 +106,14 @@ namespace Catalog.API.Application.Services
 
             var existingProduct = await _repository.GetProductByIdAsync(id);
             if (existingProduct == null) throw new NotFoundException("Product", id);
+
+            // Business rule validation: Category must exist
+            var category = await _categoryRepository.GetCategoryByIdAsync(dto.CategoryId);
+            if (category == null)
+            {
+                _logger.LogWarning("Cannot update product - Category {CategoryId} does not exist", dto.CategoryId);
+                throw new BadRequestException($"Category with ID {dto.CategoryId} does not exist.");
+            }
 
             existingProduct.Name = dto.Name;
             existingProduct.SKU = dto.SKU;

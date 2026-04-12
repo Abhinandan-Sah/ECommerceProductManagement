@@ -9,11 +9,13 @@ namespace Catalog.API.Application.Services
     public class ProductVariantService : IProductVariantService
     {
         private readonly IProductVariantRepository _variantRepository;
+        private readonly IProductRepository _productRepository;
         private readonly ILogger<ProductVariantService> _logger;
 
-        public ProductVariantService(IProductVariantRepository variantRepository, ILogger<ProductVariantService> logger)
+        public ProductVariantService(IProductVariantRepository variantRepository, IProductRepository productRepository, ILogger<ProductVariantService> logger)
         {
             _variantRepository = variantRepository;
+            _productRepository = productRepository;
             _logger = logger;
         }
 
@@ -52,6 +54,14 @@ namespace Catalog.API.Application.Services
         public async Task<ProductVariantResponseDto> AddVariantAsync(Guid productId, CreateProductVariantDto dto)
         {
             _logger.LogInformation("Adding variant for product {ProductId}", productId);
+
+            // Business rule validation: Product must exist
+            var product = await _productRepository.GetProductByIdAsync(productId);
+            if (product == null)
+            {
+                _logger.LogWarning("Cannot create variant - Product {ProductId} does not exist", productId);
+                throw new BadRequestException($"Product with ID {productId} does not exist.");
+            }
 
             var variantEntity = new ProductVariant
             {

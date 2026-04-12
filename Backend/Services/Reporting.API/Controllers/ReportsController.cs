@@ -1,13 +1,15 @@
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Reporting.API.Application.Interfaces.Services;
 using Reporting.API.Application.DTOs.Common;
 using Reporting.API.Application.DTOs.Reports;
+using Reporting.API.Application.Interfaces.Services;
+using System.Threading.Tasks;
 
 namespace Reporting.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,ProductManager")]
     public class ReportsController : ControllerBase
     {
         private readonly IReportingService _reportingService;

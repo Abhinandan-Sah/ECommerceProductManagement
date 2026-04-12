@@ -1,12 +1,14 @@
-using System;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Reporting.API.Application.Interfaces.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace Reporting.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class AuditController : ControllerBase
     {
         private readonly IAuditService _auditService;
