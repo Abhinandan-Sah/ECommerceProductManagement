@@ -11,12 +11,18 @@ namespace Catalog.API.Application.Services
     {
         private readonly IProductRepository _repository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ISkuGenerator _skuGenerator;
         private readonly ILogger<ProductService> _logger;
 
-        public ProductService(IProductRepository repository, ICategoryRepository categoryRepository, ILogger<ProductService> logger)
+        public ProductService(
+            IProductRepository repository, 
+            ICategoryRepository categoryRepository, 
+            ISkuGenerator skuGenerator,
+            ILogger<ProductService> logger)
         {
             _repository = repository;
             _categoryRepository = categoryRepository;
+            _skuGenerator = skuGenerator;
             _logger = logger;
         }
 
@@ -74,10 +80,13 @@ namespace Catalog.API.Application.Services
                 throw new BadRequestException($"Category with ID {dto.CategoryId} does not exist.");
             }
 
+            // Generate unique SKU
+            var generatedSku = await _skuGenerator.GenerateSkuAsync(dto.Brand, dto.Name);
+
             var productEntity = new Product
             {
                 Name = dto.Name,
-                SKU = dto.SKU,
+                SKU = generatedSku,
                 Brand = dto.Brand,
                 Description = dto.Description,
                 CategoryId = dto.CategoryId,
@@ -86,7 +95,7 @@ namespace Catalog.API.Application.Services
 
             var savedProduct = await _repository.AddProductAsync(productEntity);
 
-            _logger.LogInformation("Product {ProductId} created successfully", savedProduct.Id);
+            _logger.LogInformation("Product {ProductId} created successfully with SKU {Sku}", savedProduct.Id, savedProduct.SKU);
 
             return new ProductResponseDto
             {
@@ -116,7 +125,7 @@ namespace Catalog.API.Application.Services
             }
 
             existingProduct.Name = dto.Name;
-            existingProduct.SKU = dto.SKU;
+            // SKU is not updated - it remains unchanged after creation
             existingProduct.Brand = dto.Brand;
             existingProduct.Description = dto.Description;
             existingProduct.CategoryId = dto.CategoryId;

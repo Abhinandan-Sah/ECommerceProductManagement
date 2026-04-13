@@ -30,6 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Reporting.API.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Application\" />
     <Folder Include="Infrastructure\Data\Migrations\" />
     <Folder Include="Infrastructure\Repositories\" />

@@ -10,5 +10,12 @@ namespace Catalog.API.Application.Interfaces.Repositories
         Task<Product> AddProductAsync(Product product);
         Task UpdateProductAsync(Product product);
         Task DeleteProductAsync(Product product);
+        
+        /// <summary>
+        /// Retrieves all SKUs that start with the specified prefix
+        /// </summary>
+        /// <param name="prefix">The SKU prefix to search for</param>
+        /// <returns>Collection of SKU strings matching the prefix</returns>
+        Task<IEnumerable<string>> GetSkusByPrefixAsync(string prefix);
     }
 }

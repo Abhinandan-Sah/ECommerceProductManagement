@@ -9,10 +9,6 @@ namespace Catalog.API.Application.DTOs.Product
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "SKU is required")]
-        [MaxLength(100, ErrorMessage = "SKU cannot exceed 100 characters")]
-        public string SKU { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Brand is required")]
         [MaxLength(200, ErrorMessage = "Brand cannot exceed 200 characters")]
         public string Brand { get; set; } = string.Empty;

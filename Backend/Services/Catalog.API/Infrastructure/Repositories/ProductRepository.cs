@@ -56,5 +56,13 @@ namespace Catalog.API.Infrastructure.Repositories
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<string>> GetSkusByPrefixAsync(string prefix)
+        {
+            return await _context.Products
+                .Where(p => p.SKU.StartsWith(prefix))
+                .Select(p => p.SKU)
+                .ToListAsync();
+        }
     }
 }

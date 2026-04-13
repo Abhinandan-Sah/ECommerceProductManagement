@@ -30,6 +30,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
 builder.Services.AddScoped<IMediaAssetService, MediaAssetService>();
+builder.Services.AddScoped<ISkuGenerator, SkuGenerator>();
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();

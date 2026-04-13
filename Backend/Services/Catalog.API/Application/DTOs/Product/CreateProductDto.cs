@@ -15,10 +15,6 @@ namespace Catalog.API.Application.DTOs.Product
         [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string Description { get; set; } = String.Empty;
 
-        [Required(ErrorMessage = "SKU is required")]
-        [MaxLength(100, ErrorMessage = "SKU cannot exceed 100 characters")]
-        public string SKU { get; set; } = String.Empty;
-
         [Required(ErrorMessage = "Category ID is required")]
         public Guid CategoryId { get; set; }
     }

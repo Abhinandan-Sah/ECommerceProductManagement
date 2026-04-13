@@ -16,4 +16,10 @@
   <Folder Name="/Shared/">
     <Project Path="Shared/Shared.Messaging/Shared.Messaging.csproj" Id="3ddb35fc-8e15-45c9-a4a6-19797e965b7f" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Catalog.API.Tests/Catalog.API.Tests.csproj" Id="58c437fc-fbba-4633-9c88-40aab33cfe7c"  />
+    <Project Path="Tests/Identity.API.Tests/Identity.API.Tests.csproj" Id="bc5a3a7c-bf78-412f-8a53-cd53ce6281ee" />
+    <Project Path="Tests/Reporting.API.Tests/Reporting.API.Tests.csproj" Id="ad764b1f-baf5-492e-9d04-f425af27751e" />
+    <Project Path="Tests/Workflow.API.Tests/Workflow.API.Tests.csproj" Id="66378a9d-9f1a-46ce-b866-ac12ad0436f9" />
+  </Folder>
 </Solution>
