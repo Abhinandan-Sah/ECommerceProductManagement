@@ -1,0 +1,66 @@
+<div class="profile-container">
+  <div class="profile-card">
+    <!-- Header -->
+    <div class="profile-header">
+      <h1>My Profile</h1>
+      <p>View and manage your account information</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading profile...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && errorMessage" class="error-state">
+      <p>{{ errorMessage }}</p>
+      <button class="btn btn-secondary" (click)="loadProfile()">Retry</button>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!isLoading && user && !errorMessage" class="profile-content">
+      <!-- Profile Info -->
+      <div class="profile-info">
+        <div class="info-row">
+          <div class="info-label">Email</div>
+          <div class="info-value">{{ user.email }}</div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">First Name</div>
+          <div class="info-value">{{ user.firstName || 'Not set' }}</div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">Last Name</div>
+          <div class="info-value">{{ user.lastName || 'Not set' }}</div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">Role</div>
+          <div class="info-value">
+            <span class="role-badge">{{ user.role }}</span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-label">Account Status</div>
+          <div class="info-value">
+            <span [class]="getStatusClass()">{{ getStatusText() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="profile-actions">
+        <button class="btn btn-primary" (click)="editProfile()">
+          Edit Profile
+        </button>
+        <button class="btn btn-secondary" (click)="changePassword()">
+          Change Password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

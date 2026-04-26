@@ -19,6 +19,10 @@
         "Action": "Start"
       },
       {
+        "Path": "Shared\\Shared.Messaging\\Shared.Messaging.csproj",
+        "Action": "Start"
+      },
+      {
         "Path": "ApiGateways\\Gateway.API\\Gateway.API.csproj",
         "Action": "Start"
       }

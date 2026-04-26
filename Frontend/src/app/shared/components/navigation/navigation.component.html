@@ -1,0 +1,55 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a routerLink="/" class="brand-link">Identity App</a>
+      <button 
+        class="mobile-menu-toggle" 
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="isMobileMenuOpen"
+        aria-label="Toggle navigation menu">
+        <span class="hamburger-icon"></span>
+      </button>
+    </div>
+
+    <div class="navbar-menu" [class.is-open]="isMobileMenuOpen">
+      <ng-container *ngIf="isAuthenticated$ | async; else guestMenu">
+        <ul class="nav-links">
+          <li>
+            <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">
+              Profile
+            </a>
+          </li>
+          <li *ngIf="(currentUser$ | async) as user">
+            <a 
+              *ngIf="isAdmin(user)" 
+              routerLink="/admin/users" 
+              routerLinkActive="active" 
+              (click)="closeMobileMenu()">
+              Admin
+            </a>
+          </li>
+        </ul>
+
+        <div class="navbar-user" *ngIf="(currentUser$ | async) as user">
+          <span class="user-name">{{ getDisplayName(user) }}</span>
+          <button class="btn btn-logout" (click)="logout()">Logout</button>
+        </div>
+      </ng-container>
+
+      <ng-template #guestMenu>
+        <ul class="nav-links">
+          <li>
+            <a routerLink="/login" routerLinkActive="active" (click)="closeMobileMenu()">
+              Login
+            </a>
+          </li>
+          <li>
+            <a routerLink="/register" routerLinkActive="active" (click)="closeMobileMenu()">
+              Register
+            </a>
+          </li>
+        </ul>
+      </ng-template>
+    </div>
+  </div>
+</nav>

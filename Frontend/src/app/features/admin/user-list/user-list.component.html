@@ -1,0 +1,183 @@
+<div class="user-list-container">
+  <div class="user-list-header">
+    <h1>User Management</h1>
+    <p>Manage user accounts, roles, and permissions</p>
+  </div>
+
+  <!-- Search and Filter Controls -->
+  <div class="controls-section">
+    <div class="search-box">
+      <input
+        type="text"
+        [formControl]="searchControl"
+        placeholder="Search by email or name..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <div class="filter-box">
+      <select [formControl]="roleFilter" class="filter-select">
+        <option value="">All Roles</option>
+        <option *ngFor="let role of availableRoles" [value]="role">
+          {{ role }}
+        </option>
+      </select>
+    </div>
+
+    <button
+      *ngIf="searchControl.value || roleFilter.value"
+      (click)="clearFilters()"
+      class="btn btn-secondary"
+    >
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading users...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="error-banner">
+    {{ errorMessage }}
+  </div>
+
+  <!-- User Table -->
+  <div *ngIf="!isLoading && users.length > 0" class="table-container">
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users" [class.current-user]="isCurrentUser(user)">
+          <td class="email-cell">
+            {{ user.email }}
+            <span *ngIf="isCurrentUser(user)" class="you-badge">You</span>
+          </td>
+          <td>{{ getUserDisplayName(user) }}</td>
+          <td>
+            <select
+              [value]="user.role"
+              (change)="onRoleChange(user, $any($event.target).value)"
+              [disabled]="isCurrentUser(user)"
+              class="role-select"
+              [class.disabled]="isCurrentUser(user)"
+            >
+              <option *ngFor="let role of availableRoles" [value]="role">
+                {{ role }}
+              </option>
+            </select>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(user)">
+              {{ getStatusText(user) }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <button
+              (click)="toggleUserStatus(user)"
+              [disabled]="isCurrentUser(user)"
+              class="btn btn-sm"
+              [class.btn-success]="!user.isActive"
+              [class.btn-warning]="user.isActive"
+              [title]="user.isActive ? 'Deactivate user' : 'Activate user'"
+            >
+              {{ user.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+            <button
+              (click)="confirmDelete(user)"
+              [disabled]="isCurrentUser(user)"
+              class="btn btn-sm btn-danger"
+              title="Delete user"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && users.length === 0" class="empty-state">
+    <p>No users found</p>
+    <p class="empty-state-hint">
+      <span *ngIf="searchControl.value || roleFilter.value">
+        Try adjusting your search or filter criteria
+      </span>
+      <span *ngIf="!searchControl.value && !roleFilter.value">
+        No users are currently registered in the system
+      </span>
+    </p>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div *ngIf="!isLoading && users.length > 0" class="pagination-container">
+    <div class="pagination-info">
+      Showing {{ (currentPage - 1) * pageSize + 1 }} to 
+      {{ Math.min(currentPage * pageSize, totalUsers) }} of 
+      {{ totalUsers }} users
+    </div>
+
+    <div class="pagination-controls">
+      <button
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+        class="btn btn-pagination"
+      >
+        Previous
+      </button>
+
+      <button
+        *ngFor="let page of getPageNumbers()"
+        (click)="goToPage(page)"
+        [class.active]="page === currentPage"
+        class="btn btn-pagination btn-page"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="btn btn-pagination"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Confirm Deletion</h2>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this user?</p>
+        <p class="user-details" *ngIf="userToDelete">
+          <strong>Email:</strong> {{ userToDelete.email }}<br>
+          <strong>Name:</strong> {{ getUserDisplayName(userToDelete) }}
+        </p>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button (click)="cancelDelete()" class="btn btn-secondary">
+          Cancel
+        </button>
+        <button (click)="executeDelete()" class="btn btn-danger">
+          Delete User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

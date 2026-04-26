@@ -1,0 +1,8 @@
+.main-content {
+  min-height: calc(100vh - 60px);
+  padding: var(--spacing-lg);
+  
+  @media (max-width: 767px) {
+    padding: var(--spacing-md);
+  }
+}
