@@ -1,0 +1,110 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Product Manager Dashboard</h1>
+      <p class="text-[var(--color-text-secondary)] mt-1">Manage catalog and add new products rapidly</p>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="ec-card p-5 flex items-center justify-between border-l-4 border-blue-500">
+      <div>
+        <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">My Products</p>
+        <span class="text-2xl font-bold font-display text-[var(--color-primary)]">{{ totalProducts }}</span>
+      </div>
+      <div class="text-3xl opacity-80" style="color: var(--color-primary)">📦</div>
+    </div>
+    
+    <div class="ec-card p-5 flex items-center justify-between border-l-4 border-green-500">
+      <div>
+        <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">Published</p>
+        <span class="text-2xl font-bold font-display text-[var(--color-success)]">{{ publishedCount }}</span>
+      </div>
+      <div class="text-3xl opacity-80">✔</div>
+    </div>
+
+    <div class="ec-card p-5 flex items-center justify-between border-l-4 border-amber-500">
+      <div>
+        <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">Drafts Pending Review</p>
+        <span class="text-2xl font-bold font-display text-[var(--color-warning)]">{{ draftCount }}</span>
+      </div>
+      <div class="text-3xl opacity-80">📝</div>
+    </div>
+  </div>
+
+  <!-- Main Panel -->
+  <div class="flex flex-col lg:flex-row gap-6">
+    <div class="flex-1 overflow-hidden flex flex-col ec-card">
+      <div class="bg-[var(--color-surface-2)] p-4 border-b border-[var(--color-border)] flex flex-wrap justify-between items-center gap-4">
+        <h2 class="font-bold">Managed Products</h2>
+        <a routerLink="/catalog/products" class="btn-outline text-sm">Full Catalog View</a>
+      </div>
+      <div class="p-0 overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[600px]">
+          <thead>
+            <tr class="bg-[var(--color-surface-2)] border-b border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm">
+              <th class="py-3 px-4 font-semibold">Product</th>
+              <th class="py-3 px-4 font-semibold">Brand</th>
+              <th class="py-3 px-4 font-semibold">Status</th>
+              <th class="py-3 px-4 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (prod of products; track prod.id) {
+              <tr class="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)] transition-colors">
+                <td class="py-3 px-4 font-medium">{{ prod.name }}</td>
+                <td class="py-3 px-4 text-sm">{{ prod.brand }}</td>
+                <td class="py-3 px-4">
+                  @if (prod.publishStatus === publishStatusEnum.Published) { <span class="status-badge badge-published">Published</span> }
+                  @if (prod.publishStatus === publishStatusEnum.Draft) { <span class="status-badge badge-draft">Draft</span> }
+                  @if (prod.publishStatus === publishStatusEnum.Archived) { <span class="status-badge badge-archived">Archived</span> }
+                </td>
+                <td class="py-3 px-4 text-right flex justify-end gap-3">
+                  <a [routerLink]="['/catalog/products', prod.id, 'variants']" class="text-[var(--color-primary)] text-sm font-medium hover:underline">Variants</a>
+                  <a [routerLink]="['/catalog/products', prod.id, 'edit']" class="text-[var(--color-primary)] text-sm font-medium hover:underline">Edit</a>
+                </td>
+              </tr>
+            }
+            @if (products.length === 0) {
+              <tr>
+                <td colspan="4" class="py-8 text-center text-[var(--color-text-muted)]">No products found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right pane: Quick add -->
+    <div class="w-full lg:w-[320px] ec-card self-start flex flex-col">
+       <div class="bg-[var(--color-surface-2)] p-4 border-b border-[var(--color-border)]">
+         <h2 class="font-bold">Quick Add Product</h2>
+       </div>
+       <div class="p-5">
+         <form [formGroup]="quickAddForm" (ngSubmit)="submitQuickAdd()" class="space-y-4">
+           <div>
+             <label class="block text-sm font-medium mb-1">Name <span class="text-[var(--color-danger)]">*</span></label>
+             <input type="text" formControlName="name" class="ec-input h-10" [class.error]="quickAddForm.get('name')?.invalid && quickAddForm.get('name')?.touched" />
+           </div>
+           <div>
+             <label class="block text-sm font-medium mb-1">Brand <span class="text-[var(--color-danger)]">*</span></label>
+             <input type="text" formControlName="brand" class="ec-input h-10" [class.error]="quickAddForm.get('brand')?.invalid && quickAddForm.get('brand')?.touched" />
+           </div>
+           <div>
+             <label class="block text-sm font-medium mb-1">Category <span class="text-[var(--color-danger)]">*</span></label>
+             <select formControlName="categoryId" class="ec-input h-10 bg-transparent" [class.error]="quickAddForm.get('categoryId')?.invalid && quickAddForm.get('categoryId')?.touched">
+               <option value="" disabled>Select Category</option>
+               @for (cat of categories; track cat.id) {
+                 <option [value]="cat.id">{{ cat.name }}</option>
+               }
+             </select>
+           </div>
+           <button type="submit" class="btn-primary w-full mt-2" [disabled]="isSaving || quickAddForm.invalid">
+             {{ isSaving ? 'Saving...' : 'Create Draft' }}
+           </button>
+         </form>
+       </div>
+    </div>
+  </div>
+</div>

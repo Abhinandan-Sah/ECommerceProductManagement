@@ -9,7 +9,7 @@ export class TokenStorageService {
 
   saveTokens(accessToken: string, refreshToken: string): void {
     this.accessToken = accessToken;
-    sessionStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
   }
 
   getAccessToken(): string | null {
@@ -17,15 +17,20 @@ export class TokenStorageService {
   }
 
   getRefreshToken(): string | null {
-    return sessionStorage.getItem(this.REFRESH_TOKEN_KEY);
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   clearTokens(): void {
     this.accessToken = null;
-    sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
   hasTokens(): boolean {
     return this.accessToken !== null;
+  }
+
+  /** True when a refresh token is persisted (even after page reload) */
+  hasRefreshToken(): boolean {
+    return !!localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 }

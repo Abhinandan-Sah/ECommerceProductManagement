@@ -14,6 +14,35 @@ export class AuthEffects {
   private tokenStorage = inject(TokenStorageService);
   private router = inject(Router);
 
+  /** Runs once on app boot — rehydrates session from persisted refresh token */
+  initAuth$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.initAuth),
+      switchMap(() => {
+        const refreshToken = this.tokenStorage.getRefreshToken();
+        if (!refreshToken) {
+          // No token stored — user was never logged in or explicitly logged out
+          return of(AuthActions.refreshFailure());
+        }
+        return this.authService.refreshToken(refreshToken).pipe(
+          tap(response =>
+            this.tokenStorage.saveTokens(response.accessToken, response.refreshToken)
+          ),
+          // After restoring the access token, load the full profile
+          switchMap(response => [
+            AuthActions.refreshSuccess({ response }),
+            AuthActions.loadProfile()
+          ]),
+          catchError(() => {
+            // Stored token expired / server rejected — clear it silently
+            this.tokenStorage.clearTokens();
+            return of(AuthActions.refreshFailure());
+          })
+        );
+      })
+    )
+  );
+
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
@@ -41,7 +70,7 @@ export class AuthEffects {
   loginSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.loginSuccess),
-      tap(() => this.router.navigate(['/profile']))
+      tap(() => this.router.navigate(['/dashboard']))
     ),
     { dispatch: false }
   );
@@ -86,3 +115,4 @@ export class AuthEffects {
     )
   );
 }
+

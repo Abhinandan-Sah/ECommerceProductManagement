@@ -1,90 +1,129 @@
 <header class="app-header">
-  <div class="header-main">
-    <div class="page-container flex items-center justify-between w-full h-full py-0">
-      
-      <!-- LOGO -->
-      <a routerLink="/" class="brand-link flex items-center gap-2">
-        <span class="logo-text">ShopAdmin</span>
-        <span class="tagline hidden md:block">Management Portal</span>
-      </a>
+  <div class="header-inner page-container">
 
-      <!-- SEARCH BAR -->
-      <div class="header-search hidden sm:flex">
+    <!-- LOGO -->
+    <a routerLink="/" class="brand-link">
+      <span class="logo-bolt">⚡</span>
+      <span class="logo-text">BoltCart</span>
+    </a>
+
+    <!-- SEARCH BAR — storefront & customer only -->
+    @if (!(isAuthenticated$ | async)) {
+      <div class="header-search">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
         <input type="text" placeholder="Search products, brands and more..." class="search-input" />
-        <button class="search-btn" aria-label="Search">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
       </div>
+    } @else if ((userRole$ | async) === 'Customer') {
+      <div class="header-search">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" placeholder="Search products, brands and more..." class="search-input" />
+      </div>
+    }
 
-      <!-- HEADER ACTIONS -->
-      <div class="header-actions">
-        <!-- Mobile Toggle -->
-        <button 
-          class="mobile-menu-toggle block lg:hidden" 
-          (click)="toggleMobileMenu()"
-          [attr.aria-expanded]="isMobileMenuOpen"
-          aria-label="Toggle navigation menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ROLE NAV LINKS (internal staff roles — inline in the header) -->
+    @if (isAuthenticated$ | async) {
+      @if (userRole$ | async; as role) {
+        @if (role !== 'Customer') {
+          <nav class="role-nav" aria-label="Role navigation">
+            @if (role === 'Admin') {
+              <a routerLink="/admin" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
+              <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
+              <a routerLink="/catalog/categories" routerLinkActive="rnav-active" class="rnav-link">Categories</a>
+              <a routerLink="/admin/users" routerLinkActive="rnav-active" class="rnav-link">Users</a>
+            }
+            @if (role === 'ProductManager') {
+              <a routerLink="/product-manager" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
+              <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
+              <a routerLink="/catalog/categories" routerLinkActive="rnav-active" class="rnav-link">Categories</a>
+            }
+            @if (role === 'ContentExecutive') {
+              <a routerLink="/content-executive" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
+              <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
+            }
+            <a routerLink="/profile" routerLinkActive="rnav-active" class="rnav-link">Profile</a>
+          </nav>
+        }
+      }
+    }
+
+    <!-- SPACER (pushes actions to right when no search/nav) -->
+    <div class="flex-1"></div>
+
+    <!-- HEADER ACTIONS -->
+    <div class="header-actions">
+
+      <!-- Theme Toggle -->
+      <button class="theme-toggle" (click)="toggleTheme()" aria-label="Toggle theme">
+        <div class="theme-toggle-thumb">
+          @if (!isDarkMode) { <span>☀</span> }
+          @if (isDarkMode) { <span>☽</span> }
+        </div>
+      </button>
+
+      <!-- Mobile hamburger (authenticated only) -->
+      @if (isAuthenticated$ | async) {
+        <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-expanded]="isMobileMenuOpen" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
+      }
 
-        <!-- User / Auth -->
-        @if (isAuthenticated$ | async) {
-          @if ((currentUser$ | async); as user) {
-            <div class="user-dropdown">
-              <div class="user-avatar-trigger">
-                <div class="avatar-circle">{{ getDisplayName(user).charAt(0).toUpperCase() }}</div>
-                <div class="user-details hidden md:block">
-                  <span class="greeting">Hello,</span>
-                  <span class="user-name">{{ getDisplayName(user) }}</span>
-                </div>
-              </div>
-              <button class="btn-outline-white hidden md:block ml-4" (click)="logout()">Logout</button>
+      <!-- Authenticated user chip + logout -->
+      @if (isAuthenticated$ | async) {
+        @if ((currentUser$ | async); as user) {
+          <div class="user-chip">
+            <div class="user-avatar">{{ getDisplayName(user).charAt(0).toUpperCase() }}</div>
+            <div class="user-info">
+              <span class="user-hello">Hello,</span>
+              <span class="user-name">{{ getDisplayName(user) }}</span>
             </div>
-          }
-        } @else {
-          <div class="auth-buttons hidden lg:flex gap-3">
-            <a routerLink="/login" class="btn-outline-white">Login</a>
-            <a routerLink="/register" class="btn-accent" style="padding: 6px 16px;">Sign Up</a>
           </div>
+          <button class="logout-btn" (click)="logout()">Logout</button>
         }
-      </div>
-
+      } @else {
+        <!-- Guest actions -->
+        <a routerLink="/store/products" class="ghost-link">Shop</a>
+        <a routerLink="/login" class="login-btn">Login</a>
+        <a routerLink="/register" class="signup-btn">Sign Up</a>
+      }
     </div>
   </div>
 
-  <!-- SECONDARY NAV BAR -->
-  @if ((isAuthenticated$ | async) || isMobileMenuOpen) {
-    <div class="header-secondary" [class.is-open]="isMobileMenuOpen">
-    <div class="page-container py-0 h-full">
-      <ul class="nav-pills">
-        @if (isAuthenticated$ | async) {
-          <li><a routerLink="/" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a></li>
-          <li><a routerLink="/catalog/products" routerLinkActive="active" (click)="closeMobileMenu()">Products</a></li>
-          <li><a routerLink="/catalog/categories" routerLinkActive="active" (click)="closeMobileMenu()">Categories</a></li>
-          <li><a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">Profile</a></li>
+  <!-- MOBILE DROPDOWN: only when authenticated & menu open -->
+  @if ((isAuthenticated$ | async) && isMobileMenuOpen) {
+    <div class="mobile-menu" (click)="closeMobileMenu()">
+      @if (userRole$ | async; as role) {
 
-          @if ((currentUser$ | async); as user) {
-            @if (isAdmin(user)) {
-              <li><a routerLink="/admin/users" routerLinkActive="active" (click)="closeMobileMenu()">Users</a></li>
-            }
-          }
-          
-          <li class="lg:hidden mt-4 pt-4 border-t border-gray-200">
-            <button class="w-full btn-outline" (click)="logout()">Logout</button>
-          </li>
-        } @else {
-          <li class="lg:hidden"><a routerLink="/login" routerLinkActive="active" (click)="closeMobileMenu()">Login</a></li>
-          <li class="lg:hidden"><a routerLink="/register" routerLinkActive="active" (click)="closeMobileMenu()">Register</a></li>
+        @if (role === 'Customer') {
+          <a routerLink="/my-account" class="mobile-link" (click)="closeMobileMenu()">My Account</a>
         }
-      </ul>
+        @if (role === 'Admin') {
+          <a routerLink="/admin" class="mobile-link" (click)="closeMobileMenu()">Dashboard</a>
+          <a routerLink="/catalog/products" class="mobile-link" (click)="closeMobileMenu()">Products</a>
+          <a routerLink="/catalog/categories" class="mobile-link" (click)="closeMobileMenu()">Categories</a>
+          <a routerLink="/admin/users" class="mobile-link" (click)="closeMobileMenu()">Users</a>
+        }
+        @if (role === 'ProductManager') {
+          <a routerLink="/product-manager" class="mobile-link" (click)="closeMobileMenu()">Dashboard</a>
+          <a routerLink="/catalog/products" class="mobile-link" (click)="closeMobileMenu()">Products</a>
+          <a routerLink="/catalog/categories" class="mobile-link" (click)="closeMobileMenu()">Categories</a>
+        }
+        @if (role === 'ContentExecutive') {
+          <a routerLink="/content-executive" class="mobile-link" (click)="closeMobileMenu()">Dashboard</a>
+          <a routerLink="/catalog/products" class="mobile-link" (click)="closeMobileMenu()">Products</a>
+        }
+        <a routerLink="/profile" class="mobile-link" (click)="closeMobileMenu()">Profile</a>
+        <div class="mobile-divider"></div>
+        <button class="mobile-logout" (click)="logout()">Logout</button>
+      }
     </div>
-  </div>
-}
+  }
+
 </header>

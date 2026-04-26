@@ -1,0 +1,138 @@
+<div class="account-page" *ngIf="user$ | async as user">
+
+  <!-- Page Header / Welcome Banner -->
+  <div class="account-hero">
+    <div class="page-container" style="padding-top:0;padding-bottom:0;height:100%;display:flex;align-items:center;gap:16px;">
+      <div class="hero-avatar">{{ (user.fullName || user.email).charAt(0).toUpperCase() }}</div>
+      <div>
+        <p class="hero-greeting">Hello,</p>
+        <h1 class="hero-name">{{ user.fullName || user.email }}</h1>
+        <p class="hero-email">{{ user.email }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-container account-body">
+
+    <!-- Quick Action Grid (Flipkart/Amazon-style) -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">📦</span>
+        <h2 class="section-title">My Orders & Returns</h2>
+      </div>
+      <div class="quick-grid">
+        <a routerLink="/my-account/orders" class="quick-tile">
+          <div class="tile-icon-wrap" style="background:#EBF5FF;">
+            <span class="tile-icon">🛍️</span>
+          </div>
+          <span class="tile-label">My Orders</span>
+          <span class="tile-sub">Track, return or buy again</span>
+        </a>
+        <a routerLink="/store/products" class="quick-tile">
+          <div class="tile-icon-wrap" style="background:#FFF4EB;">
+            <span class="tile-icon">🔁</span>
+          </div>
+          <span class="tile-label">Buy Again</span>
+          <span class="tile-sub">Browse catalog</span>
+        </a>
+        <a routerLink="/my-account/returns" class="quick-tile">
+          <div class="tile-icon-wrap" style="background:#EBFBF4;">
+            <span class="tile-icon">↩️</span>
+          </div>
+          <span class="tile-label">Returns</span>
+          <span class="tile-sub">View return status</span>
+        </a>
+        <a routerLink="/my-account/wishlist" class="quick-tile">
+          <div class="tile-icon-wrap" style="background:#FEF0F0;">
+            <span class="tile-icon">❤️</span>
+          </div>
+          <span class="tile-label">Wishlist</span>
+          <span class="tile-sub">Items saved for later</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Account Settings Row -->
+    <div class="dual-col">
+
+      <!-- Profile & Security -->
+      <div class="section-card flex-1">
+        <div class="section-header">
+          <span class="section-icon">👤</span>
+          <h2 class="section-title">Profile & Security</h2>
+        </div>
+        <div class="setting-list">
+          <a routerLink="/profile" class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">Manage Profile</span>
+              <span class="setting-desc">Name, photo, personal details</span>
+            </div>
+            <span class="setting-arrow">›</span>
+          </a>
+          <a routerLink="/profile/change-password" class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">Change Password</span>
+              <span class="setting-desc">Secure your account</span>
+            </div>
+            <span class="setting-arrow">›</span>
+          </a>
+          <a routerLink="/profile/edit" class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">Email & Phone</span>
+              <span class="setting-desc">Update contact details</span>
+            </div>
+            <span class="setting-arrow">›</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Addresses & Payments -->
+      <div class="section-card flex-1">
+        <div class="section-header">
+          <span class="section-icon">🏠</span>
+          <h2 class="section-title">Addresses & Payments</h2>
+        </div>
+        <div class="setting-list">
+          <a routerLink="/my-account/addresses" class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">Manage Addresses</span>
+              <span class="setting-desc">Saved delivery locations</span>
+            </div>
+            <span class="setting-arrow">›</span>
+          </a>
+          <a routerLink="/my-account/payment" class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">Payment Methods</span>
+              <span class="setting-desc">Cards, UPI &amp; wallets</span>
+            </div>
+            <span class="setting-arrow">›</span>
+          </a>
+          <a routerLink="/my-account/gift-cards" class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">Gift Cards</span>
+              <span class="setting-desc">View &amp; redeem balance</span>
+            </div>
+            <span class="setting-arrow">›</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Orders Preview -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">🕒</span>
+        <h2 class="section-title">Recent Orders</h2>
+        <a routerLink="/my-account/orders" class="see-all">See All Orders →</a>
+      </div>
+      <div class="empty-orders">
+        <div class="empty-illus">🛒</div>
+        <h3 class="empty-title">No orders yet</h3>
+        <p class="empty-desc">Looks like you haven't placed an order with us yet. Start shopping to see your orders here.</p>
+        <a routerLink="/store/products" class="btn-primary">Start Shopping</a>
+      </div>
+    </div>
+
+  </div>
+</div>

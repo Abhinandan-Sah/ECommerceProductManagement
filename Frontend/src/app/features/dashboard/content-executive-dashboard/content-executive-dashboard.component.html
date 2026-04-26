@@ -1,0 +1,106 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Content Dashboard</h1>
+      <p class="text-[var(--color-text-secondary)] mt-1">Review descriptions, publish products, and organize the catalog.</p>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="ec-card p-5 flex items-center justify-between border-l-4 border-blue-500">
+      <div>
+        <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">Total Products</p>
+        <span class="text-2xl font-bold font-display text-[var(--color-primary)]">{{ totalCount }}</span>
+      </div>
+      <div class="text-3xl opacity-80" style="color: var(--color-primary)">📦</div>
+    </div>
+    
+    <div class="ec-card p-5 flex items-center justify-between border-l-4 border-green-500">
+      <div>
+        <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">Published Today</p>
+        <span class="text-2xl font-bold font-display text-[var(--color-success)]">{{ publishedToday }}</span>
+      </div>
+      <div class="text-3xl opacity-80">🔥</div>
+    </div>
+
+    <div class="ec-card p-5 flex items-center justify-between border-l-4 border-amber-500">
+      <div>
+        <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">Needs Review</p>
+        <span class="text-2xl font-bold font-display text-[var(--color-warning)]">{{ needsReview }}</span>
+      </div>
+      <div class="text-3xl opacity-80">👀</div>
+    </div>
+  </div>
+
+  <!-- Main Panel -->
+  <div class="flex flex-col lg:flex-row gap-6">
+    <div class="flex-1 overflow-hidden flex flex-col ec-card">
+      <div class="bg-[var(--color-surface-2)] p-4 border-b border-[var(--color-border)] flex flex-wrap justify-between items-center gap-4">
+        <h2 class="font-bold">Content Review Table</h2>
+        <a routerLink="/catalog/products" class="btn-outline text-sm">Open Full Catalog</a>
+      </div>
+      <div class="p-0 overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[600px]">
+          <thead>
+            <tr class="bg-[var(--color-surface-2)] border-b border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm">
+              <th class="py-3 px-4 font-semibold">Product Name</th>
+              <th class="py-3 px-4 font-semibold">Brand</th>
+              <th class="py-3 px-4 font-semibold">Status</th>
+              <th class="py-3 px-4 font-semibold">Last Updated</th>
+              <th class="py-3 px-4 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (prod of products; track prod.id) {
+              <tr class="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)] transition-colors">
+                <td class="py-3 px-4 font-medium">{{ prod.name }}</td>
+                <td class="py-3 px-4 text-sm">{{ prod.brand }}</td>
+                <td class="py-3 px-4">
+                  @if (prod.publishStatus === publishStatusEnum.Published) { <span class="status-badge badge-published">Published</span> }
+                  @if (prod.publishStatus === publishStatusEnum.Draft) { <span class="status-badge badge-draft">Draft</span> }
+                  @if (prod.publishStatus === publishStatusEnum.Archived) { <span class="status-badge badge-archived">Archived</span> }
+                </td>
+                <td class="py-3 px-4 text-sm text-[var(--color-text-muted)]">Today</td>
+                <td class="py-3 px-4 text-right flex justify-end gap-3 items-center">
+                  <a [routerLink]="['/catalog/products', prod.id, 'edit']" class="btn-outline" style="padding: 4px 10px; font-size: 12px;">Edit Content</a>
+                  @if (prod.publishStatus === publishStatusEnum.Draft) {
+                    <button class="btn-primary" style="padding: 4px 10px; font-size: 12px; background: var(--color-success);" (click)="publishProduct(prod.id)" [disabled]="isPublishing">Publish</button>
+                  }
+                </td>
+              </tr>
+            }
+            @if (products.length === 0) {
+              <tr>
+                <td colspan="5" class="py-8 text-center text-[var(--color-text-muted)]">No products found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right pane: Quick Publish -->
+    <div class="w-full lg:w-[320px] ec-card self-start flex flex-col">
+       <div class="bg-[var(--color-surface-2)] p-4 border-b border-[var(--color-border)]">
+         <h2 class="font-bold">Quick Publish Queue</h2>
+       </div>
+       <div class="p-0">
+         @for (draft of draftProducts; track draft.id) {
+            <div class="p-4 border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-bg)] transition-colors flex flex-col gap-2">
+              <span class="font-medium text-sm">{{ draft.name }}</span>
+              <div class="flex justify-between items-center">
+                 <span class="text-xs text-[var(--color-text-secondary)]">{{ draft.brand }}</span>
+                 <button class="btn-outline" style="padding: 4px 8px; font-size: 12px; border-color: var(--color-success); color: var(--color-success);" (click)="publishProduct(draft.id)" [disabled]="isPublishing">Publish Now</button>
+              </div>
+            </div>
+         }
+         @if (draftProducts.length === 0) {
+            <div class="p-8 text-center text-[var(--color-text-muted)] text-sm">
+                🎉 No drafts waiting!
+            </div>
+         }
+       </div>
+    </div>
+  </div>
+</div>

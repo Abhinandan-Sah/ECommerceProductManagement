@@ -33,3 +33,7 @@ export const profileLoaded = createAction(
   props<{ user: User }>()
 );
 export const clearError = createAction('[Auth] Clear Error');
+
+/** Dispatched once on app startup to rehydrate auth state from stored refresh token */
+export const initAuth = createAction('[Auth] Init');
+
