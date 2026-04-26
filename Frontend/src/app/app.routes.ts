@@ -48,6 +48,35 @@ export const routes: Routes = [
     ]
   },
   
+  // Catalog routes - require authentication
+  {
+    path: 'catalog',
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'products', pathMatch: 'full' },
+      {
+        path: 'products',
+        loadComponent: () => import('./features/catalog/products/product-list/product-list.component').then(m => m.ProductListComponent)
+      },
+      {
+        path: 'products/new',
+        loadComponent: () => import('./features/catalog/products/product-form/product-form.component').then(m => m.ProductFormComponent)
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () => import('./features/catalog/products/product-form/product-form.component').then(m => m.ProductFormComponent)
+      },
+      {
+        path: 'products/:productId/variants',
+        loadComponent: () => import('./features/catalog/products/product-variants/product-variants.component').then(m => m.ProductVariantsComponent)
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/catalog/categories/category-list/category-list.component').then(m => m.CategoryListComponent)
+      }
+    ]
+  },
+
   // Admin routes - require authentication and Admin role
   {
     path: 'admin',

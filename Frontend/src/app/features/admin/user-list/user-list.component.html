@@ -1,208 +1,192 @@
-<div class="user-list-container">
-  <div class="user-list-header">
-    <h1>User Management</h1>
-    <p>Manage user accounts, roles, and permissions</p>
+<div class="page-container">
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1 class="page-title">User Management</h1>
+    <!-- If there were an add user action: <button class="btn-primary">+ Add User</button> -->
   </div>
 
-  <!-- Search and Filter Controls -->
-  <div class="controls-section">
-    <div class="search-box">
+  <!-- FILTER BAR -->
+  <div class="ec-card filter-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
       <input
         type="text"
         [formControl]="searchControl"
-        placeholder="Search by email or name..."
-        class="search-input"
-        />
-        <span class="search-icon">🔍</span>
-      </div>
-
-      <div class="filter-box">
-        <select [formControl]="roleFilter" class="filter-select">
-          <option value="">All Roles</option>
-          @for (role of availableRoles; track role) {
-            <option [value]="role">
-              {{ role }}
-            </option>
-          }
-        </select>
-      </div>
-
-      @if (searchControl.value || roleFilter.value) {
-        <button
-          (click)="clearFilters()"
-          class="btn btn-secondary"
-          >
-          Clear Filters
-        </button>
-      }
+        placeholder="Search users..."
+        class="ec-input pl-10"
+      />
     </div>
 
-    <!-- Loading State -->
+    <div class="filter-dropdown-wrapper">
+      <select [formControl]="roleFilter" class="ec-input filter-dropdown">
+        <option value="">All Roles</option>
+        @for (role of availableRoles; track role) {
+          <option [value]="role">{{ role }}</option>
+        }
+      </select>
+    </div>
+
+    @if (searchControl.value || roleFilter.value) {
+      <button (click)="clearFilters()" class="btn-outline ml-auto">
+        Clear
+      </button>
+    }
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage && !isLoading) {
+    <div class="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-200 mb-4">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <!-- TABLE CARD -->
+  <div class="ec-card table-card overflow-x-auto relative">
+    
     @if (isLoading) {
-      <div class="loading-container">
+      <div class="loading-overlay">
         <div class="spinner"></div>
-        <p>Loading users...</p>
       </div>
     }
 
-    <!-- Error Message -->
-    @if (errorMessage && !isLoading) {
-      <div class="error-banner">
-        {{ errorMessage }}
-      </div>
-    }
-
-    <!-- User Table -->
-    @if (!isLoading && users.length > 0) {
-      <div class="table-container">
-        <table class="user-table">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (user of users; track user) {
-              <tr [class.current-user]="isCurrentUser(user)">
-                <td class="email-cell">
-                  {{ user.email }}
-                  @if (isCurrentUser(user)) {
-                    <span class="you-badge">You</span>
-                  }
-                </td>
-                <td>{{ getUserDisplayName(user) }}</td>
-                <td>
-                  <select
-                    [value]="user.role"
-                    (change)="onRoleChange(user, $any($event.target).value)"
-                    [disabled]="isCurrentUser(user)"
-                    class="role-select"
-                    [class.disabled]="isCurrentUser(user)"
-                    >
-                    @for (role of availableRoles; track role) {
-                      <option [value]="role">
-                        {{ role }}
-                      </option>
-                    }
-                  </select>
-                </td>
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(user)">
-                    {{ getStatusText(user) }}
-                  </span>
-                </td>
-                <td class="actions-cell">
-                  <button
-                    (click)="toggleUserStatus(user)"
-                    [disabled]="isCurrentUser(user)"
-                    class="btn btn-sm"
-                    [class.btn-success]="!user.isActive"
-                    [class.btn-warning]="user.isActive"
-                    [title]="user.isActive ? 'Deactivate user' : 'Activate user'"
-                    >
-                    {{ user.isActive ? 'Deactivate' : 'Activate' }}
-                  </button>
-                  <button
-                    (click)="confirmDelete(user)"
-                    [disabled]="isCurrentUser(user)"
-                    class="btn btn-sm btn-danger"
-                    title="Delete user"
-                    >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
-
-    <!-- Empty State -->
-    @if (!isLoading && users.length === 0) {
-      <div class="empty-state">
-        <p>No users found</p>
-        <p class="empty-state-hint">
-          @if (searchControl.value || roleFilter.value) {
-            <span>
-              Try adjusting your search or filter criteria
-            </span>
-          }
-          @if (!searchControl.value && !roleFilter.value) {
-            <span>
-              No users are currently registered in the system
-            </span>
-          }
-        </p>
-      </div>
-    }
-
-    <!-- Pagination Controls -->
-    @if (!isLoading && users.length > 0) {
-      <div class="pagination-container">
-        <div class="pagination-info">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to
-          {{ Math.min(currentPage * pageSize, totalUsers) }} of
-          {{ totalUsers }} users
-        </div>
-        <div class="pagination-controls">
-          <button
-            (click)="previousPage()"
-            [disabled]="currentPage === 1"
-            class="btn btn-pagination"
-            >
-            Previous
-          </button>
-          @for (page of getPageNumbers(); track page) {
-            <button
-              (click)="goToPage(page)"
-              [class.active]="page === currentPage"
-              class="btn btn-pagination btn-page"
+    <table class="ec-table w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr>
+          <!-- <th><input type="checkbox" /></th> -->
+          <th>User</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users; track user) {
+          <tr class="table-row" [class.bg-blue-50]="isCurrentUser(user)">
+            <!-- <td><input type="checkbox" /></td> -->
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar">{{ getUserDisplayName(user).charAt(0).toUpperCase() }}</div>
+                <div class="user-name">
+                  {{ getUserDisplayName(user) }}
+                  @if (isCurrentUser(user)) { <span class="bg-blue-100 text-blue-800 text-[10px] uppercase font-bold py-0.5 px-2 rounded-full ml-2">You</span> }
+                </div>
+              </div>
+            </td>
+            <td class="text-gray-600 text-sm">{{ user.email }}</td>
+            <td>
+              <!-- Role Badge / Selector -->
+              <select
+                [value]="user.role"
+                (change)="onRoleChange(user, $any($event.target).value)"
+                [disabled]="isCurrentUser(user)"
+                class="role-select"
+                [attr.data-role]="user.role"
               >
+                @for (role of availableRoles; track role) {
+                  <option [value]="role">{{ role }}</option>
+                }
+              </select>
+            </td>
+            <td>
+              <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                <span class="status-dot"></span>
+                {{ user.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <div class="action-buttons flex justify-end gap-2">
+                <button
+                  (click)="toggleUserStatus(user)"
+                  [disabled]="isCurrentUser(user)"
+                  class="action-btn"
+                  [title]="user.isActive ? 'Deactivate user' : 'Activate user'"
+                >
+                  @if (user.isActive) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-500 hover:text-orange-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-600"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  }
+                </button>
+                <button
+                  (click)="confirmDelete(user)"
+                  [disabled]="isCurrentUser(user)"
+                  class="action-btn text-red-500 hover:bg-red-50"
+                  title="Delete user"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+
+        @if (!isLoading && users.length === 0) {
+          <tr>
+            <td colspan="5" class="py-12 text-center text-gray-500">
+              <div class="flex flex-col items-center justify-center">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-4 text-gray-300"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <p class="text-lg font-medium text-gray-600">No users found</p>
+                <p class="text-sm mt-1 text-gray-400">Try adjusting your filters or search term.</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- PAGINATION BAR -->
+    @if (!isLoading && users.length > 0) {
+      <div class="pagination-bar">
+        <div class="text-sm text-gray-500">
+          Showing {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalUsers) }} of {{ totalUsers }} results
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="page-btn text-gray-500" [disabled]="currentPage === 1" (click)="previousPage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          
+          @for (page of getPageNumbers(); track page) {
+            <button class="page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
               {{ page }}
             </button>
           }
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage === totalPages"
-            class="btn btn-pagination"
-            >
-            Next
+          
+          <button class="page-btn text-gray-500" [disabled]="currentPage === totalPages" (click)="nextPage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
-        </div>
-      </div>
-    }
-
-    <!-- Delete Confirmation Dialog -->
-    @if (showDeleteConfirm) {
-      <div class="modal-overlay" (click)="cancelDelete()">
-        <div class="modal-dialog" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h2>Confirm Deletion</h2>
-          </div>
-          <div class="modal-body">
-            <p>Are you sure you want to delete this user?</p>
-            @if (userToDelete) {
-              <p class="user-details">
-                <strong>Email:</strong> {{ userToDelete.email }}<br>
-                <strong>Name:</strong> {{ getUserDisplayName(userToDelete) }}
-              </p>
-            }
-            <p class="warning-text">This action cannot be undone.</p>
-          </div>
-          <div class="modal-footer">
-            <button (click)="cancelDelete()" class="btn btn-secondary">
-              Cancel
-            </button>
-            <button (click)="executeDelete()" class="btn btn-danger">
-              Delete User
-            </button>
-          </div>
         </div>
       </div>
     }
   </div>
+
+  <!-- Delete Confirmation Dialog overlay (custom inline logic fallback) -->
+  @if (showDeleteConfirm) {
+    <div class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" (click)="cancelDelete()">
+      <div class="ec-card w-full max-w-[400px] overflow-hidden shadow-2xl animate-fade-in" (click)="$event.stopPropagation()">
+        <div class="p-5 border-b border-gray-100 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <h2 class="text-lg font-bold text-gray-900 m-0">Confirm Deletion</h2>
+        </div>
+        <div class="p-5 pb-6 text-sm text-gray-600 line-height-relaxed">
+          <p class="mb-3">Are you sure you want to delete this user? This action cannot be undone.</p>
+          @if (userToDelete) {
+            <div class="bg-gray-50 rounded p-3 mb-2 border border-gray-100">
+              <div class="font-medium text-gray-900">{{ getUserDisplayName(userToDelete) }}</div>
+              <div class="text-gray-500 text-xs">{{ userToDelete.email }}</div>
+            </div>
+          }
+        </div>
+        <div class="bg-gray-50 p-4 flex justify-end gap-3 rounded-b-lg border-t border-gray-100">
+          <button (click)="cancelDelete()" class="btn-outline bg-white !px-4">Cancel</button>
+          <button (click)="executeDelete()" class="btn-danger !px-4 shadow-sm shadow-red-200">Delete User</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

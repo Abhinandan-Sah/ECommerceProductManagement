@@ -1,0 +1,56 @@
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: var(--color-bg);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.badge-published {
+  background-color: rgba(38, 165, 65, 0.1);
+  color: #26A541;
+}
+.badge-published .status-dot { background-color: #26A541; }
+
+.badge-draft {
+  background-color: rgba(255, 159, 0, 0.1);
+  color: #FF9F00;
+}
+.badge-draft .status-dot { background-color: #FF9F00; }
+
+.badge-archived {
+  background-color: rgba(135, 135, 135, 0.1);
+  color: #878787;
+}
+.badge-archived .status-dot { background-color: #878787; }

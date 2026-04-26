@@ -1,81 +1,107 @@
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <h1 class="login-title">Welcome Back</h1>
-      <p class="login-subtitle">Sign in to continue to your account</p>
-    </div>
+<div class="auth-layout">
+  <!-- LEFT PANEL -->
+  <div class="auth-left hidden md:flex">
+    <div class="auth-left-content">
+      <h1 class="welcome-title">Welcome to ShopAdmin</h1>
+      <p class="welcome-subtitle">Your complete ecommerce management platform</p>
+      
+      <div class="cart-icon">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+      </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email" class="form-label">Email Address</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          [class.error]="isInvalid('email')"
-          class="form-input"
-          placeholder="Enter your email"
-          autocomplete="email"
+      <ul class="feature-list">
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Manage 10,000+ products effortlessly
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Real-time catalog sync
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Role-based access control
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right flex items-center justify-center p-6">
+    <div class="ec-card auth-card w-full max-w-md p-8">
+      <h2 class="auth-heading text-center mb-6">Sign In</h2>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            [class.error]="isInvalid('email')"
+            class="ec-input"
+            placeholder="Enter your email"
+            autocomplete="email"
           />
-        @if (isInvalid('email')) {
-          <span class="form-error">
+          <span *ngIf="isInvalid('email')" class="text-sm text-red-500 mt-1 block">
             {{ getError('email') }}
           </span>
-        }
-      </div>
+        </div>
 
-      <!-- Password Field -->
-      <div class="form-group">
-        <label for="password" class="form-label">Password</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          class="form-input"
-          placeholder="Enter your password"
-          autocomplete="current-password"
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            [class.error]="isInvalid('password')"
+            class="ec-input"
+            placeholder="Enter your password"
+            autocomplete="current-password"
           />
-        @if (isInvalid('password')) {
-          <span class="form-error">
+          <span *ngIf="isInvalid('password')" class="text-sm text-red-500 mt-1 block">
             {{ getError('password') }}
           </span>
-        }
-      </div>
-
-      <!-- Error Banner (from NgRx store) -->
-      @if (error$ | async; as error) {
-        <div class="error-banner">
-          <p class="error-banner-text">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-            </svg>
-            {{ error }}
-          </p>
         </div>
-      }
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        [disabled]="loading$ | async"
-        class="submit-button"
+        <!-- Forgot Password Link -->
+        <div class="flex justify-end">
+          <a routerLink="/forgot-password" class="forgot-link text-sm font-medium">
+            Forgot password?
+          </a>
+        </div>
+
+        <!-- Error Banner -->
+        <div *ngIf="error$ | async as error" class="bg-red-50 text-red-600 p-3 rounded-md text-sm flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <span class="break-words">{{ error }}</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="(loading$ | async)"
+          class="btn-primary w-full h-11 text-base flex justify-center items-center gap-2"
         >
-        @if (loading$ | async) {
-          <span class="loading-spinner"></span>
-        }
-        {{ (loading$ | async) ? 'Signing in...' : 'Sign In' }}
-      </button>
+          <span *ngIf="loading$ | async" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+          {{ (loading$ | async) ? 'Signing in...' : 'Sign In' }}
+        </button>
 
-      <!-- Links -->
-      <div class="form-links">
-        <a routerLink="/forgot-password" class="form-link">
-          Forgot password?
-        </a>
-        <a routerLink="/register" class="form-link">
-          Create account
-        </a>
-      </div>
-    </form>
+        <div class="auth-divider my-6"><span>OR</span></div>
+        
+        <div class="text-center text-sm text-gray-600">
+          Don't have an account? 
+          <a routerLink="/register" class="font-medium text-[var(--color-primary)] hover:underline">Register</a>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

@@ -1,109 +1,98 @@
-<div class="edit-profile-container">
-  <div class="edit-profile-card">
-    <!-- Header -->
-    <div class="edit-profile-header">
-      <h1>Edit Profile</h1>
-      <p>Update your account information</p>
+<div class="page-container align-center">
+  <div class="ec-card max-w-[600px] w-full mx-auto p-8">
+    
+    <!-- Breadcrumb & Title -->
+    <div class="mb-6">
+      <div class="text-sm text-gray-500 mb-1 flex items-center gap-1">
+        <a routerLink="/profile" class="hover:text-blue-500 hover:underline">Profile</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        <span class="text-gray-900 font-medium">Edit Profile</span>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900">Update Information</h1>
     </div>
 
     <!-- Loading State -->
     @if (isLoading) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading profile...</p>
+      <div class="flex flex-col items-center justify-center py-10">
+        <div class="spinner mb-4"></div>
+        <p class="text-gray-500 text-sm">Loading your details...</p>
       </div>
     }
 
     <!-- Edit Form -->
     @if (!isLoading) {
-      <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="edit-form">
+      <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        
+        <!-- Full Name Field -->
+        <div class="form-group">
+          <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <input
+            id="fullName"
+            type="text"
+            formControlName="fullName"
+            class="ec-input"
+            [class.error]="hasError('fullName')"
+            placeholder="e.g. John Doe"
+            autocomplete="name"
+          />
+          @if (hasError('fullName')) {
+            <span class="text-sm text-red-500 mt-1 block">
+              {{ getErrorMessage('fullName') }}
+            </span>
+          }
+        </div>
+
         <!-- Email Field -->
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
           <input
             id="email"
             type="email"
             formControlName="email"
-            class="form-control"
+            class="ec-input"
             [class.error]="hasError('email')"
-            placeholder="Enter your email"
+            placeholder="m@example.com"
             autocomplete="email"
-            />
-            @if (hasError('email')) {
-              <div class="error-message">
-                {{ getErrorMessage('email') }}
-              </div>
-            }
-          </div>
-          <!-- First Name Field -->
-          <div class="form-group">
-            <label for="firstName">First Name</label>
-            <input
-              id="firstName"
-              type="text"
-              formControlName="firstName"
-              class="form-control"
-              [class.error]="hasError('firstName')"
-              placeholder="Enter your first name"
-              autocomplete="given-name"
-              />
-              @if (hasError('firstName')) {
-                <div class="error-message">
-                  {{ getErrorMessage('firstName') }}
-                </div>
-              }
-            </div>
-            <!-- Last Name Field -->
-            <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input
-                id="lastName"
-                type="text"
-                formControlName="lastName"
-                class="form-control"
-                [class.error]="hasError('lastName')"
-                placeholder="Enter your last name"
-                autocomplete="family-name"
-                />
-                @if (hasError('lastName')) {
-                  <div class="error-message">
-                    {{ getErrorMessage('lastName') }}
-                  </div>
-                }
-              </div>
-              <!-- Error Message -->
-              @if (errorMessage) {
-                <div class="form-error">
-                  {{ errorMessage }}
-                </div>
-              }
-              <!-- Action Buttons -->
-              <div class="form-actions">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  (click)="cancel()"
-                  [disabled]="isSaving"
-                  >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="btn btn-primary"
-                  [disabled]="isSaving || editForm.invalid"
-                  >
-                  @if (!isSaving) {
-                    <span>Save Changes</span>
-                  }
-                  @if (isSaving) {
-                    <span class="loading-text">
-                      <span class="spinner"></span>
-                      Saving...
-                    </span>
-                  }
-                </button>
-              </div>
-            </form>
+          />
+          @if (hasError('email')) {
+            <span class="text-sm text-red-500 mt-1 block">
+              {{ getErrorMessage('email') }}
+            </span>
           }
         </div>
-      </div>
+
+        <!-- Error Panel -->
+        @if (errorMessage) {
+          <div class="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-200">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <button
+            type="button"
+            class="btn-outline px-6"
+            (click)="cancel()"
+            [disabled]="isSaving"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn-primary px-6 flex items-center gap-2"
+            [disabled]="isSaving || editForm.invalid"
+          >
+            @if (isSaving) {
+              <span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+              Saving...
+            } @else {
+              Save Changes
+            }
+          </button>
+        </div>
+
+      </form>
+    }
+  </div>
+</div>

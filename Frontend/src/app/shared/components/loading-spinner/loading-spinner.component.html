@@ -1,8 +1,8 @@
 @if (loading$ | async) {
-  <div class="loading-overlay">
-    <div class="spinner-container">
+  <div class="loading-overlay" role="alert" aria-busy="true">
+    <div class="loading-card">
       <div class="spinner"></div>
-      <p class="loading-text">Loading...</p>
+      <div class="loading-text">Loading...</div>
     </div>
   </div>
 }

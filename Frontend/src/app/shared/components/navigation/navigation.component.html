@@ -1,58 +1,90 @@
-<nav class="navbar">
-  <div class="navbar-container">
-    <div class="navbar-brand">
-      <a routerLink="/" class="brand-link">Identity App</a>
-      <button
-        class="mobile-menu-toggle"
-        (click)="toggleMobileMenu()"
-        [attr.aria-expanded]="isMobileMenuOpen"
-        aria-label="Toggle navigation menu">
-        <span class="hamburger-icon"></span>
-      </button>
-    </div>
+<header class="app-header">
+  <div class="header-main">
+    <div class="page-container flex items-center justify-between w-full h-full py-0">
+      
+      <!-- LOGO -->
+      <a routerLink="/" class="brand-link flex items-center gap-2">
+        <span class="logo-text">ShopAdmin</span>
+        <span class="tagline hidden md:block">Management Portal</span>
+      </a>
 
-    <div class="navbar-menu" [class.is-open]="isMobileMenuOpen">
-      @if (isAuthenticated$ | async) {
-        <ul class="nav-links">
-          <li>
-            <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">
-              Profile
-            </a>
-          </li>
+      <!-- SEARCH BAR -->
+      <div class="header-search hidden sm:flex">
+        <input type="text" placeholder="Search products, brands and more..." class="search-input" />
+        <button class="search-btn" aria-label="Search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- HEADER ACTIONS -->
+      <div class="header-actions">
+        <!-- Mobile Toggle -->
+        <button 
+          class="mobile-menu-toggle block lg:hidden" 
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="isMobileMenuOpen"
+          aria-label="Toggle navigation menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        <!-- User / Auth -->
+        @if (isAuthenticated$ | async) {
           @if ((currentUser$ | async); as user) {
-            <li>
-              @if (isAdmin(user)) {
-                <a
-                  routerLink="/admin/users"
-                  routerLinkActive="active"
-                  (click)="closeMobileMenu()">
-                  Admin
-                </a>
-              }
-            </li>
+            <div class="user-dropdown">
+              <div class="user-avatar-trigger">
+                <div class="avatar-circle">{{ getDisplayName(user).charAt(0).toUpperCase() }}</div>
+                <div class="user-details hidden md:block">
+                  <span class="greeting">Hello,</span>
+                  <span class="user-name">{{ getDisplayName(user) }}</span>
+                </div>
+              </div>
+              <button class="btn-outline-white hidden md:block ml-4" (click)="logout()">Logout</button>
+            </div>
           }
-        </ul>
-        @if ((currentUser$ | async); as user) {
-          <div class="navbar-user">
-            <span class="user-name">{{ getDisplayName(user) }}</span>
-            <button class="btn btn-logout" (click)="logout()">Logout</button>
+        } @else {
+          <div class="auth-buttons hidden lg:flex gap-3">
+            <a routerLink="/login" class="btn-outline-white">Login</a>
+            <a routerLink="/register" class="btn-accent" style="padding: 6px 16px;">Sign Up</a>
           </div>
         }
-      } @else {
-        <ul class="nav-links">
-          <li>
-            <a routerLink="/login" routerLinkActive="active" (click)="closeMobileMenu()">
-              Login
-            </a>
-          </li>
-          <li>
-            <a routerLink="/register" routerLinkActive="active" (click)="closeMobileMenu()">
-              Register
-            </a>
-          </li>
-        </ul>
-      }
+      </div>
 
     </div>
   </div>
-</nav>
+
+  <!-- SECONDARY NAV BAR -->
+  @if ((isAuthenticated$ | async) || isMobileMenuOpen) {
+    <div class="header-secondary" [class.is-open]="isMobileMenuOpen">
+    <div class="page-container py-0 h-full">
+      <ul class="nav-pills">
+        @if (isAuthenticated$ | async) {
+          <li><a routerLink="/" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a></li>
+          <li><a routerLink="/catalog/products" routerLinkActive="active" (click)="closeMobileMenu()">Products</a></li>
+          <li><a routerLink="/catalog/categories" routerLinkActive="active" (click)="closeMobileMenu()">Categories</a></li>
+          <li><a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">Profile</a></li>
+
+          @if ((currentUser$ | async); as user) {
+            @if (isAdmin(user)) {
+              <li><a routerLink="/admin/users" routerLinkActive="active" (click)="closeMobileMenu()">Users</a></li>
+            }
+          }
+          
+          <li class="lg:hidden mt-4 pt-4 border-t border-gray-200">
+            <button class="w-full btn-outline" (click)="logout()">Logout</button>
+          </li>
+        } @else {
+          <li class="lg:hidden"><a routerLink="/login" routerLinkActive="active" (click)="closeMobileMenu()">Login</a></li>
+          <li class="lg:hidden"><a routerLink="/register" routerLinkActive="active" (click)="closeMobileMenu()">Register</a></li>
+        }
+      </ul>
+    </div>
+  </div>
+}
+</header>
