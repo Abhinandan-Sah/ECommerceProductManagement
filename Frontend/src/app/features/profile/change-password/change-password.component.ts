@@ -21,11 +21,10 @@ import { passwordStrengthValidator, passwordMatchValidator } from '../../../shar
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 15.2
  */
 @Component({
-  selector: 'app-change-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './change-password.component.html',
-  styleUrls: ['./change-password.component.css']
+    selector: 'app-change-password',
+    imports: [CommonModule, ReactiveFormsModule, RouterModule],
+    templateUrl: './change-password.component.html',
+    styleUrls: ['./change-password.component.css']
 })
 export class ChangePasswordComponent implements OnInit {
   changePasswordForm!: FormGroup;

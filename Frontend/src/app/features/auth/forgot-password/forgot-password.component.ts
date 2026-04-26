@@ -20,11 +20,10 @@ import { emailValidator } from '../../../shared/utils/validators';
  * Requirements: 5.1, 5.2, 5.3, 15.2
  */
 @Component({
-  selector: 'app-forgot-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './forgot-password.component.html',
-  styleUrls: ['./forgot-password.component.css']
+    selector: 'app-forgot-password',
+    imports: [CommonModule, ReactiveFormsModule, RouterModule],
+    templateUrl: './forgot-password.component.html',
+    styleUrls: ['./forgot-password.component.css']
 })
 export class ForgotPasswordComponent implements OnInit {
   forgotPasswordForm!: FormGroup;

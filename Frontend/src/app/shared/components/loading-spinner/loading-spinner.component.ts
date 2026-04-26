@@ -4,11 +4,10 @@ import { LoadingService } from '../../../core/services/loading.service';
 import { Observable } from 'rxjs';
 
 @Component({
-  selector: 'app-loading-spinner',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './loading-spinner.component.html',
-  styleUrls: ['./loading-spinner.component.css']
+    selector: 'app-loading-spinner',
+    imports: [CommonModule],
+    templateUrl: './loading-spinner.component.html',
+    styleUrls: ['./loading-spinner.component.css']
 })
 export class LoadingSpinnerComponent implements OnInit {
   loading$: Observable<boolean>;

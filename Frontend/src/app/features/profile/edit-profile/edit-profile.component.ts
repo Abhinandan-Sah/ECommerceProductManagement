@@ -22,11 +22,10 @@ import { User, UpdateProfileRequest } from '../../../shared/models/user.model';
  * Requirements: 7.3, 7.4, 7.5, 7.6, 14.4, 15.2
  */
 @Component({
-  selector: 'app-edit-profile',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './edit-profile.component.html',
-  styleUrls: ['./edit-profile.component.css']
+    selector: 'app-edit-profile',
+    imports: [CommonModule, ReactiveFormsModule, RouterModule],
+    templateUrl: './edit-profile.component.html',
+    styleUrls: ['./edit-profile.component.css']
 })
 export class EditProfileComponent implements OnInit {
   editForm!: FormGroup;

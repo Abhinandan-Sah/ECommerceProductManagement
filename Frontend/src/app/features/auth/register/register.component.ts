@@ -21,11 +21,10 @@ import { emailValidator, passwordStrengthValidator } from '../../../shared/utils
  * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 14.4, 15.2
  */
 @Component({
-  selector: 'app-register',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+    selector: 'app-register',
+    imports: [CommonModule, ReactiveFormsModule, RouterModule],
+    templateUrl: './register.component.html',
+    styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;

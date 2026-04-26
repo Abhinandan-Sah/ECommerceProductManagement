@@ -17,11 +17,10 @@ import { User } from '../../../shared/models/user.model';
  * Requirements: 7.1, 7.2, 15.3
  */
 @Component({
-  selector: 'app-view-profile',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './view-profile.component.html',
-  styleUrls: ['./view-profile.component.css']
+    selector: 'app-view-profile',
+    imports: [CommonModule, RouterModule],
+    templateUrl: './view-profile.component.html',
+    styleUrls: ['./view-profile.component.css']
 })
 export class ViewProfileComponent implements OnInit {
   user: User | null = null;

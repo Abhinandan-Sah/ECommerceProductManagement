@@ -10,10 +10,9 @@ import { Router, RouterModule } from '@angular/router';
  * Requirements: 8.5
  */
 @Component({
-  selector: 'app-unauthorized',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  template: `
+    selector: 'app-unauthorized',
+    imports: [CommonModule, RouterModule],
+    template: `
     <div class="unauthorized-container">
       <div class="unauthorized-card">
         <div class="icon">🔒</div>
@@ -26,7 +25,7 @@ import { Router, RouterModule } from '@angular/router';
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .unauthorized-container {
       display: flex;
       justify-content: center;

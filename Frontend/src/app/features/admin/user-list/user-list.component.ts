@@ -22,11 +22,10 @@ import { User, UserRole, PaginatedResponse } from '../../../shared/models/user.m
  * Requirements: 9.1-9.6, 10.1-10.6, 11.1-11.6, 12.1-12.6, 15.3
  */
 @Component({
-  selector: 'app-user-list',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.css']
+    selector: 'app-user-list',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './user-list.component.html',
+    styleUrls: ['./user-list.component.css']
 })
 export class UserListComponent implements OnInit, OnDestroy {
   users: User[] = [];

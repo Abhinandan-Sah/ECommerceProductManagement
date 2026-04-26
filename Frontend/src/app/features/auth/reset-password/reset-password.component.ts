@@ -20,11 +20,10 @@ import { passwordStrengthValidator, passwordMatchValidator } from '../../../shar
  * Requirements: 5.4, 5.5, 5.6, 15.2
  */
 @Component({
-  selector: 'app-reset-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './reset-password.component.html',
-  styleUrls: ['./reset-password.component.css']
+    selector: 'app-reset-password',
+    imports: [CommonModule, ReactiveFormsModule, RouterModule],
+    templateUrl: './reset-password.component.html',
+    styleUrls: ['./reset-password.component.css']
 })
 export class ResetPasswordComponent implements OnInit {
   resetPasswordForm!: FormGroup;
