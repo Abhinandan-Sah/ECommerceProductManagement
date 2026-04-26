@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router, RouterModule } from '@angular/router';
 
 /**
@@ -11,7 +11,7 @@ import { Router, RouterModule } from '@angular/router';
  */
 @Component({
     selector: 'app-unauthorized',
-    imports: [CommonModule, RouterModule],
+    imports: [RouterModule],
     template: `
     <div class="unauthorized-container">
       <div class="unauthorized-card">

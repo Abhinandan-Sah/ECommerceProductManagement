@@ -17,10 +17,12 @@
           class="form-input"
           placeholder="Enter your email"
           autocomplete="email"
-        />
-        <span *ngIf="isInvalid('email')" class="form-error">
-          {{ getError('email') }}
-        </span>
+          />
+        @if (isInvalid('email')) {
+          <span class="form-error">
+            {{ getError('email') }}
+          </span>
+        }
       </div>
 
       <!-- Password Field -->
@@ -33,29 +35,35 @@
           class="form-input"
           placeholder="Enter your password"
           autocomplete="current-password"
-        />
-        <span *ngIf="isInvalid('password')" class="form-error">
-          {{ getError('password') }}
-        </span>
+          />
+        @if (isInvalid('password')) {
+          <span class="form-error">
+            {{ getError('password') }}
+          </span>
+        }
       </div>
 
       <!-- Error Banner (from NgRx store) -->
-      <div *ngIf="error$ | async as error" class="error-banner">
-        <p class="error-banner-text">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-          </svg>
-          {{ error }}
-        </p>
-      </div>
+      @if (error$ | async; as error) {
+        <div class="error-banner">
+          <p class="error-banner-text">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            {{ error }}
+          </p>
+        </div>
+      }
 
       <!-- Submit Button -->
       <button
         type="submit"
         [disabled]="loading$ | async"
         class="submit-button"
-      >
-        <span *ngIf="loading$ | async" class="loading-spinner"></span>
+        >
+        @if (loading$ | async) {
+          <span class="loading-spinner"></span>
+        }
         {{ (loading$ | async) ? 'Signing in...' : 'Sign In' }}
       </button>
 

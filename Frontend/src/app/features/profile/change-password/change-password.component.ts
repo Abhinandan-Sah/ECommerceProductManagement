@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -22,7 +22,7 @@ import { passwordStrengthValidator, passwordMatchValidator } from '../../../shar
  */
 @Component({
   selector: 'app-change-password',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './change-password.component.html',
   styleUrls: ['./change-password.component.css']
 })

@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -18,7 +18,7 @@ import { User } from '../../../shared/models/user.model';
  */
 @Component({
   selector: 'app-view-profile',
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './view-profile.component.html',
   styleUrls: ['./view-profile.component.css']
 })

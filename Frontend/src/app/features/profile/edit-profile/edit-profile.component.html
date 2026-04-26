@@ -7,91 +7,103 @@
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="isLoading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading profile...</p>
-    </div>
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading profile...</p>
+      </div>
+    }
 
     <!-- Edit Form -->
-    <form *ngIf="!isLoading" [formGroup]="editForm" (ngSubmit)="onSubmit()" class="edit-form">
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="form-control"
-          [class.error]="hasError('email')"
-          placeholder="Enter your email"
-          autocomplete="email"
-        />
-        <div class="error-message" *ngIf="hasError('email')">
-          {{ getErrorMessage('email') }}
+    @if (!isLoading) {
+      <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="edit-form">
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-control"
+            [class.error]="hasError('email')"
+            placeholder="Enter your email"
+            autocomplete="email"
+            />
+            @if (hasError('email')) {
+              <div class="error-message">
+                {{ getErrorMessage('email') }}
+              </div>
+            }
+          </div>
+          <!-- First Name Field -->
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input
+              id="firstName"
+              type="text"
+              formControlName="firstName"
+              class="form-control"
+              [class.error]="hasError('firstName')"
+              placeholder="Enter your first name"
+              autocomplete="given-name"
+              />
+              @if (hasError('firstName')) {
+                <div class="error-message">
+                  {{ getErrorMessage('firstName') }}
+                </div>
+              }
+            </div>
+            <!-- Last Name Field -->
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input
+                id="lastName"
+                type="text"
+                formControlName="lastName"
+                class="form-control"
+                [class.error]="hasError('lastName')"
+                placeholder="Enter your last name"
+                autocomplete="family-name"
+                />
+                @if (hasError('lastName')) {
+                  <div class="error-message">
+                    {{ getErrorMessage('lastName') }}
+                  </div>
+                }
+              </div>
+              <!-- Error Message -->
+              @if (errorMessage) {
+                <div class="form-error">
+                  {{ errorMessage }}
+                </div>
+              }
+              <!-- Action Buttons -->
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="cancel()"
+                  [disabled]="isSaving"
+                  >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="isSaving || editForm.invalid"
+                  >
+                  @if (!isSaving) {
+                    <span>Save Changes</span>
+                  }
+                  @if (isSaving) {
+                    <span class="loading-text">
+                      <span class="spinner"></span>
+                      Saving...
+                    </span>
+                  }
+                </button>
+              </div>
+            </form>
+          }
         </div>
       </div>
-
-      <!-- First Name Field -->
-      <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input
-          id="firstName"
-          type="text"
-          formControlName="firstName"
-          class="form-control"
-          [class.error]="hasError('firstName')"
-          placeholder="Enter your first name"
-          autocomplete="given-name"
-        />
-        <div class="error-message" *ngIf="hasError('firstName')">
-          {{ getErrorMessage('firstName') }}
-        </div>
-      </div>
-
-      <!-- Last Name Field -->
-      <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input
-          id="lastName"
-          type="text"
-          formControlName="lastName"
-          class="form-control"
-          [class.error]="hasError('lastName')"
-          placeholder="Enter your last name"
-          autocomplete="family-name"
-        />
-        <div class="error-message" *ngIf="hasError('lastName')">
-          {{ getErrorMessage('lastName') }}
-        </div>
-      </div>
-
-      <!-- Error Message -->
-      <div class="form-error" *ngIf="errorMessage">
-        {{ errorMessage }}
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="form-actions">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="cancel()"
-          [disabled]="isSaving"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="isSaving || editForm.invalid"
-        >
-          <span *ngIf="!isSaving">Save Changes</span>
-          <span *ngIf="isSaving" class="loading-text">
-            <span class="spinner"></span>
-            Saving...
-          </span>
-        </button>
-      </div>
-    </form>
-  </div>
-</div>

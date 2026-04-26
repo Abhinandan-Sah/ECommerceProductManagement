@@ -2,8 +2,8 @@
   <div class="navbar-container">
     <div class="navbar-brand">
       <a routerLink="/" class="brand-link">Identity App</a>
-      <button 
-        class="mobile-menu-toggle" 
+      <button
+        class="mobile-menu-toggle"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="isMobileMenuOpen"
         aria-label="Toggle navigation menu">
@@ -12,31 +12,33 @@
     </div>
 
     <div class="navbar-menu" [class.is-open]="isMobileMenuOpen">
-      <ng-container *ngIf="isAuthenticated$ | async; else guestMenu">
+      @if (isAuthenticated$ | async) {
         <ul class="nav-links">
           <li>
             <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">
               Profile
             </a>
           </li>
-          <li *ngIf="(currentUser$ | async) as user">
-            <a 
-              *ngIf="isAdmin(user)" 
-              routerLink="/admin/users" 
-              routerLinkActive="active" 
-              (click)="closeMobileMenu()">
-              Admin
-            </a>
-          </li>
+          @if ((currentUser$ | async); as user) {
+            <li>
+              @if (isAdmin(user)) {
+                <a
+                  routerLink="/admin/users"
+                  routerLinkActive="active"
+                  (click)="closeMobileMenu()">
+                  Admin
+                </a>
+              }
+            </li>
+          }
         </ul>
-
-        <div class="navbar-user" *ngIf="(currentUser$ | async) as user">
-          <span class="user-name">{{ getDisplayName(user) }}</span>
-          <button class="btn btn-logout" (click)="logout()">Logout</button>
-        </div>
-      </ng-container>
-
-      <ng-template #guestMenu>
+        @if ((currentUser$ | async); as user) {
+          <div class="navbar-user">
+            <span class="user-name">{{ getDisplayName(user) }}</span>
+            <button class="btn btn-logout" (click)="logout()">Logout</button>
+          </div>
+        }
+      } @else {
         <ul class="nav-links">
           <li>
             <a routerLink="/login" routerLinkActive="active" (click)="closeMobileMenu()">
@@ -49,7 +51,8 @@
             </a>
           </li>
         </ul>
-      </ng-template>
+      }
+
     </div>
   </div>
 </nav>
