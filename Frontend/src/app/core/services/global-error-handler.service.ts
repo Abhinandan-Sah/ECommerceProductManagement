@@ -1,4 +1,4 @@
-import { ErrorHandler, Injectable } from '@angular/core';
+import { ErrorHandler, Injectable, inject } from '@angular/core';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
 
@@ -12,7 +12,7 @@ import { environment } from '../../../environments/environment';
  */
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
-  constructor(private notificationService: NotificationService) {}
+  private notificationService = inject(NotificationService);
 
   handleError(error: Error): void {
     // Log error to console in development

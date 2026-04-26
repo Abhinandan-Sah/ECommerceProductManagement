@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
@@ -7,31 +7,29 @@ import { User } from '../../../shared/models/user.model';
 
 /**
  * ViewProfileComponent displays the current user's profile information.
- * 
+ *
  * Features:
- * - Displays user email, name, role, and account status
+ * - Displays user email, fullName, role, and account status
  * - Loading state while fetching profile data
  * - Navigation to edit profile and change password pages
  * - Error handling for profile fetch failures
- * 
+ *
  * Requirements: 7.1, 7.2, 15.3
  */
 @Component({
-    selector: 'app-view-profile',
-    imports: [CommonModule, RouterModule],
-    templateUrl: './view-profile.component.html',
-    styleUrls: ['./view-profile.component.css']
+  selector: 'app-view-profile',
+  imports: [CommonModule, RouterModule],
+  templateUrl: './view-profile.component.html',
+  styleUrls: ['./view-profile.component.css']
 })
 export class ViewProfileComponent implements OnInit {
+  private userService = inject(UserService);
+  private notify      = inject(NotificationService);
+  private router      = inject(Router);
+
   user: User | null = null;
   isLoading = true;
   errorMessage = '';
-
-  constructor(
-    private userService: UserService,
-    private notificationService: NotificationService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.loadProfile();
@@ -67,8 +65,8 @@ export class ViewProfileComponent implements OnInit {
     } else {
       this.errorMessage = error.error?.message || 'Failed to load profile. Please try again.';
     }
-    
-    this.notificationService.showError(this.errorMessage);
+
+    this.notify.showError(this.errorMessage);
   }
 
   /**

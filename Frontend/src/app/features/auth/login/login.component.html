@@ -5,7 +5,7 @@
       <p class="login-subtitle">Sign in to continue to your account</p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <!-- Email Field -->
       <div class="form-group">
         <label for="email" class="form-label">Email Address</label>
@@ -13,13 +13,13 @@
           id="email"
           type="email"
           formControlName="email"
-          [class.error]="hasError('email')"
+          [class.error]="isInvalid('email')"
           class="form-input"
           placeholder="Enter your email"
           autocomplete="email"
         />
-        <span *ngIf="hasError('email')" class="form-error">
-          {{ getErrorMessage('email') }}
+        <span *ngIf="isInvalid('email')" class="form-error">
+          {{ getError('email') }}
         </span>
       </div>
 
@@ -34,29 +34,29 @@
           placeholder="Enter your password"
           autocomplete="current-password"
         />
-        <span *ngIf="hasError('password')" class="form-error">
-          {{ getErrorMessage('password') }}
+        <span *ngIf="isInvalid('password')" class="form-error">
+          {{ getError('password') }}
         </span>
       </div>
 
-      <!-- Error Banner -->
-      <div *ngIf="errorMessage" class="error-banner">
+      <!-- Error Banner (from NgRx store) -->
+      <div *ngIf="error$ | async as error" class="error-banner">
         <p class="error-banner-text">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
           </svg>
-          {{ errorMessage }}
+          {{ error }}
         </p>
       </div>
 
       <!-- Submit Button -->
       <button
         type="submit"
-        [disabled]="isLoading"
+        [disabled]="loading$ | async"
         class="submit-button"
       >
-        <span *ngIf="isLoading" class="loading-spinner"></span>
-        {{ isLoading ? 'Signing in...' : 'Sign In' }}
+        <span *ngIf="loading$ | async" class="loading-spinner"></span>
+        {{ (loading$ | async) ? 'Signing in...' : 'Sign In' }}
       </button>
 
       <!-- Links -->

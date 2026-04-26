@@ -1,26 +1,36 @@
-import { ApplicationConfig, provideZoneChangeDetection, ErrorHandler } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  ApplicationConfig, provideZoneChangeDetection,
+  ErrorHandler, isDevMode
+} from '@angular/core';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
-import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { authInterceptor }  from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { GlobalErrorHandler } from './core/services/global-error-handler.service';
+import { authReducer } from './store/auth/auth.reducer';
+import { uiReducer }   from './store/ui/ui.reducer';
+import { AuthEffects }  from './store/auth/auth.effects';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
-      withInterceptors([
-        authInterceptor,
-        errorInterceptor,
-        loadingInterceptor
-      ])
+      withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])
     ),
     provideAnimations(),
+    provideStore({ auth: authReducer, ui: uiReducer }),
+    provideEffects([AuthEffects]),
+    isDevMode()
+      ? provideStoreDevtools({ maxAge: 25, logOnly: false })
+      : [],
     { provide: ErrorHandler, useClass: GlobalErrorHandler }
   ]
 };

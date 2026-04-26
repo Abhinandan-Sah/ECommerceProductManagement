@@ -1,72 +1,50 @@
-/**
- * Authentication Models
- * 
- * These models define the data structures for authentication-related operations
- * including login, registration, token management, and password operations.
- */
+import { Role } from './user.model';
 
-/**
- * Request payload for user login
- */
 export interface LoginRequest {
-  email: string;
+  email:    string;
   password: string;
 }
 
-/**
- * Response payload for successful login
- */
 export interface LoginResponse {
-  accessToken: string;
+  accessToken:  string;
   refreshToken: string;
-  expiresIn: number;
+  expiresAt:    string;
+  email:        string;
+  fullName:     string;
+  role:         string;
 }
 
-/**
- * Request payload for user registration
- */
 export interface RegisterRequest {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
+  fullName:  string;
+  email:     string;
+  password:  string;
 }
 
-/**
- * Response payload containing authentication tokens
- */
 export interface TokenResponse {
-  accessToken: string;
+  accessToken:  string;
   refreshToken: string;
-  expiresIn: number;
+  expiresAt:    string;
+  email:        string;
+  fullName:     string;
+  role:         string;
 }
 
-/**
- * Request payload for refreshing access token
- */
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
 
-/**
- * Request payload for initiating password reset
- */
 export interface ForgotPasswordRequest {
   email: string;
 }
 
-/**
- * Request payload for completing password reset
- */
 export interface ResetPasswordRequest {
-  token: string;
-  newPassword: string;
+  token:           string;
+  newPassword:     string;
+  confirmPassword: string;
 }
 
-/**
- * Request payload for changing password
- */
 export interface ChangePasswordRequest {
   currentPassword: string;
-  newPassword: string;
+  newPassword:     string;
+  confirmPassword: string;
 }

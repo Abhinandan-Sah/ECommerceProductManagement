@@ -1,30 +1,25 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { User } from '../../models/user.model';
+import { selectCurrentUser, selectIsAuthenticated } from '../../../store/auth/auth.selectors';
+import { logout } from '../../../store/auth/auth.actions';
 
 @Component({
-    selector: 'app-navigation',
-    imports: [CommonModule, RouterModule],
-    templateUrl: './navigation.component.html',
-    styleUrls: ['./navigation.component.css']
+  selector: 'app-navigation',
+  imports: [CommonModule, RouterModule, AsyncPipe],
+  templateUrl: './navigation.component.html',
+  styleUrls: ['./navigation.component.css']
 })
-export class NavigationComponent implements OnInit {
-  isAuthenticated$: Observable<boolean>;
-  currentUser$: Observable<User | null>;
+export class NavigationComponent {
+  private store  = inject(Store);
+  private router = inject(Router);
+
+  isAuthenticated$: Observable<boolean>    = this.store.select(selectIsAuthenticated);
+  currentUser$: Observable<User | null>    = this.store.select(selectCurrentUser);
   isMobileMenuOpen = false;
-
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {
-    this.isAuthenticated$ = this.authService.isAuthenticated$;
-    this.currentUser$ = this.authService.currentUser$;
-  }
-
-  ngOnInit(): void {}
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
@@ -35,22 +30,7 @@ export class NavigationComponent implements OnInit {
   }
 
   logout(): void {
-    const refreshToken = this.authService.getRefreshToken();
-    if (refreshToken) {
-      this.authService.logout().subscribe({
-        next: () => {
-          this.router.navigate(['/login']);
-        },
-        error: () => {
-          // Even if logout fails, clear local state and redirect
-          this.authService.clearAuthState();
-          this.router.navigate(['/login']);
-        }
-      });
-    } else {
-      this.authService.clearAuthState();
-      this.router.navigate(['/login']);
-    }
+    this.store.dispatch(logout());
     this.closeMobileMenu();
   }
 
@@ -59,7 +39,6 @@ export class NavigationComponent implements OnInit {
   }
 
   getDisplayName(user: User): string {
-    const fullName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
-    return fullName || user.email;
+    return user.fullName || user.email;
   }
 }

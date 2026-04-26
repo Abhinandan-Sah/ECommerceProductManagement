@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 /**
@@ -16,7 +16,7 @@ export class NotificationService {
   private readonly defaultDuration = 5000; // 5 seconds
   private readonly successDuration = 3000; // 3 seconds
 
-  constructor(private snackBar: MatSnackBar) {}
+  private snackBar = inject(MatSnackBar);
 
   /**
    * Displays a success message.

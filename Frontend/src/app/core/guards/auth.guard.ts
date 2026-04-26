@@ -1,39 +1,21 @@
 import { inject } from '@angular/core';
-import { Router, CanActivateFn, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { Router, CanActivateFn } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { map, take } from 'rxjs/operators';
+import { selectIsAuthenticated } from '../../store/auth/auth.selectors';
 
-/**
- * Route guard that protects routes requiring authentication.
- * 
- * Prevents unauthenticated users from accessing protected routes.
- * Stores the attempted URL for redirect after successful login.
- * 
- * Usage:
- * ```typescript
- * {
- *   path: 'profile',
- *   component: ProfileComponent,
- *   canActivate: [authGuard]
- * }
- * ```
- * 
- * Validates: Requirements 8.1, 8.2, 8.3
- */
-export const authGuard: CanActivateFn = (
-  route: ActivatedRouteSnapshot,
-  state: RouterStateSnapshot
-): boolean => {
-  const authService = inject(AuthService);
+export const authGuard: CanActivateFn = (_route, state) => {
+  const store  = inject(Store);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
-    return true;
-  }
-
-  // Store attempted URL for redirect after login
-  authService.redirectUrl = state.url;
-  
-  // Redirect to login page
-  router.navigate(['/login']);
-  return false;
+  return store.select(selectIsAuthenticated).pipe(
+    take(1),
+    map(isAuthenticated => {
+      if (isAuthenticated) return true;
+      router.navigate(['/login'], {
+        queryParams: { returnUrl: state.url }
+      });
+      return false;
+    })
+  );
 };

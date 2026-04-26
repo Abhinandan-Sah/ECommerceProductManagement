@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,7 +8,7 @@ import { passwordStrengthValidator, passwordMatchValidator } from '../../../shar
 
 /**
  * ChangePasswordComponent allows authenticated users to change their password.
- * 
+ *
  * Features:
  * - Reactive form with currentPassword, newPassword, confirmPassword fields
  * - Password validation (strength requirements)
@@ -17,26 +17,24 @@ import { passwordStrengthValidator, passwordMatchValidator } from '../../../shar
  * - Success notification
  * - Handles incorrect current password errors (400)
  * - Cancel button to return to profile view
- * 
+ *
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 15.2
  */
 @Component({
-    selector: 'app-change-password',
-    imports: [CommonModule, ReactiveFormsModule, RouterModule],
-    templateUrl: './change-password.component.html',
-    styleUrls: ['./change-password.component.css']
+  selector: 'app-change-password',
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  templateUrl: './change-password.component.html',
+  styleUrls: ['./change-password.component.css']
 })
 export class ChangePasswordComponent implements OnInit {
+  private fb                  = inject(FormBuilder);
+  private authService         = inject(AuthService);
+  private notificationService = inject(NotificationService);
+  private router              = inject(Router);
+
   changePasswordForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
-
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private notificationService: NotificationService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.initializeForm();
@@ -48,7 +46,7 @@ export class ChangePasswordComponent implements OnInit {
   private initializeForm(): void {
     this.changePasswordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, passwordStrengthValidator()]],
+      newPassword:     ['', [Validators.required, passwordStrengthValidator()]],
       confirmPassword: ['', [Validators.required]]
     }, {
       validators: passwordMatchValidator('newPassword', 'confirmPassword')
@@ -60,7 +58,7 @@ export class ChangePasswordComponent implements OnInit {
    */
   onSubmit(): void {
     if (this.changePasswordForm.invalid) {
-      this.markFormGroupTouched(this.changePasswordForm);
+      this.changePasswordForm.markAllAsTouched();
       return;
     }
 
@@ -68,9 +66,10 @@ export class ChangePasswordComponent implements OnInit {
     this.errorMessage = '';
 
     const currentPassword = this.changePasswordForm.value.currentPassword;
-    const newPassword = this.changePasswordForm.value.newPassword;
+    const newPassword     = this.changePasswordForm.value.newPassword;
+    const confirmPassword = this.changePasswordForm.value.confirmPassword;
 
-    this.authService.changePassword(currentPassword, newPassword).subscribe({
+    this.authService.changePassword({ currentPassword, newPassword, confirmPassword }).subscribe({
       next: () => {
         this.isLoading = false;
         this.notificationService.showSuccess('Password changed successfully!');
@@ -97,7 +96,7 @@ export class ChangePasswordComponent implements OnInit {
     } else {
       this.errorMessage = error.error?.message || 'Failed to change password. Please try again.';
     }
-    
+
     this.notificationService.showError(this.errorMessage);
   }
 
@@ -106,20 +105,6 @@ export class ChangePasswordComponent implements OnInit {
    */
   cancel(): void {
     this.router.navigate(['/profile']);
-  }
-
-  /**
-   * Mark all form controls as touched to trigger validation messages.
-   */
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
   }
 
   /**
@@ -144,7 +129,7 @@ export class ChangePasswordComponent implements OnInit {
    */
   getErrorMessage(fieldName: string): string {
     const field = this.changePasswordForm.get(fieldName);
-    
+
     if (!field || !field.errors) {
       return '';
     }
@@ -170,7 +155,7 @@ export class ChangePasswordComponent implements OnInit {
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
       currentPassword: 'Current password',
-      newPassword: 'New password',
+      newPassword:     'New password',
       confirmPassword: 'Confirm password'
     };
     return labels[fieldName] || fieldName;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -9,36 +9,34 @@ import { User, UpdateProfileRequest } from '../../../shared/models/user.model';
 
 /**
  * EditProfileComponent allows users to update their profile information.
- * 
+ *
  * Features:
- * - Reactive form with email, firstName, lastName fields
+ * - Reactive form with fullName and email fields
  * - Pre-populated with current profile data
  * - Form validation with inline error messages
  * - Loading state during profile fetch and update
  * - Success notification and profile refresh after update
  * - Handles email conflict errors (409)
  * - Cancel button to return to profile view
- * 
+ *
  * Requirements: 7.3, 7.4, 7.5, 7.6, 14.4, 15.2
  */
 @Component({
-    selector: 'app-edit-profile',
-    imports: [CommonModule, ReactiveFormsModule, RouterModule],
-    templateUrl: './edit-profile.component.html',
-    styleUrls: ['./edit-profile.component.css']
+  selector: 'app-edit-profile',
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  templateUrl: './edit-profile.component.html',
+  styleUrls: ['./edit-profile.component.css']
 })
 export class EditProfileComponent implements OnInit {
+  private fb                  = inject(FormBuilder);
+  private userService         = inject(UserService);
+  private notificationService = inject(NotificationService);
+  private router              = inject(Router);
+
   editForm!: FormGroup;
   isLoading = true;
   isSaving = false;
   errorMessage = '';
-
-  constructor(
-    private fb: FormBuilder,
-    private userService: UserService,
-    private notificationService: NotificationService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.initializeForm();
@@ -50,9 +48,8 @@ export class EditProfileComponent implements OnInit {
    */
   private initializeForm(): void {
     this.editForm = this.fb.group({
-      email: ['', [Validators.required, emailValidator()]],
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]]
+      email:    ['', [Validators.required, emailValidator()]],
+      fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]]
     });
   }
 
@@ -80,9 +77,8 @@ export class EditProfileComponent implements OnInit {
    */
   private populateForm(user: User): void {
     this.editForm.patchValue({
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName
+      email:    user.email,
+      fullName: user.fullName
     });
   }
 
@@ -91,7 +87,7 @@ export class EditProfileComponent implements OnInit {
    */
   onSubmit(): void {
     if (this.editForm.invalid) {
-      this.markFormGroupTouched(this.editForm);
+      this.editForm.markAllAsTouched();
       return;
     }
 
@@ -99,9 +95,8 @@ export class EditProfileComponent implements OnInit {
     this.errorMessage = '';
 
     const updateData: UpdateProfileRequest = {
-      email: this.editForm.value.email,
-      firstName: this.editForm.value.firstName,
-      lastName: this.editForm.value.lastName
+      email:    this.editForm.value.email,
+      fullName: this.editForm.value.fullName
     };
 
     this.userService.updateProfile(updateData).subscribe({
@@ -128,7 +123,7 @@ export class EditProfileComponent implements OnInit {
     } else {
       this.errorMessage = error.error?.message || 'Failed to load profile. Please try again.';
     }
-    
+
     this.notificationService.showError(this.errorMessage);
   }
 
@@ -146,7 +141,7 @@ export class EditProfileComponent implements OnInit {
     } else {
       this.errorMessage = error.error?.message || 'Failed to update profile. Please try again.';
     }
-    
+
     this.notificationService.showError(this.errorMessage);
   }
 
@@ -155,20 +150,6 @@ export class EditProfileComponent implements OnInit {
    */
   cancel(): void {
     this.router.navigate(['/profile']);
-  }
-
-  /**
-   * Mark all form controls as touched to trigger validation messages.
-   */
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
   }
 
   /**
@@ -184,7 +165,7 @@ export class EditProfileComponent implements OnInit {
    */
   getErrorMessage(fieldName: string): string {
     const field = this.editForm.get(fieldName);
-    
+
     if (!field || !field.errors) {
       return '';
     }
@@ -214,9 +195,8 @@ export class EditProfileComponent implements OnInit {
    */
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
-      email: 'Email',
-      firstName: 'First name',
-      lastName: 'Last name'
+      email:    'Email',
+      fullName: 'Full name'
     };
     return labels[fieldName] || fieldName;
   }

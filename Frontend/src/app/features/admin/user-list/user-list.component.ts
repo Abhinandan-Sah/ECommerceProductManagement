@@ -1,69 +1,69 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 import { UserService } from '../../../core/services/user.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { User, UserRole, PaginatedResponse } from '../../../shared/models/user.model';
+import { User, Role, PaginatedResponse } from '../../../shared/models/user.model';
+import { selectCurrentUser } from '../../../store/auth/auth.selectors';
 
 /**
  * UserListComponent provides admin interface for managing all users.
- * 
+ *
  * Features:
  * - Paginated user list with search and role filtering
  * - Role management (change user roles)
  * - Status management (activate/deactivate users)
  * - User deletion with confirmation
  * - Prevents admins from modifying their own account
- * 
+ *
  * Requirements: 9.1-9.6, 10.1-10.6, 11.1-11.6, 12.1-12.6, 15.3
  */
 @Component({
-    selector: 'app-user-list',
-    imports: [CommonModule, ReactiveFormsModule],
-    templateUrl: './user-list.component.html',
-    styleUrls: ['./user-list.component.css']
+  selector: 'app-user-list',
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.css']
 })
 export class UserListComponent implements OnInit, OnDestroy {
+  private userService  = inject(UserService);
+  private store        = inject(Store);
+  private notify       = inject(NotificationService);
+  private router       = inject(Router);
+
   users: User[] = [];
   isLoading = true;
   errorMessage = '';
-  
+
   // Pagination
   currentPage = 1;
   pageSize = 10;
   totalUsers = 0;
   totalPages = 0;
-  
+
   // Search and filter
   searchControl = new FormControl('');
   roleFilter = new FormControl('');
-  
+
   // Available roles for filtering and role management
-  availableRoles = Object.values(UserRole);
-  
+  availableRoles = Object.values(Role);
+
   // Current user ID to prevent self-modification
   currentUserId: string | null = null;
-  
+
   // Confirmation dialog state
   showDeleteConfirm = false;
   userToDelete: User | null = null;
-  
+
   // Unsubscribe subject
   private destroy$ = new Subject<void>();
 
   // Expose Math for template
   Math = Math;
-
-  constructor(
-    private userService: UserService,
-    private authService: AuthService,
-    private notificationService: NotificationService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.initializeCurrentUser();
@@ -80,15 +80,17 @@ export class UserListComponent implements OnInit, OnDestroy {
    * Get current user ID to prevent self-modification.
    */
   private initializeCurrentUser(): void {
-    const currentUser = this.authService.getCurrentUser();
-    this.currentUserId = currentUser?.id || null;
+    this.store.select(selectCurrentUser).pipe(
+      take(1)
+    ).subscribe(user => {
+      this.currentUserId = user?.id ?? null;
+    });
   }
 
   /**
    * Set up search and filter with debouncing.
    */
   private setupSearchAndFilter(): void {
-    // Debounce search input
     this.searchControl.valueChanges
       .pipe(
         debounceTime(300),
@@ -96,15 +98,14 @@ export class UserListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        this.currentPage = 1; // Reset to first page on search
+        this.currentPage = 1;
         this.loadUsers();
       });
 
-    // Reload on role filter change
     this.roleFilter.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        this.currentPage = 1; // Reset to first page on filter
+        this.currentPage = 1;
         this.loadUsers();
       });
   }
@@ -171,19 +172,18 @@ export class UserListComponent implements OnInit, OnDestroy {
   getPageNumbers(): number[] {
     const pages: number[] = [];
     const maxPagesToShow = 5;
-    
+
     let startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
-    
-    // Adjust start if we're near the end
+
     if (endPage - startPage < maxPagesToShow - 1) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
+
     return pages;
   }
 
@@ -199,24 +199,24 @@ export class UserListComponent implements OnInit, OnDestroy {
    */
   onRoleChange(user: User, newRole: string): void {
     if (this.isCurrentUser(user)) {
-      this.notificationService.showError('You cannot change your own role');
+      this.notify.showError('You cannot change your own role');
       return;
     }
 
     if (user.role === newRole) {
-      return; // No change
+      return;
     }
 
     this.userService.updateUserRole(user.id, newRole)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess(`User role updated to ${newRole}`);
-          this.loadUsers(); // Refresh list
+          this.notify.showSuccess(`User role updated to ${newRole}`);
+          this.loadUsers();
         },
         error: (error) => {
           this.handleError(error, 'Failed to update user role');
-          this.loadUsers(); // Refresh to revert UI change
+          this.loadUsers();
         }
       });
   }
@@ -226,7 +226,7 @@ export class UserListComponent implements OnInit, OnDestroy {
    */
   toggleUserStatus(user: User): void {
     if (this.isCurrentUser(user)) {
-      this.notificationService.showError('You cannot change your own status');
+      this.notify.showError('You cannot change your own status');
       return;
     }
 
@@ -237,12 +237,12 @@ export class UserListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess(`User ${action} successfully`);
-          this.loadUsers(); // Refresh list
+          this.notify.showSuccess(`User ${action} successfully`);
+          this.loadUsers();
         },
         error: (error) => {
           this.handleError(error, `Failed to ${action.slice(0, -1)} user`);
-          this.loadUsers(); // Refresh to revert UI change
+          this.loadUsers();
         }
       });
   }
@@ -252,7 +252,7 @@ export class UserListComponent implements OnInit, OnDestroy {
    */
   confirmDelete(user: User): void {
     if (this.isCurrentUser(user)) {
-      this.notificationService.showError('You cannot delete your own account');
+      this.notify.showError('You cannot delete your own account');
       return;
     }
 
@@ -283,10 +283,10 @@ export class UserListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess(`User ${userEmail} deleted successfully`);
+          this.notify.showSuccess(`User ${userEmail} deleted successfully`);
           this.showDeleteConfirm = false;
           this.userToDelete = null;
-          this.loadUsers(); // Refresh list
+          this.loadUsers();
         },
         error: (error) => {
           this.handleError(error, 'Failed to delete user');
@@ -297,10 +297,10 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get display name for user.
+   * Get display name for user (uses fullName field directly).
    */
   getUserDisplayName(user: User): string {
-    return `${user.firstName} ${user.lastName}`.trim() || user.email;
+    return user.fullName || user.email;
   }
 
   /**
@@ -334,7 +334,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     }
 
     this.errorMessage = errorMessage;
-    this.notificationService.showError(errorMessage);
+    this.notify.showError(errorMessage);
   }
 
   /**
