@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -9,20 +9,10 @@ import {
   selectAuthLoading, selectAuthError
 } from '../../../store/auth/auth.selectors';
 
-/**
- * LoginComponent provides the user interface for authentication.
- *
- * Features:
- * - Reactive form with email and password validation
- * - Loading state via NgRx store selector (no local isLoading flag)
- * - Error handling via NgRx store selector (no local errorMessage)
- * - Dispatches login action — navigation handled in AuthEffects
- *
- * Requirements: 2.1, 2.2, 2.4, 2.5, 14.4, 15.2
- */
+
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, AsyncPipe],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })

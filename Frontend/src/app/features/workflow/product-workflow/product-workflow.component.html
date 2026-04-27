@@ -1,0 +1,224 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Product Workflow</h1>
+    <p class="text-secondary mt-1">Manage pricing, inventory, and approval status</p>
+  </div>
+
+  <div class="ec-card mb-6">
+    <label class="block text-sm font-medium mb-1">Product ID (GUID)</label>
+    <input
+      type="text"
+      [formControl]="productIdControl"
+      class="ec-input w-full"
+      placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    />
+    <p class="text-sm text-muted mt-1">Enter the product GUID to manage its workflow</p>
+  </div>
+
+  <div class="tab-bar">
+    @if (canManagePricing) {
+      <button class="tab-btn" [class.active]="activeTab === 'Pricing'" (click)="setTab('Pricing')">Pricing</button>
+    }
+    @if (canManageInventory) {
+      <button class="tab-btn" [class.active]="activeTab === 'Inventory'" (click)="setTab('Inventory')">Inventory</button>
+    }
+    <button class="tab-btn" [class.active]="activeTab === 'Approval'" (click)="setTab('Approval')">Approval</button>
+  </div>
+
+  <div class="tab-content">
+    <!-- PRICING TAB -->
+    @if (activeTab === 'Pricing') {
+      <div class="ec-card">
+        <h2 class="text-lg font-bold mb-4">Update Pricing</h2>
+        
+        @if (canManagePricing) {
+          <form [formGroup]="pricingForm" (ngSubmit)="savePricing()" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">MRP (₹)*</label>
+                <input type="number" formControlName="mrp" class="ec-input w-full" min="0.01" step="0.01" />
+                @if (pricingForm.get('mrp')?.invalid && pricingForm.get('mrp')?.touched) {
+                  <p class="text-sm error-text mt-1">Valid MRP is required.</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Sale Price (₹)*</label>
+                <input type="number" formControlName="salePrice" class="ec-input w-full" min="0.01" step="0.01" />
+                @if (pricingForm.get('salePrice')?.invalid && pricingForm.get('salePrice')?.touched) {
+                  <p class="text-sm error-text mt-1">Valid Sale Price is required.</p>
+                }
+              </div>
+            </div>
+            
+            <div class="max-w-[200px]">
+              <label class="block text-sm font-medium mb-1">GST %*</label>
+              <input type="number" formControlName="gstPercent" class="ec-input w-full" min="0" max="100" step="0.01" />
+              @if (pricingForm.get('gstPercent')?.invalid && pricingForm.get('gstPercent')?.touched) {
+                <p class="text-sm error-text mt-1">Valid GST % is required.</p>
+              }
+            </div>
+
+            @if (pricingForm.hasError('salePriceGreater')) {
+              <p class="text-sm error-text mt-2">Sale Price cannot be greater than MRP</p>
+            }
+
+            <div class="pt-4">
+              <button 
+                type="submit" 
+                class="btn-primary"
+                [disabled]="pricingForm.invalid || !productIdControl.value || isSavingPricing"
+              >
+                @if (isSavingPricing) {
+                  <span class="spinner"></span> Saving...
+                } @else {
+                  Save Pricing
+                }
+              </button>
+            </div>
+          </form>
+        } @else {
+          <div class="info-box">
+            Pricing management is restricted to Admin and Product Manager roles.
+          </div>
+        }
+      </div>
+    }
+
+    <!-- INVENTORY TAB -->
+    @if (activeTab === 'Inventory') {
+      <div class="ec-card">
+        <h2 class="text-lg font-bold mb-4">Update Inventory</h2>
+
+        @if (canManageInventory) {
+          <form [formGroup]="inventoryForm" (ngSubmit)="saveInventory()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Warehouse Location*</label>
+              <input type="text" formControlName="warehouseLocation" class="ec-input w-full" maxlength="200" />
+              @if (inventoryForm.get('warehouseLocation')?.invalid && inventoryForm.get('warehouseLocation')?.touched) {
+                <p class="text-sm error-text mt-1">Warehouse Location is required.</p>
+              }
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Available Quantity*</label>
+                <input type="number" formControlName="availableQty" class="ec-input w-full" min="0" />
+                @if (inventoryForm.get('availableQty')?.invalid && inventoryForm.get('availableQty')?.touched) {
+                  <p class="text-sm error-text mt-1">Valid quantity is required.</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Reorder Level*</label>
+                <input type="number" formControlName="reorderLevel" class="ec-input w-full" min="0" />
+                @if (inventoryForm.get('reorderLevel')?.invalid && inventoryForm.get('reorderLevel')?.touched) {
+                  <p class="text-sm error-text mt-1">Valid reorder level is required.</p>
+                }
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <button 
+                type="submit" 
+                class="btn-primary"
+                [disabled]="inventoryForm.invalid || !productIdControl.value || isSavingInventory"
+              >
+                @if (isSavingInventory) {
+                  <span class="spinner"></span> Saving...
+                } @else {
+                  Save Inventory
+                }
+              </button>
+            </div>
+          </form>
+        } @else {
+          <div class="info-box">
+            Inventory management is restricted to Admin and Product Manager roles.
+          </div>
+        }
+      </div>
+    }
+
+    <!-- APPROVAL TAB -->
+    @if (activeTab === 'Approval') {
+      <div class="ec-card">
+        <h2 class="text-lg font-bold mb-4">Approval Workflow</h2>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium mb-2">Current Approval Status</label>
+          <span class="status-badge" [attr.data-status]="currentApprovalStatus">
+            {{ currentApprovalStatus }}
+          </span>
+        </div>
+
+        @if (canSubmit) {
+          <div class="mb-6">
+            <button 
+              type="button" 
+              class="btn-accent"
+              [disabled]="!productIdControl.value || isSubmitting || currentApprovalStatus === 'ReadyForReview' || currentApprovalStatus === 'Approved' || currentApprovalStatus === 'Published'"
+              [title]="(currentApprovalStatus === 'ReadyForReview' || currentApprovalStatus === 'Approved' || currentApprovalStatus === 'Published') ? 'Product is already submitted or approved' : ''"
+              (click)="submitForReview()"
+            >
+              @if (isSubmitting) {
+                <span class="spinner"></span> Submitting...
+              } @else {
+                Submit for Review
+              }
+            </button>
+          </div>
+        }
+
+        @if (canUpdateStatus) {
+          <hr class="my-6 border-color" />
+          
+          <h3 class="text-md font-bold mb-4">Update Approval Status</h3>
+          <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">New Status*</label>
+              <select formControlName="newStatus" class="ec-input w-full bg-transparent">
+                <option value="Draft">Draft</option>
+                <option value="InEnrichment">InEnrichment</option>
+                <option value="ReadyForReview">ReadyForReview</option>
+                <option value="Approved">Approved</option>
+                <option value="Published">Published</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-1">Remarks <span class="text-muted">(required if Rejecting)</span></label>
+              <textarea formControlName="remarks" rows="3" class="ec-input w-full" maxlength="500"></textarea>
+              <div class="flex justify-between mt-1">
+                <p class="text-sm error-text">
+                  @if (statusForm.hasError('remarksRequired')) {
+                    Remarks are required when rejecting.
+                  }
+                </p>
+                <p class="text-xs text-muted">{{ statusForm.get('remarks')?.value?.length || 0 }}/500</p>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                class="btn-primary"
+                [disabled]="statusForm.invalid || !productIdControl.value || isUpdatingStatus"
+              >
+                @if (isUpdatingStatus) {
+                  <span class="spinner"></span> Updating...
+                } @else {
+                  Update Status
+                }
+              </button>
+            </div>
+          </form>
+        } @else {
+          <div class="info-box mt-6">
+            Status updates are restricted to Admins only.
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

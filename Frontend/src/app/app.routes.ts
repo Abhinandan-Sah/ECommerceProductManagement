@@ -74,6 +74,21 @@ export const routes: Routes = [
     ]
   },
 
+  // WORKFLOW (Admin + ProductManager + ContentExecutive)
+  {
+    path: 'workflow',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Admin', 'ProductManager', 'ContentExecutive'] },
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/workflow/product-workflow/product-workflow.component')
+            .then(m => m.ProductWorkflowComponent)
+      }
+    ]
+  },
+
   // PROFILE (all authenticated users)
   {
     path: 'profile',

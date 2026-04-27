@@ -1,39 +1,6 @@
-<div class="auth-layout">
-  <!-- LEFT PANEL -->
-  <div class="auth-left hidden md:flex">
-    <div class="auth-left-content">
-      <h1 class="welcome-title">Welcome to ShopAdmin</h1>
-      <p class="welcome-subtitle">Your complete ecommerce management platform</p>
-      
-      <div class="cart-icon">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="21" r="1"></circle>
-          <circle cx="20" cy="21" r="1"></circle>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-        </svg>
-      </div>
-
-      <ul class="feature-list">
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Manage 10,000+ products effortlessly
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Real-time catalog sync
-        </li>
-        <li>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Role-based access control
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="auth-right flex items-center justify-center p-6">
-    <div class="ec-card auth-card w-full max-w-md p-8">
-      <h2 class="auth-heading text-center mb-6">Sign In</h2>
+<div class="min-h-screen flex items-center justify-center p-6 bg-[var(--color-bg)] w-full">
+  <div class="ec-card auth-card w-full max-w-md p-8">
+    <h2 class="auth-heading text-center mb-6">Sign In</h2>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
         <!-- Email Field -->
@@ -102,6 +69,5 @@
           <a routerLink="/register" class="font-medium text-[var(--color-primary)] hover:underline">Register</a>
         </div>
       </form>
-    </div>
   </div>
 </div>
