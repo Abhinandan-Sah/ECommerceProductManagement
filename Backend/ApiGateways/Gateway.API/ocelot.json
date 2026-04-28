@@ -10,7 +10,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ],
       "SwaggerKey": "identity",
       "QoSOptions": {
         "ExceptionsAllowedBeforeBreaking": 3,
@@ -18,7 +24,6 @@
         "TimeoutValue": 5000
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/{everything}",
       "DownstreamScheme": "https",
@@ -29,7 +34,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ],
       "SwaggerKey": "identity",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -41,8 +52,6 @@
         "TimeoutValue": 5000
       }
     },
-
-    // PUBLIC — GET only, no token needed (browsing products and categories)
     {
       "DownstreamPathTemplate": "/api/products/{everything}",
       "DownstreamScheme": "https",
@@ -53,7 +62,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/products/{everything}",
-      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "OPTIONS"
+      ],
       "SwaggerKey": "catalog",
       "QoSOptions": {
         "ExceptionsAllowedBeforeBreaking": 3,
@@ -61,8 +73,6 @@
         "TimeoutValue": 5000
       }
     },
-
-    // PROTECTED — POST, PUT, DELETE require a valid token
     {
       "DownstreamPathTemplate": "/api/products/{everything}",
       "DownstreamScheme": "https",
@@ -73,7 +83,11 @@
         }
       ],
       "UpstreamPathTemplate": "/api/products/{everything}",
-      "UpstreamHttpMethod": [ "POST", "PUT", "DELETE" ],
+      "UpstreamHttpMethod": [
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
       "SwaggerKey": "catalog",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -85,8 +99,6 @@
         "TimeoutValue": 5000
       }
     },
-
-    // PUBLIC — GET only, no token needed
     {
       "DownstreamPathTemplate": "/api/categories/{everything}",
       "DownstreamScheme": "https",
@@ -97,7 +109,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/categories/{everything}",
-      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "OPTIONS"
+      ],
       "SwaggerKey": "catalog",
       "QoSOptions": {
         "ExceptionsAllowedBeforeBreaking": 3,
@@ -105,8 +120,6 @@
         "TimeoutValue": 5000
       }
     },
-
-    // PROTECTED — POST, PUT, DELETE require a valid token
     {
       "DownstreamPathTemplate": "/api/categories/{everything}",
       "DownstreamScheme": "https",
@@ -117,7 +130,11 @@
         }
       ],
       "UpstreamPathTemplate": "/api/categories/{everything}",
-      "UpstreamHttpMethod": [ "POST", "PUT", "DELETE" ],
+      "UpstreamHttpMethod": [
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
       "SwaggerKey": "catalog",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -129,7 +146,6 @@
         "TimeoutValue": 5000
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/workflow/{everything}",
       "DownstreamScheme": "https",
@@ -140,7 +156,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/workflow/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ],
       "SwaggerKey": "workflow",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -152,7 +174,6 @@
         "TimeoutValue": 5000
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/reports/{everything}",
       "DownstreamScheme": "https",
@@ -163,7 +184,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/reports/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ],
       "SwaggerKey": "reporting",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -175,7 +202,6 @@
         "TimeoutValue": 5000
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/audit/{everything}",
       "DownstreamScheme": "https",
@@ -186,7 +212,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/audit/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ],
       "SwaggerKey": "reporting",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -199,7 +231,6 @@
       }
     }
   ],
-
   "SwaggerEndPoints": [
     {
       "Key": "identity",
@@ -242,7 +273,6 @@
       ]
     }
   ],
-
   "GlobalConfiguration": {
     "BaseUrl": "https://localhost:7292"
   }
