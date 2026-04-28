@@ -42,6 +42,7 @@ namespace Catalog.API.Application.Services
                 Brand = p.Brand,
                 Description = p.Description,
                 PublishStatus = p.PublishStatus,
+                CategoryId = p.CategoryId,
                 CategoryName = p.Category != null ? p.Category.Name : "Uncategorized"
             });
         }
@@ -64,6 +65,7 @@ namespace Catalog.API.Application.Services
                 Brand = product.Brand,
                 Description = product.Description,
                 PublishStatus = product.PublishStatus,
+                CategoryId = product.CategoryId,
                 CategoryName = product.Category != null ? product.Category.Name : "Uncategorized"
             };
         }
@@ -105,6 +107,7 @@ namespace Catalog.API.Application.Services
                 Brand = savedProduct.Brand,
                 Description = savedProduct.Description,
                 PublishStatus = savedProduct.PublishStatus,
+                CategoryId = savedProduct.CategoryId,
                 CategoryName = savedProduct.Category?.Name ?? "Uncategorized"
             };
         }

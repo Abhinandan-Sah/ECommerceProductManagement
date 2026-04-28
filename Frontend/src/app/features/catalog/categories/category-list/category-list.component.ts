@@ -31,6 +31,7 @@ export class CategoryListComponent implements OnInit {
 
   // Edit state
   editingCategoryId: string | null = null;
+  editingCategory: CategoryResponse | null = null;
   editForm!: FormGroup;
 
   // RBAC
@@ -105,6 +106,7 @@ export class CategoryListComponent implements OnInit {
 
   startEdit(category: CategoryResponse): void {
     this.editingCategoryId = category.id;
+    this.editingCategory = category;
     this.editForm.patchValue({
       name: category.name,
       parentCategoryId: category.parentCategoryId || ''
@@ -113,19 +115,28 @@ export class CategoryListComponent implements OnInit {
 
   cancelEdit(): void {
     this.editingCategoryId = null;
+    this.editingCategory = null;
   }
 
   submitEdit(id: string): void {
-    if (this.editForm.invalid) return;
+    if (this.editForm.invalid || !this.editingCategory) return;
 
     this.isLoading = true;
-    const dto = this.editForm.value;
-    if (!dto.parentCategoryId) delete dto.parentCategoryId;
+    const formValue = this.editForm.value;
+    
+    // Create UpdateCategory DTO with complete entity structure
+    const updateDto = {
+      id: id,
+      name: formValue.name,
+      parentCategoryId: formValue.parentCategoryId || undefined,
+      createdAt: new Date().toISOString() // Backend expects this field
+    };
 
-    this.categoryService.updateCategory(id, dto).subscribe({
+    this.categoryService.updateCategory(id, updateDto).subscribe({
       next: () => {
         this.notify.showSuccess('Category updated');
         this.editingCategoryId = null;
+        this.editingCategory = null;
         this.loadCategories();
       },
       error: () => {

@@ -1,3 +1,7 @@
+.media-management {
+  margin-top: 2rem;
+}
+
 .spinner-sm {
   display: inline-block;
   width: 14px;
@@ -6,7 +10,6 @@
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
-  margin-right: 8px;
 }
 
 @keyframes spin {

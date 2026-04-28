@@ -1,184 +1,100 @@
 import { Component, OnInit, inject } from '@angular/core';
-
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { passwordStrengthValidator, passwordMatchValidator } from '../../../shared/utils/validators';
 
-/**
- * ResetPasswordComponent provides the user interface for completing password reset.
- *
- * Features:
- * - Extracts reset token from URL query parameters
- * - Reactive form with password validation and matching
- * - Loading state during request
- * - Error handling for invalid/expired tokens
- * - Redirect to login after successful reset
- *
- * Requirements: 5.4, 5.5, 5.6, 15.2
- */
 @Component({
   selector: 'app-reset-password',
-  imports: [ReactiveFormsModule, RouterModule],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css']
 })
 export class ResetPasswordComponent implements OnInit {
-  private fb                   = inject(FormBuilder);
-  private authService          = inject(AuthService);
-  private notificationService  = inject(NotificationService);
-  private router               = inject(Router);
-  private route                = inject(ActivatedRoute);
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private notify = inject(NotificationService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
-  resetPasswordForm!: FormGroup;
-  isLoading = false;
-  errorMessage = '';
+  form!: FormGroup;
   token: string | null = null;
-  tokenInvalid = false;
+  email: string | null = null;
+  isSubmitting = false;
+  isSuccess = false;
 
   ngOnInit(): void {
-    this.extractTokenFromUrl();
-    this.initializeForm();
-  }
-
-  /**
-   * Extract reset token from URL query parameters.
-   */
-  private extractTokenFromUrl(): void {
+    // Extract token and email from query parameters
     this.route.queryParams.subscribe(params => {
-      this.token = params['token'];
+      this.token = params['token'] || null;
+      this.email = params['email'] || null;
 
       if (!this.token) {
-        this.tokenInvalid = true;
-        this.errorMessage = 'Invalid or missing reset token. Please request a new password reset.';
+        this.notify.showError('Invalid reset link. Please request a new password reset.');
+        this.router.navigate(['/login']);
       }
     });
+
+    this.initForm();
   }
 
-  /**
-   * Initialize the reset password form with validation rules.
-   */
-  private initializeForm(): void {
-    this.resetPasswordForm = this.fb.group({
-      newPassword:     ['', [Validators.required, passwordStrengthValidator()]],
+  initForm(): void {
+    this.form = this.fb.group({
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
-    }, {
-      validators: [passwordMatchValidator('newPassword', 'confirmPassword')]
-    });
+    }, { validators: this.passwordMatchValidator });
   }
 
-  /**
-   * Handle form submission.
-   */
+  passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
+    const newPassword = group.get('newPassword')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      return { passwordMismatch: true };
+    }
+    return null;
+  }
+
   onSubmit(): void {
-    if (this.resetPasswordForm.invalid || !this.token) {
-      this.resetPasswordForm.markAllAsTouched();
+    if (this.form.invalid || !this.token) {
+      this.form.markAllAsTouched();
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    const newPassword     = this.resetPasswordForm.value.newPassword;
-    const confirmPassword = this.resetPasswordForm.value.confirmPassword;
-
-    this.authService.resetPassword({
+    this.isSubmitting = true;
+    const payload = {
       token: this.token,
-      newPassword,
-      confirmPassword
-    }).subscribe({
+      newPassword: this.form.value.newPassword,
+      confirmPassword: this.form.value.confirmPassword
+    };
+
+    this.authService.resetPassword(payload).subscribe({
       next: () => {
-        this.isLoading = false;
-        this.notificationService.showSuccess('Password reset successful! Please log in with your new password.');
-        this.router.navigate(['/login']);
+        this.isSuccess = true;
+        this.notify.showSuccess('Password reset successfully! Redirecting to login...');
+        
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 3000);
       },
-      error: (error) => {
-        this.isLoading = false;
-        this.handleResetError(error);
+      error: (err) => {
+        this.isSubmitting = false;
+        const errorMessage = err.error?.message || 'Failed to reset password';
+        
+        if (errorMessage.includes('Invalid or expired')) {
+          this.notify.showError('Reset link has expired. Please request a new password reset.');
+        } else {
+          this.notify.showError(errorMessage);
+        }
       }
     });
   }
 
-  /**
-   * Handle reset password errors with user-friendly messages.
-   */
-  private handleResetError(error: any): void {
-    if (error.status === 400) {
-      this.errorMessage = 'Invalid or expired reset token. Please request a new password reset.';
-      this.tokenInvalid = true;
-    } else if (error.status === 0) {
-      this.errorMessage = 'Network error. Please check your connection.';
-    } else {
-      this.errorMessage = error.error?.message || 'An error occurred while resetting your password. Please try again.';
-    }
-
-    this.notificationService.showError(this.errorMessage);
-  }
-
-  /**
-   * Check if a form field has errors and has been touched.
-   */
-  hasError(fieldName: string): boolean {
-    const field = this.resetPasswordForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  /**
-   * Get error message for a specific field.
-   */
-  getErrorMessage(fieldName: string): string {
-    const field = this.resetPasswordForm.get(fieldName);
-
-    if (!field || !field.errors) {
-      return '';
-    }
-
-    if (field.errors['required']) {
-      return `${this.getFieldLabel(fieldName)} is required`;
-    }
-
-    if (field.errors['passwordStrength']) {
-      return this.getPasswordStrengthErrors(field.errors['passwordStrength']);
-    }
-
-    if (field.errors['passwordMismatch']) {
-      return 'Passwords do not match';
-    }
-
-    return 'Invalid input';
-  }
-
-  /**
-   * Get detailed password strength error messages.
-   */
-  private getPasswordStrengthErrors(errors: any): string {
-    const messages: string[] = [];
-
-    if (errors['minLength'])         messages.push('at least 8 characters');
-    if (errors['requiresUppercase']) messages.push('one uppercase letter');
-    if (errors['requiresLowercase']) messages.push('one lowercase letter');
-    if (errors['requiresDigit'])     messages.push('one digit');
-    if (errors['requiresSpecialChar']) messages.push('one special character');
-
-    return `Password must contain ${messages.join(', ')}`;
-  }
-
-  /**
-   * Get user-friendly label for form field.
-   */
-  private getFieldLabel(fieldName: string): string {
-    const labels: { [key: string]: string } = {
-      newPassword:     'New password',
-      confirmPassword: 'Confirm password'
-    };
-    return labels[fieldName] || fieldName;
-  }
-
-  /**
-   * Navigate to forgot password page to request a new token.
-   */
-  requestNewToken(): void {
-    this.router.navigate(['/forgot-password']);
+  isInvalid(controlName: string): boolean {
+    const control = this.form.get(controlName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }

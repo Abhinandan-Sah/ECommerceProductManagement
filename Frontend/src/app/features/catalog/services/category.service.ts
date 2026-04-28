@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CategoryResponse, CreateCategory } from '../models/category.model';
+import { CategoryResponse, CreateCategory, UpdateCategory } from '../models/category.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +22,7 @@ export class CategoryService {
     return this.http.post<CategoryResponse>(this.baseUrl, dto);
   }
 
-  updateCategory(id: string, dto: Partial<CreateCategory>): Observable<void> {
+  updateCategory(id: string, dto: UpdateCategory): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${id}`, dto);
   }
 

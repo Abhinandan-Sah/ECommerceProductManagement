@@ -8,9 +8,9 @@ export type ApprovalStatus =
   | 'Archived';
 
 export interface UpdatePricingRequest {
-  mrp: number;
-  salePrice: number;
-  gstPercent: number;
+  MRP: number;
+  SalePrice: number;
+  GSTPercent: number;
 }
 
 export interface UpdateInventoryRequest {

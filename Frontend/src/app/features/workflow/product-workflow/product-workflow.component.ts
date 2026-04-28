@@ -45,9 +45,9 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.pricingForm = this.fb.group({
-      mrp: ['', [Validators.required, Validators.min(0.01)]],
-      salePrice: ['', [Validators.required, Validators.min(0.01)]],
-      gstPercent: ['', [Validators.required, Validators.min(0), Validators.max(100)]]
+      MRP: ['', [Validators.required, Validators.min(0.01)]],
+      SalePrice: ['', [Validators.required, Validators.min(0.01)]],
+      GSTPercent: ['', [Validators.required, Validators.min(0), Validators.max(100)]]
     }, { validators: this.priceValidator });
 
     this.inventoryForm = this.fb.group({
@@ -90,8 +90,8 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
   }
 
   private priceValidator(group: AbstractControl): ValidationErrors | null {
-    const mrp = group.get('mrp')?.value;
-    const salePrice = group.get('salePrice')?.value;
+    const mrp = group.get('MRP')?.value;
+    const salePrice = group.get('SalePrice')?.value;
     if (mrp !== null && salePrice !== null && salePrice > mrp) {
       return { salePriceGreater: true };
     }

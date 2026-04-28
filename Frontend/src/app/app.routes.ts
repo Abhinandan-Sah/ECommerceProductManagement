@@ -11,6 +11,7 @@ export const routes: Routes = [
   // AUTH routes
   { path: 'login',    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent) },
+  { path: 'reset-password', loadComponent: () => import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
 
   // DASHBOARD — role-based redirect after login
   {
@@ -27,6 +28,8 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./features/dashboard/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) },
       { path: 'users', loadComponent: () => import('./features/admin/user-list/user-list.component').then(m => m.UserListComponent) },
+      { path: 'reports', loadComponent: () => import('./features/reporting/reporting-dashboard/reporting-dashboard.component').then(m => m.ReportingDashboardComponent) },
+      { path: 'audit', loadComponent: () => import('./features/audit/audit-trail/audit-trail.component').then(m => m.AuditTrailComponent) },
     ]
   },
 
@@ -37,6 +40,7 @@ export const routes: Routes = [
     data: { roles: ['ProductManager'] },
     children: [
       { path: '', loadComponent: () => import('./features/dashboard/product-manager-dashboard/product-manager-dashboard.component').then(m => m.ProductManagerDashboardComponent) },
+      { path: 'reports', loadComponent: () => import('./features/reporting/reporting-dashboard/reporting-dashboard.component').then(m => m.ReportingDashboardComponent) },
     ]
   },
 

@@ -36,15 +36,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">MRP (₹)*</label>
-                <input type="number" formControlName="mrp" class="ec-input w-full" min="0.01" step="0.01" />
-                @if (pricingForm.get('mrp')?.invalid && pricingForm.get('mrp')?.touched) {
+                <input type="number" formControlName="MRP" class="ec-input w-full" min="0.01" step="0.01" />
+                @if (pricingForm.get('MRP')?.invalid && pricingForm.get('MRP')?.touched) {
                   <p class="text-sm error-text mt-1">Valid MRP is required.</p>
                 }
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Sale Price (₹)*</label>
-                <input type="number" formControlName="salePrice" class="ec-input w-full" min="0.01" step="0.01" />
-                @if (pricingForm.get('salePrice')?.invalid && pricingForm.get('salePrice')?.touched) {
+                <input type="number" formControlName="SalePrice" class="ec-input w-full" min="0.01" step="0.01" />
+                @if (pricingForm.get('SalePrice')?.invalid && pricingForm.get('SalePrice')?.touched) {
                   <p class="text-sm error-text mt-1">Valid Sale Price is required.</p>
                 }
               </div>
@@ -52,8 +52,8 @@
             
             <div class="max-w-[200px]">
               <label class="block text-sm font-medium mb-1">GST %*</label>
-              <input type="number" formControlName="gstPercent" class="ec-input w-full" min="0" max="100" step="0.01" />
-              @if (pricingForm.get('gstPercent')?.invalid && pricingForm.get('gstPercent')?.touched) {
+              <input type="number" formControlName="GSTPercent" class="ec-input w-full" min="0" max="100" step="0.01" />
+              @if (pricingForm.get('GSTPercent')?.invalid && pricingForm.get('GSTPercent')?.touched) {
                 <p class="text-sm error-text mt-1">Valid GST % is required.</p>
               }
             </div>

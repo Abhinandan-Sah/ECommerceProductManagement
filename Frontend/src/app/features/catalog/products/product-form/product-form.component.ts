@@ -8,11 +8,12 @@ import { CategoryService } from '../../services/category.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CategoryResponse } from '../../models/category.model';
 import { PublishStatus } from '../../models/product.model';
+import { MediaManagementComponent } from '../media-management/media-management.component';
 
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, MediaManagementComponent],
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.css']
 })
@@ -110,8 +111,8 @@ export class ProductFormComponent implements OnInit {
       });
     } else {
       this.catalogService.createProduct(dto).subscribe({
-        next: () => {
-          this.notify.showSuccess('Product created successfully');
+        next: (response) => {
+          this.notify.showSuccess(`Product created successfully! SKU: ${response.sku}`);
           this.router.navigate(['/catalog/products']);
         },
         error: () => {

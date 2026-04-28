@@ -137,5 +137,12 @@
       </div>
 
     </form>
+
+    <!-- Media Management (Edit Mode Only) -->
+    @if (isEditMode && productId) {
+      <div class="border-t border-[var(--color-border)] mt-8 pt-8">
+        <app-media-management [productId]="productId"></app-media-management>
+      </div>
+    }
   </div>
 </div>

@@ -27,7 +27,8 @@ namespace Catalog.API.Application.Services
             {
                 Id = c.Id,
                 Name = c.Name,
-                ParentCategoryId = c.ParentCategoryId
+                ParentCategoryId = c.ParentCategoryId,
+                ParentCategoryName = c.ParentCategory != null ? c.ParentCategory.Name : "None"
             });
         }
 

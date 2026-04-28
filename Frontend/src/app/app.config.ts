@@ -13,6 +13,7 @@ import { routes } from './app.routes';
 import { authInterceptor }  from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+import { tokenRefreshInterceptor } from './core/interceptors/token-refresh.interceptor';
 import { GlobalErrorHandler } from './core/services/global-error-handler.service';
 import { authReducer } from './store/auth/auth.reducer';
 import { uiReducer }   from './store/ui/ui.reducer';
@@ -23,7 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
-      withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])
+      withInterceptors([authInterceptor, tokenRefreshInterceptor, errorInterceptor, loadingInterceptor])
     ),
     provideAnimations(),
     provideStore({ auth: authReducer, ui: uiReducer }),
