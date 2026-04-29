@@ -8,6 +8,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
+import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
 import { authInterceptor }  from './core/interceptors/auth.interceptor';
@@ -27,6 +28,17 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([authInterceptor, tokenRefreshInterceptor, errorInterceptor, loadingInterceptor])
     ),
     provideAnimations(),
+    provideToastr({
+      positionClass:    'toast-top-right',
+      maxOpened:        5,
+      autoDismiss:      true,
+      newestOnTop:      true,
+      preventDuplicates: true,
+      timeOut:          4000,
+      extendedTimeOut:  1500,
+      progressBar:      true,
+      closeButton:      true,
+    }),
     provideStore({ auth: authReducer, ui: uiReducer }),
     provideEffects([AuthEffects]),
     isDevMode()

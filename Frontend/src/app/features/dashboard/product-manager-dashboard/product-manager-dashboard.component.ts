@@ -77,4 +77,30 @@ export class ProductManagerDashboardComponent implements OnInit {
       }
     });
   }
+
+  getStatusBadgeClass(status: PublishStatus): string {
+    switch (status) {
+      case PublishStatus.Published: return 'badge-published';
+      case PublishStatus.Draft: return 'badge-draft';
+      case PublishStatus.Archived: return 'badge-archived';
+      case PublishStatus.InEnrichment: return 'badge-draft';
+      case PublishStatus.ReadyForReview: return 'badge-warning';
+      case PublishStatus.Approved: return 'badge-success';
+      case PublishStatus.Rejected: return 'badge-danger';
+      default: return 'badge-draft';
+    }
+  }
+
+  getStatusText(status: PublishStatus): string {
+    switch (status) {
+      case PublishStatus.Published: return 'Published';
+      case PublishStatus.Draft: return 'Draft';
+      case PublishStatus.Archived: return 'Archived';
+      case PublishStatus.InEnrichment: return 'In Enrichment';
+      case PublishStatus.ReadyForReview: return 'Ready for Review';
+      case PublishStatus.Approved: return 'Approved';
+      case PublishStatus.Rejected: return 'Rejected';
+      default: return 'Unknown';
+    }
+  }
 }

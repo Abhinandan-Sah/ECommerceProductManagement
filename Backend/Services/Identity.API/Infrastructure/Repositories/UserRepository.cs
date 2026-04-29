@@ -63,6 +63,14 @@ namespace Identity.API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<Dictionary<string, int>> GetRoleBreakdownAsync()
+        {
+            return await _context.Users
+                .GroupBy(u => u.Role)
+                .Select(g => new { Role = g.Key.ToString(), Count = g.Count() })
+                .ToDictionaryAsync(x => x.Role, x => x.Count);
+        }
+
         private IQueryable<User> BuildFilterQuery(string? search, string? role)
         {
             var query = _context.Users.AsQueryable();

@@ -1,3 +1,4 @@
+/* ── Filter bar ─────────────────────────────────────────────── */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -30,7 +31,7 @@
   padding-left: 2.5rem;
 }
 
-/* Table styling */
+/* ── Table ──────────────────────────────────────────────────── */
 .ec-table th {
   padding: 14px 20px;
   font-size: 13px;
@@ -38,7 +39,7 @@
   text-transform: uppercase;
   color: var(--color-text-secondary);
   border-bottom: 2px solid var(--color-border);
-  background-color: rgba(0,0,0,0.02);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .ec-table td {
@@ -52,10 +53,18 @@
 }
 
 .table-row:hover {
-  background-color: #F5F9FF; /* Highlight on hover */
+  background-color: #f5f9ff;
 }
 
-/* Cell contents */
+/* Highlight the logged-in admin's own row */
+.current-user-row {
+  background-color: #eff6ff !important;
+}
+.current-user-row:hover {
+  background-color: #dbeafe !important;
+}
+
+/* ── User cell ──────────────────────────────────────────────── */
 .user-cell {
   display: flex;
   align-items: center;
@@ -72,6 +81,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Avatar ring for the logged-in user */
+.current-user-avatar {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .user-name {
@@ -79,44 +95,114 @@
   color: var(--color-text-primary);
   display: flex;
   align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-/* Badges and dropdowns */
+/* "You" pill */
+.you-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  line-height: 1.4;
+}
+
+/* ── Role select (other users) ──────────────────────────────── */
+.role-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .role-select {
-  border: 1px solid transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
   border-radius: 12px;
-  padding: 4px 12px 4px 8px;
+  padding: 5px 28px 5px 12px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  background-color: #f1f3f6;
-  color: #333;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.role-select[data-role="Admin"] {
-  background-color: var(--color-danger);
-  color: white;
-}
-.role-select[data-role="ProductManager"] {
-  background-color: var(--color-primary);
-  color: white;
-}
-.role-select[data-role="ContentExecutive"] {
-  background-color: var(--color-success);
-  color: white;
-}
-.role-select[data-role="Customer"], .role-select[data-role="User"] {
-  background-color: var(--color-text-secondary);
-  color: white;
+  background-color: #e2e8f0;
+  color: #1e293b;
+  transition: filter 0.15s, box-shadow 0.15s;
+  min-width: 140px;
 }
 
-.role-select:disabled {
-  opacity: 0.8;
-  cursor: not-allowed;
+.role-select:hover {
+  filter: brightness(0.95);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
+.role-select:focus {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35);
+}
+
+/* Chevron icon inside wrapper */
+.role-chevron {
+  position: absolute;
+  right: 9px;
+  pointer-events: none;
+  color: inherit;
+  opacity: 0.75;
+}
+
+/* Role colours — applied to both select AND badge via data-role */
+.role-select[data-role="Admin"],
+.role-badge[data-role="Admin"] {
+  background-color: var(--color-danger, #ef4444);
+  color: #fff;
+}
+
+.role-select[data-role="ProductManager"],
+.role-badge[data-role="ProductManager"] {
+  background-color: var(--color-primary, #6366f1);
+  color: #fff;
+}
+
+.role-select[data-role="ContentExecutive"],
+.role-badge[data-role="ContentExecutive"] {
+  background-color: var(--color-success, #22c55e);
+  color: #fff;
+}
+
+.role-select[data-role="Customer"],
+.role-badge[data-role="Customer"] {
+  background-color: var(--color-text-secondary, #64748b);
+  color: #fff;
+}
+
+/* ── Role badge (current user — locked, no dropdown) ────────── */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #e2e8f0;
+  color: #1e293b;
+  /* slight opacity so it reads as "locked" */
+  opacity: 0.85;
+  cursor: default;
+  user-select: none;
+}
+
+.lock-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ── Status badge ───────────────────────────────────────────── */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -130,45 +216,50 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.status-badge.active .status-dot {
-  background-color: var(--color-success);
-}
-.status-badge.inactive .status-dot {
-  background-color: var(--color-text-muted);
-  color: var(--color-text-muted);
-}
-.status-badge.inactive {
-  color: var(--color-text-muted);
-}
+.status-badge.active .status-dot  { background-color: var(--color-success, #22c55e); }
+.status-badge.inactive .status-dot { background-color: var(--color-text-muted, #94a3b8); }
+.status-badge.inactive             { color: var(--color-text-muted, #94a3b8); }
 
-/* Actions */
+/* ── Action buttons ─────────────────────────────────────────── */
 .action-btn {
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
   color: var(--color-text-secondary);
 }
 
-.action-btn:hover:not(:disabled) {
-  background-color: var(--color-bg);
+.action-btn:hover {
+  background-color: #f1f5f9;
   color: var(--color-primary);
 }
 
-.action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.action-btn--danger:hover {
+  background-color: #fef2f2;
+  color: #ef4444;
 }
 
-/* Pagination */
+/* "You cannot modify your account" shield indicator */
+.self-protected-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #94a3b8;
+  cursor: default;
+}
+
+/* ── Pagination ─────────────────────────────────────────────── */
 .pagination-bar {
   display: flex;
   align-items: center;
@@ -189,7 +280,8 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  color: var(--color-text-secondary);
 }
 
 .page-btn:hover:not(:disabled) {
@@ -199,19 +291,19 @@
 
 .page-btn.active {
   background-color: var(--color-primary);
-  color: white;
+  color: #fff;
 }
 
 .page-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* Loading Overlay */
+/* ── Loading overlay ────────────────────────────────────────── */
 .loading-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,8 +326,9 @@
 
 @keyframes fade-in {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
 }
+
 .animate-fade-in {
   animation: fade-in 0.25s ease-out forwards;
 }

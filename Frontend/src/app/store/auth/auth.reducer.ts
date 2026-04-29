@@ -5,6 +5,7 @@ import * as AuthActions from './auth.actions';
 export interface AuthState {
   user:            User | null;
   isAuthenticated: boolean;
+  initialized:     boolean;   // true once initAuth has resolved (success or failure)
   loading:         boolean;
   error:           string | null;
 }
@@ -12,6 +13,7 @@ export interface AuthState {
 const initialState: AuthState = {
   user:            null,
   isAuthenticated: false,
+  initialized:     false,
   loading:         false,
   error:           null
 };
@@ -25,9 +27,10 @@ export const authReducer = createReducer(
 
   on(AuthActions.loginSuccess, (state, { response }) => ({
     ...state,
-    loading: false,
+    loading:         false,
     isAuthenticated: true,
-    error: null,
+    initialized:     true,   // mark as initialized so guards don't hang after login
+    error:           null,
     user: {
       id:        '',          // id comes from /profile call, not login response
       fullName:  response.fullName,
@@ -46,10 +49,17 @@ export const authReducer = createReducer(
   on(AuthActions.refreshSuccess, (state, { response }) => ({
     ...state,
     isAuthenticated: true,
-    user: state.user
-      ? { ...state.user, email: response.email,
-          fullName: response.fullName, role: response.role as Role }
-      : null
+    initialized:     true,
+    // Hydrate user from refresh response — state.user is null on page reload
+    user: {
+      id:        state.user?.id ?? '',
+      fullName:  response.fullName,
+      email:     response.email,
+      role:      response.role as Role,
+      isActive:  state.user?.isActive ?? true,
+      createdAt: state.user?.createdAt ?? '',
+      updatedAt: state.user?.updatedAt ?? null
+    }
   })),
 
   on(AuthActions.profileLoaded, (state, { user }) => ({
@@ -60,9 +70,10 @@ export const authReducer = createReducer(
     ...state, loading: true
   })),
 
-  on(AuthActions.logoutSuccess, () => initialState),
+  // Keep initialized:true after logout so guards don't hang on the next login attempt
+  on(AuthActions.logoutSuccess, () => ({ ...initialState, initialized: true })),
 
-  on(AuthActions.refreshFailure, () => initialState),
+  on(AuthActions.refreshFailure, () => ({ ...initialState, initialized: true })),
 
   on(AuthActions.clearError, state => ({
     ...state, error: null

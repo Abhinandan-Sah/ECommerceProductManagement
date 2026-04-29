@@ -2,11 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { CategoryService } from '../../services/category.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CategoryResponse } from '../../models/category.model';
 import { selectUserRole } from '../../../../store/auth/auth.selectors';
+import { extractErrorMessage } from '../../../../core/utils/error-utils';
 
 @Component({
   selector: 'app-category-list',
@@ -28,11 +30,13 @@ export class CategoryListComponent implements OnInit {
   // Add state
   isAdding = false;
   addForm!: FormGroup;
+  addCategoryConflictError = ''; // For displaying 409 conflict error
 
   // Edit state
   editingCategoryId: string | null = null;
   editingCategory: CategoryResponse | null = null;
   editForm!: FormGroup;
+  editCategoryConflictError = ''; // For displaying 409 conflict error
 
   // RBAC
   canManageCategories = false;
@@ -77,17 +81,20 @@ export class CategoryListComponent implements OnInit {
 
   startAdd(): void {
     this.isAdding = true;
+    this.addCategoryConflictError = '';
     this.addForm.reset({ parentCategoryId: '' });
   }
 
   cancelAdd(): void {
     this.isAdding = false;
+    this.addCategoryConflictError = '';
   }
 
   submitAdd(): void {
     if (this.addForm.invalid) return;
     
     this.isLoading = true;
+    this.addCategoryConflictError = '';
     const dto = this.addForm.value;
     if (!dto.parentCategoryId) delete dto.parentCategoryId;
 
@@ -97,8 +104,15 @@ export class CategoryListComponent implements OnInit {
         this.isAdding = false;
         this.loadCategories();
       },
-      error: () => {
-        this.notify.showError('Failed to add category');
+      error: (err: HttpErrorResponse) => {
+        const errorMsg = extractErrorMessage(err);
+        
+        // Handle 409 conflict error specifically for category name field
+        if (err.status === 409) {
+          this.addCategoryConflictError = errorMsg;
+        }
+        
+        this.notify.showError(errorMsg);
         this.isLoading = false;
       }
     });
@@ -107,6 +121,7 @@ export class CategoryListComponent implements OnInit {
   startEdit(category: CategoryResponse): void {
     this.editingCategoryId = category.id;
     this.editingCategory = category;
+    this.editCategoryConflictError = '';
     this.editForm.patchValue({
       name: category.name,
       parentCategoryId: category.parentCategoryId || ''
@@ -116,12 +131,14 @@ export class CategoryListComponent implements OnInit {
   cancelEdit(): void {
     this.editingCategoryId = null;
     this.editingCategory = null;
+    this.editCategoryConflictError = '';
   }
 
   submitEdit(id: string): void {
     if (this.editForm.invalid || !this.editingCategory) return;
 
     this.isLoading = true;
+    this.editCategoryConflictError = '';
     const formValue = this.editForm.value;
     
     // Create UpdateCategory DTO with complete entity structure
@@ -139,8 +156,15 @@ export class CategoryListComponent implements OnInit {
         this.editingCategory = null;
         this.loadCategories();
       },
-      error: () => {
-        this.notify.showError('Failed to update category');
+      error: (err: HttpErrorResponse) => {
+        const errorMsg = extractErrorMessage(err);
+        
+        // Handle 409 conflict error specifically for category name field
+        if (err.status === 409) {
+          this.editCategoryConflictError = errorMsg;
+        }
+        
+        this.notify.showError(errorMsg);
         this.isLoading = false;
       }
     });

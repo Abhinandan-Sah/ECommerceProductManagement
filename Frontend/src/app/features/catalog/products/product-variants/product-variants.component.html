@@ -19,6 +19,9 @@
     }
   </div>
 
+  <!-- WORKFLOW STATE TIMELINE -->
+  <app-workflow-state-timeline [currentState]="currentApprovalStatus"></app-workflow-state-timeline>
+
   <div class="ec-card overflow-hidden relative">
     
     @if (isLoading) {

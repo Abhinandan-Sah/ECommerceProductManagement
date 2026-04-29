@@ -5,27 +5,32 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Store } from '@ngrx/store';
 
 import { CatalogService } from '../../services/catalog.service';
+import { WorkflowService } from '../../../workflow/services/workflow.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { WorkflowStateTimelineComponent } from '../../../workflow/components/workflow-state-timeline/workflow-state-timeline.component';
 import { ProductResponse } from '../../models/product.model';
 import { ProductVariantResponse } from '../../models/product-variant.model';
+import { ApprovalStatus } from '../../../workflow/models/workflow.model';
 import { selectUserRole } from '../../../../store/auth/auth.selectors';
 
 @Component({
   selector: 'app-product-variants',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, WorkflowStateTimelineComponent],
   templateUrl: './product-variants.component.html',
   styleUrls: ['./product-variants.component.css']
 })
 export class ProductVariantsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private catalogService = inject(CatalogService);
+  private workflowService = inject(WorkflowService);
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
   private store = inject(Store);
 
   productId!: string;
   productName = 'Loading...';
+  currentApprovalStatus: ApprovalStatus = 'Pending';
   variants: any[] = [];
   isLoading = false;
   
@@ -51,6 +56,7 @@ export class ProductVariantsComponent implements OnInit {
 
     this.initForms();
     this.loadProductDetails();
+    this.loadApprovalStatus();
     this.loadVariants();
   }
 
@@ -70,6 +76,18 @@ export class ProductVariantsComponent implements OnInit {
     this.catalogService.getProductById(this.productId).subscribe({
       next: (data) => this.productName = data.name,
       error: () => this.productName = 'Product Details Unavailable'
+    });
+  }
+
+  loadApprovalStatus(): void {
+    this.workflowService.getApprovalStatus(this.productId).subscribe({
+      next: (data) => {
+        this.currentApprovalStatus = data.status;
+      },
+      error: () => {
+        // Default to Pending if no approval status found
+        this.currentApprovalStatus = 'Pending';
+      }
     });
   }
 
@@ -134,6 +152,7 @@ export class ProductVariantsComponent implements OnInit {
         this.notify.showSuccess('Variant updated');
         this.editingVariantId = null;
         this.loadVariants();
+        this.loadApprovalStatus(); // Reload approval status in case it changed
       },
       error: () => {
         this.notify.showError('Failed to update variant');

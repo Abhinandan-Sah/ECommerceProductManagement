@@ -108,6 +108,11 @@ namespace Identity.API.Application.Services
             _logger.LogInformation("User {UserId} deleted successfully", id);
         }
 
+        public async Task<Dictionary<string, int>> GetUserStatsAsync()
+        {
+            return await _userRepo.GetRoleBreakdownAsync();
+        }
+
         private static UserResponseDto MapToDto(User user) => new()
         {
             Id = user.Id,

@@ -22,6 +22,11 @@ namespace Workflow.API.Application.Services
             _publishEndpoint = publishEndpoint;
         }
 
+        public async Task<Price?> GetPricingAsync(Guid productId)
+        {
+            return await _repository.GetPricingByProductIdAsync(productId);
+        }
+
         public async Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request)
         {
             _logger.LogInformation("Updating pricing for product {ProductId}", productId);
@@ -49,6 +54,12 @@ namespace Workflow.API.Application.Services
 
             _logger.LogInformation("Pricing updated for product {ProductId}", productId);
             return true;
+        }
+
+        public async Task<Inventory?> GetInventoryAsync(Guid productId)
+        {
+            _logger.LogInformation("Getting inventory for product {ProductId}", productId);
+            return await _repository.GetInventoryByProductIdAsync(productId);
         }
 
         public async Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request)
@@ -87,7 +98,7 @@ namespace Workflow.API.Application.Services
                 };
             }
 
-            approval.Status = ApprovalStatus.ReadyForReview;
+            approval.Status = ApprovalStatus.Pending;
             approval.SubmittedByUserId = submittedByUserId; 
 
             await _repository.SaveApprovalAsync(approval);
@@ -128,6 +139,39 @@ namespace Workflow.API.Application.Services
 
             _logger.LogInformation("Product {ProductId} status updated to {NewStatus}", productId, request.NewStatus);
             return true;
+        }
+
+        public async Task<ApprovalStatusResponseDto?> GetApprovalStatusAsync(Guid productId)
+        {
+            _logger.LogInformation("Getting approval status for product {ProductId}", productId);
+
+            var approval = await _repository.GetCurrentApprovalStatusAsync(productId);
+
+            if (approval == null)
+            {
+                return null;
+            }
+
+            return new ApprovalStatusResponseDto
+            {
+                ProductId = approval.ProductId,
+                Status = approval.Status,
+                ApprovedByUserId = approval.ApprovedByUserId,
+                Remarks = approval.Remarks
+            };
+        }
+
+        public async Task<IEnumerable<ApprovalStatusResponseDto>> GetPendingApprovalsAsync()
+        {
+            _logger.LogInformation("Getting all pending approvals");
+            var approvals = await _repository.GetPendingApprovalsAsync();
+            return approvals.Select(a => new ApprovalStatusResponseDto
+            {
+                ProductId = a.ProductId,
+                Status = a.Status,
+                ApprovedByUserId = a.ApprovedByUserId,
+                Remarks = a.Remarks
+            });
         }
     }
 }

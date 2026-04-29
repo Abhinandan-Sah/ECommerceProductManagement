@@ -9,7 +9,7 @@
     <div class="ec-card p-5 flex items-center justify-between border-l-4 border-blue-500">
       <div>
         <p class="text-sm text-[var(--color-text-secondary)] font-medium mb-1">Total Users</p>
-        <span class="text-2xl font-bold font-display text-[var(--color-primary)]">TBD</span>
+        <span class="text-2xl font-bold font-display text-[var(--color-primary)]">{{ totalUsers }}</span>
       </div>
       <div class="text-3xl opacity-80" style="color: var(--color-primary)">👥</div>
     </div>
@@ -63,9 +63,9 @@
                 <td class="py-3 px-4 font-medium">{{ prod.name }}</td>
                 <td class="py-3 px-4 text-sm">{{ prod.brand }}</td>
                 <td class="py-3 px-4">
-                  @if (prod.publishStatus === publishStatusEnum.Published) { <span class="status-badge badge-published">Published</span> }
-                  @if (prod.publishStatus === publishStatusEnum.Draft) { <span class="status-badge badge-draft">Draft</span> }
-                  @if (prod.publishStatus === publishStatusEnum.Archived) { <span class="status-badge badge-archived">Archived</span> }
+                  <span [class]="getStatusBadgeClass(prod.publishStatus)" class="status-badge">
+                    {{ getStatusText(prod.publishStatus) }}
+                  </span>
                 </td>
                 <td class="py-3 px-4 text-right">
                   <a [routerLink]="['/catalog/products', prod.id, 'edit']" class="text-[var(--color-primary)] text-sm font-medium hover:underline">Edit</a>
@@ -90,40 +90,40 @@
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Admin</span>
-            <span class="text-[var(--color-text-secondary)]">2</span>
+            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['Admin'] || 0 }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-danger)] h-2 rounded-full" style="width: 10%"></div>
+            <div class="bg-[var(--color-danger)] h-2 rounded-full" [style.width.%]="(userBreakdown['Admin'] || 0) / (totalUsers || 1) * 100"></div>
           </div>
         </div>
 
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Product Manager</span>
-            <span class="text-[var(--color-text-secondary)]">5</span>
+            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['ProductManager'] || 0 }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-primary)] h-2 rounded-full" style="width: 25%"></div>
+            <div class="bg-[var(--color-primary)] h-2 rounded-full" [style.width.%]="(userBreakdown['ProductManager'] || 0) / (totalUsers || 1) * 100"></div>
           </div>
         </div>
 
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Content Exec</span>
-            <span class="text-[var(--color-text-secondary)]">3</span>
+            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['ContentExecutive'] || 0 }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-accent)] h-2 rounded-full" style="width: 15%"></div>
+            <div class="bg-[var(--color-accent)] h-2 rounded-full" [style.width.%]="(userBreakdown['ContentExecutive'] || 0) / (totalUsers || 1) * 100"></div>
           </div>
         </div>
 
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Customer</span>
-            <span class="text-[var(--color-text-secondary)]">15</span>
+            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['Customer'] || 0 }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-success)] h-2 rounded-full" style="width: 75%"></div>
+            <div class="bg-[var(--color-success)] h-2 rounded-full" [style.width.%]="(userBreakdown['Customer'] || 0) / (totalUsers || 1) * 100"></div>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@
   <!-- Third Row: Quick Actions -->
   <div class="ec-card p-6">
     <h2 class="font-bold mb-4">Quick Actions</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       <a routerLink="/catalog/products/new" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
         <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">➕</div>
         <h3 class="font-medium text-[var(--color-text-primary)]">Add Default Product</h3>
@@ -148,6 +148,10 @@
       <a routerLink="/admin/users" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
         <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">👥</div>
         <h3 class="font-medium text-[var(--color-text-primary)]">Manage Users</h3>
+      </a>
+      <a routerLink="/admin/inventory" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📊</div>
+        <h3 class="font-medium text-[var(--color-text-primary)]">Inventory Dashboard</h3>
       </a>
       <a routerLink="/catalog/products" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
         <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📦</div>

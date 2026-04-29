@@ -30,6 +30,7 @@ export const routes: Routes = [
       { path: 'users', loadComponent: () => import('./features/admin/user-list/user-list.component').then(m => m.UserListComponent) },
       { path: 'reports', loadComponent: () => import('./features/reporting/reporting-dashboard/reporting-dashboard.component').then(m => m.ReportingDashboardComponent) },
       { path: 'audit', loadComponent: () => import('./features/audit/audit-trail/audit-trail.component').then(m => m.AuditTrailComponent) },
+      { path: 'inventory', loadComponent: () => import('./features/inventory/inventory-dashboard/inventory-dashboard.component').then(m => m.InventoryDashboardComponent) },
     ]
   },
 
@@ -41,6 +42,7 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./features/dashboard/product-manager-dashboard/product-manager-dashboard.component').then(m => m.ProductManagerDashboardComponent) },
       { path: 'reports', loadComponent: () => import('./features/reporting/reporting-dashboard/reporting-dashboard.component').then(m => m.ReportingDashboardComponent) },
+      { path: 'inventory', loadComponent: () => import('./features/inventory/inventory-dashboard/inventory-dashboard.component').then(m => m.InventoryDashboardComponent) },
     ]
   },
 
@@ -89,6 +91,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/workflow/product-workflow/product-workflow.component')
             .then(m => m.ProductWorkflowComponent)
+      },
+      {
+        path: 'approvals',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () => import('./features/workflow/approvals/approvals.component').then(m => m.ApprovalsComponent)
       }
     ]
   },

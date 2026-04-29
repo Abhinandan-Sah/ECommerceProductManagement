@@ -57,9 +57,9 @@
                 <td class="py-3 px-4 font-medium">{{ prod.name }}</td>
                 <td class="py-3 px-4 text-sm">{{ prod.brand }}</td>
                 <td class="py-3 px-4">
-                  @if (prod.publishStatus === publishStatusEnum.Published) { <span class="status-badge badge-published">Published</span> }
-                  @if (prod.publishStatus === publishStatusEnum.Draft) { <span class="status-badge badge-draft">Draft</span> }
-                  @if (prod.publishStatus === publishStatusEnum.Archived) { <span class="status-badge badge-archived">Archived</span> }
+                  <span [class]="getStatusBadgeClass(prod.publishStatus)" class="status-badge">
+                    {{ getStatusText(prod.publishStatus) }}
+                  </span>
                 </td>
                 <td class="py-3 px-4 text-sm text-[var(--color-text-muted)]">Today</td>
                 <td class="py-3 px-4 text-right flex justify-end gap-3 items-center">

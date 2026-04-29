@@ -1,11 +1,7 @@
 export type ApprovalStatus =
-  | 'Draft'
-  | 'InEnrichment'
-  | 'ReadyForReview'
+  | 'Pending'
   | 'Approved'
-  | 'Published'
-  | 'Rejected'
-  | 'Archived';
+  | 'Rejected';
 
 export interface UpdatePricingRequest {
   MRP: number;
@@ -26,4 +22,11 @@ export interface UpdateStatusRequest {
 
 export interface WorkflowMessageResponse {
   message: string;
+}
+
+export interface ApprovalStatusResponse {
+  productId: string;
+  status: ApprovalStatus;
+  approvedByUserId?: string;
+  remarks?: string;
 }

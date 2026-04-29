@@ -4,11 +4,13 @@ import {
   FormBuilder, Validators, ReactiveFormsModule, AbstractControl
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import {
   emailValidator, passwordStrengthValidator, passwordMatchValidator
 } from '../../../shared/utils/validators';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 
 /**
  * RegisterComponent provides the user interface for new user registration.
@@ -35,6 +37,7 @@ export class RegisterComponent {
 
   isLoading  = false;
   errorMessage = '';
+  emailConflictError = ''; // For displaying 409 conflict error near email field
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -50,6 +53,7 @@ export class RegisterComponent {
     }
     this.isLoading = true;
     this.errorMessage = '';
+    this.emailConflictError = '';
 
     this.authService.register({
       fullName: this.form.value.fullName!,
@@ -63,12 +67,20 @@ export class RegisterComponent {
           queryParams: { registered: 'true' }
         });
       },
-      error: (err: any) => {
+      error: (err: HttpErrorResponse) => {
         this.isLoading = false;
-        this.errorMessage = err.status === 409
-          ? 'An account with this email already exists.'
-          : err.error?.message ?? 'Registration failed. Please try again.';
-        this.notify.showError(this.errorMessage);
+        const errorMsg = extractErrorMessage(err);
+        
+        // Handle 409 conflict error specifically for email field
+        if (err.status === 409) {
+          this.emailConflictError = errorMsg;
+          this.errorMessage = '';
+        } else {
+          this.errorMessage = errorMsg;
+          this.emailConflictError = '';
+        }
+        
+        this.notify.showError(errorMsg);
       }
     });
   }

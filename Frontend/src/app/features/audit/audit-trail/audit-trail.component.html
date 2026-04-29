@@ -12,72 +12,158 @@
     </p>
   </div>
 
+  <!-- User Information Banner (when viewing user-specific audit trail) -->
+  @if (userId && userName) {
+    <div class="ec-card mb-4 bg-blue-50 border-blue-200">
+      <div class="p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-bold">
+            {{ userName.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">{{ userName }}</h3>
+            <p class="text-sm text-[var(--color-text-secondary)]">Role: {{ userRole }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filter Controls -->
+  <div class="ec-card mb-4">
+    <div class="p-4">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Entity Type</label>
+          <select 
+            [(ngModel)]="selectedEntityType" 
+            (change)="onFilterChange()"
+            class="ec-input w-full"
+          >
+            <option value="">All Entities</option>
+            @for (entity of entityTypes; track entity) {
+              <option [value]="entity">{{ entity }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Action Type</label>
+          <select 
+            [(ngModel)]="selectedActionType" 
+            (change)="onFilterChange()"
+            class="ec-input w-full"
+          >
+            <option value="">All Actions</option>
+            @for (action of actionTypes; track action) {
+              <option [value]="action">{{ action }}</option>
+            }
+          </select>
+        </div>
+
+        @if (selectedEntityType || selectedActionType) {
+          <button 
+            (click)="clearFilters()" 
+            class="btn-outline"
+          >
+            Clear Filters
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
   @if (isLoading) {
     <div class="flex justify-center py-12">
       <div class="spinner"></div>
     </div>
-  } @else if (auditLogs.length === 0) {
+  } @else if (groupedAuditLogs.length === 0) {
     <div class="ec-card text-center py-12">
       <p class="text-[var(--color-text-secondary)]">No audit logs found</p>
+      @if (selectedEntityType || selectedActionType) {
+        <button (click)="clearFilters()" class="btn-outline mt-4">Clear Filters</button>
+      }
     </div>
   } @else {
-    <div class="ec-card">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-[var(--color-surface-2)] border-b border-[var(--color-border)]">
-            <tr>
-              <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Timestamp</th>
-              <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Entity</th>
-              <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Action</th>
-              <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">User ID</th>
-              <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (log of auditLogs; track log.id) {
-              <tr class="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)] transition-colors">
-                <td class="p-4 text-sm text-[var(--color-text-secondary)]">{{ formatDate(log.createdAt) }}</td>
-                <td class="p-4 text-sm text-[var(--color-text-primary)]">
-                  <div>{{ log.entityName }}</div>
-                  <div class="text-xs text-[var(--color-text-muted)] font-mono">{{ log.entityId }}</div>
-                </td>
-                <td class="p-4">
-                  <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                    {{ log.action }}
-                  </span>
-                </td>
-                <td class="p-4 text-sm text-[var(--color-text-muted)] font-mono">{{ log.byUserId }}</td>
-                <td class="p-4">
-                  @if (log.oldValues || log.newValues) {
-                    <details class="cursor-pointer">
-                      <summary class="text-sm text-[var(--color-primary)] hover:underline">View Changes</summary>
-                      <div class="mt-2 p-3 bg-[var(--color-surface)] rounded text-xs">
-                        @if (log.oldValues) {
-                          <div class="mb-2">
-                            <strong class="text-[var(--color-text-secondary)]">Old Values:</strong>
-                            <pre class="mt-1 overflow-x-auto">{{ formatJson(log.oldValues) }}</pre>
-                          </div>
-                        }
-                        @if (log.newValues) {
-                          <div>
-                            <strong class="text-[var(--color-text-secondary)]">New Values:</strong>
-                            <pre class="mt-1 overflow-x-auto">{{ formatJson(log.newValues) }}</pre>
-                          </div>
-                        }
-                      </div>
-                    </details>
-                  } @else {
-                    <span class="text-sm text-[var(--color-text-muted)]">No changes</span>
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+    <!-- Grouped Audit Logs by Date -->
+    @for (group of groupedAuditLogs; track group.date) {
+      <div class="mb-6">
+        <div class="flex items-center gap-3 mb-3">
+          <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">{{ group.date }}</h3>
+          <div class="flex-1 h-px bg-[var(--color-border)]"></div>
+        </div>
 
-      <!-- Pagination -->
-      <div class="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
+        <div class="ec-card">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-[var(--color-surface-2)] border-b border-[var(--color-border)]">
+                <tr>
+                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Time</th>
+                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Entity</th>
+                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Action</th>
+                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">User ID</th>
+                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Changes</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (log of group.logs; track log.id) {
+                  <tr class="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)] transition-colors">
+                    <td class="p-4 text-sm text-[var(--color-text-secondary)]">{{ formatTime(log.createdAt) }}</td>
+                    <td class="p-4 text-sm text-[var(--color-text-primary)]">
+                      <div>{{ log.entityName }}</div>
+                      <div class="text-xs text-[var(--color-text-muted)] font-mono">{{ log.entityId }}</div>
+                    </td>
+                    <td class="p-4">
+                      <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                        {{ log.action }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-sm text-[var(--color-text-muted)] font-mono">{{ log.byUserId }}</td>
+                    <td class="p-4">
+                      @if (log.oldValues || log.newValues) {
+                        <details class="cursor-pointer">
+                          <summary class="text-sm text-[var(--color-primary)] hover:underline">View Changes</summary>
+                          <div class="mt-2 p-3 bg-[var(--color-surface)] rounded text-xs">
+                            @if (formatDiff(log.oldValues, log.newValues).length > 0) {
+                              <div class="space-y-2">
+                                @for (change of formatDiff(log.oldValues, log.newValues); track change.field) {
+                                  <div class="border-b border-[var(--color-border)] pb-2 last:border-b-0">
+                                    <div class="font-semibold text-[var(--color-text-primary)] mb-1">{{ change.field }}</div>
+                                    <div class="flex gap-4">
+                                      <div class="flex-1">
+                                        <span class="text-red-600 font-medium">Before:</span>
+                                        <div class="mt-1 p-2 bg-red-50 rounded text-red-800">{{ change.oldValue }}</div>
+                                      </div>
+                                      <div class="flex items-center text-[var(--color-text-muted)]">→</div>
+                                      <div class="flex-1">
+                                        <span class="text-green-600 font-medium">After:</span>
+                                        <div class="mt-1 p-2 bg-green-50 rounded text-green-800">{{ change.newValue }}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            } @else {
+                              <div class="text-[var(--color-text-muted)]">No changes detected</div>
+                            }
+                          </div>
+                        </details>
+                      } @else {
+                        <span class="text-sm text-[var(--color-text-muted)]">No changes</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Pagination -->
+    <div class="ec-card">
+      <div class="p-4 flex items-center justify-between">
         <div class="text-sm text-[var(--color-text-secondary)]">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{ totalCount }} results
         </div>

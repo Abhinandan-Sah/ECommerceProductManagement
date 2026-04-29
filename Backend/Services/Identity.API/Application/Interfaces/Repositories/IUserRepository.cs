@@ -11,5 +11,6 @@ namespace Identity.API.Application.Interfaces.Repositories
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(User user);
         Task RevokeRefreshTokensAsync(Guid userId, string reason);
+        Task<Dictionary<string, int>> GetRoleBreakdownAsync();
     }
 }

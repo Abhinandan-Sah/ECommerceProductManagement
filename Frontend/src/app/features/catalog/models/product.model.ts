@@ -1,3 +1,5 @@
+import { ApprovalStatus } from '../../workflow/models/workflow.model';
+
 export interface ProductResponse {
   id: string;
   name: string;
@@ -7,6 +9,7 @@ export interface ProductResponse {
   publishStatus: PublishStatus;
   categoryName: string;
   categoryId?: string;
+  approvalStatus?: ApprovalStatus;
 }
 
 export interface CreateProduct {
@@ -26,6 +29,10 @@ export interface UpdateProduct {
 
 export enum PublishStatus {
   Draft = 0,
-  Published = 1,
-  Archived = 2
+  InEnrichment = 1,
+  ReadyForReview = 2,
+  Approved = 3,
+  Published = 4,
+  Rejected = 5,
+  Archived = 6
 }

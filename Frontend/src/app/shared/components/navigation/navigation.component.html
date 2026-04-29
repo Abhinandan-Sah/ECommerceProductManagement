@@ -35,6 +35,7 @@
               <a routerLink="/catalog/categories" routerLinkActive="rnav-active" class="rnav-link">Categories</a>
               <a routerLink="/admin/users" routerLinkActive="rnav-active" class="rnav-link">Users</a>
               <a routerLink="/workflow" routerLinkActive="rnav-active" class="rnav-link">Workflow</a>
+              <a routerLink="/workflow/approvals" routerLinkActive="rnav-active" class="rnav-link">Approvals</a>
             }
             @if (role === 'ProductManager') {
               <a routerLink="/product-manager" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
@@ -113,6 +114,7 @@
           <a routerLink="/catalog/categories" class="mobile-link" (click)="closeMobileMenu()">Categories</a>
           <a routerLink="/admin/users" class="mobile-link" (click)="closeMobileMenu()">Users</a>
           <a routerLink="/workflow" class="mobile-link" (click)="closeMobileMenu()">Workflow</a>
+          <a routerLink="/workflow/approvals" class="mobile-link" (click)="closeMobileMenu()">Approvals</a>
         }
         @if (role === 'ProductManager') {
           <a routerLink="/product-manager" class="mobile-link" (click)="closeMobileMenu()">Dashboard</a>

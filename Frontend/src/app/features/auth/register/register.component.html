@@ -29,7 +29,7 @@
             id="email"
             type="email"
             formControlName="email"
-            [class.error]="isInvalid('email')"
+            [class.error]="isInvalid('email') || emailConflictError"
             class="ec-input"
             placeholder="john@example.com"
             autocomplete="email"
@@ -37,6 +37,11 @@
           @if (isInvalid('email')) {
             <span class="text-sm text-[var(--color-danger)] mt-1 block">
               {{ getError('email') }}
+            </span>
+          }
+          @if (emailConflictError) {
+            <span class="text-sm text-[var(--color-danger)] mt-1 block">
+              {{ emailConflictError }}
             </span>
           }
         </div>

@@ -1,20 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LoadingService } from '../../../core/services/loading.service';
 import { Observable } from 'rxjs';
 
 @Component({
-    selector: 'app-loading-spinner',
-    imports: [CommonModule],
-    templateUrl: './loading-spinner.component.html',
-    styleUrls: ['./loading-spinner.component.css']
+  selector: 'app-loading-spinner',
+  imports: [CommonModule],
+  templateUrl: './loading-spinner.component.html',
+  styleUrls: ['./loading-spinner.component.css']
 })
-export class LoadingSpinnerComponent implements OnInit {
+export class LoadingSpinnerComponent {
   loading$: Observable<boolean>;
 
   constructor(private loadingService: LoadingService) {
     this.loading$ = this.loadingService.loading$;
   }
-
-  ngOnInit(): void {}
 }

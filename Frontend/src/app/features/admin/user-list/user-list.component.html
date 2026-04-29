@@ -2,7 +2,6 @@
   <!-- PAGE HEADER -->
   <div class="page-header">
     <h1 class="page-title">User Management</h1>
-    <!-- If there were an add user action: <button class="btn-primary">+ Add User</button> -->
   </div>
 
   <!-- FILTER BAR -->
@@ -45,7 +44,7 @@
 
   <!-- TABLE CARD -->
   <div class="ec-card table-card overflow-x-auto relative">
-    
+
     @if (isLoading) {
       <div class="loading-overlay">
         <div class="spinner"></div>
@@ -55,7 +54,6 @@
     <table class="ec-table w-full text-left border-collapse min-w-[800px]">
       <thead>
         <tr>
-          <!-- <th><input type="checkbox" /></th> -->
           <th>User</th>
           <th>Email</th>
           <th>Role</th>
@@ -64,61 +62,104 @@
         </tr>
       </thead>
       <tbody>
-        @for (user of users; track user) {
-          <tr class="table-row" [class.bg-blue-50]="isCurrentUser(user)">
-            <!-- <td><input type="checkbox" /></td> -->
+        @for (user of users; track user.id) {
+          <tr class="table-row" [class.current-user-row]="isCurrentUser(user)">
+
+            <!-- USER CELL -->
             <td>
               <div class="user-cell">
-                <div class="user-avatar">{{ getUserDisplayName(user).charAt(0).toUpperCase() }}</div>
+                <div class="user-avatar" [class.current-user-avatar]="isCurrentUser(user)">
+                  {{ getUserDisplayName(user).charAt(0).toUpperCase() }}
+                </div>
                 <div class="user-name">
                   {{ getUserDisplayName(user) }}
-                  @if (isCurrentUser(user)) { <span class="bg-blue-100 text-blue-800 text-[10px] uppercase font-bold py-0.5 px-2 rounded-full ml-2">You</span> }
+                  @if (isCurrentUser(user)) {
+                    <span class="you-badge">You</span>
+                  }
                 </div>
               </div>
             </td>
+
+            <!-- EMAIL -->
             <td class="text-gray-600 text-sm">{{ user.email }}</td>
+
+            <!-- ROLE — dropdown for others, locked badge for self -->
             <td>
-              <!-- Role Badge / Selector -->
-              <select
-                [value]="user.role"
-                (change)="onRoleChange(user, $any($event.target).value)"
-                [disabled]="isCurrentUser(user)"
-                class="role-select"
-                [attr.data-role]="user.role"
-              >
-                @for (role of availableRoles; track role) {
-                  <option [value]="role">{{ role }}</option>
-                }
-              </select>
+              @if (isCurrentUser(user)) {
+                <!-- Current admin: show locked badge, cannot change own role -->
+                <span class="role-badge" [attr.data-role]="user.role">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="lock-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  {{ user.role }}
+                </span>
+              } @else {
+                <!-- Other users: interactive dropdown -->
+                <div class="role-select-wrapper">
+                  <select
+                    [value]="user.role"
+                    (change)="onRoleChange(user, $any($event.target).value)"
+                    class="role-select"
+                    [attr.data-role]="user.role"
+                    [title]="'Change role for ' + getUserDisplayName(user)"
+                  >
+                    @for (role of availableRoles; track role) {
+                      <option [value]="role" [selected]="user.role === role">{{ role }}</option>
+                    }
+                  </select>
+                  <svg class="role-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+              }
             </td>
+
+            <!-- STATUS -->
             <td>
               <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
                 <span class="status-dot"></span>
                 {{ user.isActive ? 'Active' : 'Inactive' }}
               </span>
             </td>
+
+            <!-- ACTIONS -->
             <td class="text-right">
               <div class="action-buttons flex justify-end gap-2">
-                <button
-                  (click)="toggleUserStatus(user)"
-                  [disabled]="isCurrentUser(user)"
-                  class="action-btn"
-                  [title]="user.isActive ? 'Deactivate user' : 'Activate user'"
-                >
-                  @if (user.isActive) {
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-500 hover:text-orange-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
-                  } @else {
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-600"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                  }
-                </button>
-                <button
-                  (click)="confirmDelete(user)"
-                  [disabled]="isCurrentUser(user)"
-                  class="action-btn text-red-500 hover:bg-red-50"
-                  title="Delete user"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
+
+                @if (!isCurrentUser(user)) {
+                  <!-- Toggle status -->
+                  <button
+                    (click)="toggleUserStatus(user)"
+                    class="action-btn"
+                    [title]="user.isActive ? 'Deactivate user' : 'Activate user'"
+                  >
+                    @if (user.isActive) {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-orange-400">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                      </svg>
+                    } @else {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-500">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      </svg>
+                    }
+                  </button>
+
+                  <!-- Delete -->
+                  <button
+                    (click)="confirmDelete(user)"
+                    class="action-btn action-btn--danger"
+                    title="Delete user"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                } @else {
+                  <!-- Self — show a disabled "protected" indicator -->
+                  <span class="self-protected-hint" title="You cannot modify your own account">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  </span>
+                }
+
               </div>
             </td>
           </tr>
@@ -128,7 +169,11 @@
           <tr>
             <td colspan="5" class="py-12 text-center text-gray-500">
               <div class="flex flex-col items-center justify-center">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-4 text-gray-300"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-4 text-gray-300">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
                 <p class="text-lg font-medium text-gray-600">No users found</p>
                 <p class="text-sm mt-1 text-gray-400">Try adjusting your filters or search term.</p>
               </div>
@@ -142,20 +187,20 @@
     @if (!isLoading && users.length > 0) {
       <div class="pagination-bar">
         <div class="text-sm text-gray-500">
-          Showing {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalUsers) }} of {{ totalUsers }} results
+          Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, totalUsers) }} of {{ totalUsers }} results
         </div>
         <div class="flex items-center gap-1">
-          <button class="page-btn text-gray-500" [disabled]="currentPage === 1" (click)="previousPage()">
+          <button class="page-btn" [disabled]="currentPage === 1" (click)="previousPage()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
-          
+
           @for (page of getPageNumbers(); track page) {
             <button class="page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
               {{ page }}
             </button>
           }
-          
-          <button class="page-btn text-gray-500" [disabled]="currentPage === totalPages" (click)="nextPage()">
+
+          <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
         </div>
@@ -163,17 +208,21 @@
     }
   </div>
 
-  <!-- Delete Confirmation Dialog overlay (custom inline logic fallback) -->
+  <!-- DELETE CONFIRMATION DIALOG -->
   @if (showDeleteConfirm) {
     <div class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" (click)="cancelDelete()">
       <div class="ec-card w-full max-w-[400px] overflow-hidden shadow-2xl animate-fade-in" (click)="$event.stopPropagation()">
         <div class="p-5 border-b border-gray-100 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
           </div>
           <h2 class="text-lg font-bold text-gray-900 m-0">Confirm Deletion</h2>
         </div>
-        <div class="p-5 pb-6 text-sm text-gray-600 line-height-relaxed">
+        <div class="p-5 pb-6 text-sm text-gray-600">
           <p class="mb-3">Are you sure you want to delete this user? This action cannot be undone.</p>
           @if (userToDelete) {
             <div class="bg-gray-50 rounded p-3 mb-2 border border-gray-100">

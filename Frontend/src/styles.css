@@ -150,12 +150,104 @@ body {
 .badge-published { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); }
 .badge-draft     { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning); }
 .badge-archived  { background: var(--color-danger-bg);  color: var(--color-danger); border: 1px solid var(--color-border); }
+.badge-warning   { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning); }
+.badge-success   { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); }
+.badge-danger    { background: var(--color-danger-bg);  color: var(--color-danger); border: 1px solid var(--color-danger); }
 .status-dot      { width: 6px; height: 6px; border-radius: 50%; }
 
-/* Toast Notifications in dark mode compatibility */
-.toast-success .mdc-snackbar__surface { background: var(--color-success-bg) !important; color: var(--color-success) !important; border: 1px solid var(--color-success); }
-.toast-error .mdc-snackbar__surface   { background: var(--color-danger-bg) !important;  color: var(--color-danger) !important;  border: 1px solid var(--color-danger); }
-.toast-warning .mdc-snackbar__surface { background: var(--color-warning-bg) !important; color: var(--color-warning) !important; border: 1px solid var(--color-warning); }
+/* ============================================
+   NGX-TOASTR — CUSTOM THEME
+   Overrides the default toastr skin to match
+   the application's design system tokens.
+   ============================================ */
+
+/* ── Shared base for all toast types ─────── */
+.toast-container .ngx-toastr {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 10px !important;
+  padding: 14px 16px 14px 52px !important;
+  min-width: 300px;
+  max-width: 380px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border-left: 4px solid transparent;
+  opacity: 1 !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.toast-container .ngx-toastr:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24) !important;
+  transform: translateY(-2px);
+}
+
+/* Title & message */
+.toast-container .ngx-toastr .toast-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+.toast-container .ngx-toastr .toast-message {
+  font-size: 13px;
+  opacity: 0.92;
+}
+
+/* Close button */
+.toast-container .ngx-toastr button.toast-close-button {
+  font-size: 18px;
+  color: inherit;
+  opacity: 0.6;
+  right: 10px;
+  top: 10px;
+}
+.toast-container .ngx-toastr button.toast-close-button:hover {
+  opacity: 1;
+}
+
+/* Progress bar */
+.toast-container .ngx-toastr .toast-progress {
+  height: 3px;
+  opacity: 0.5;
+  border-radius: 0 0 10px 10px;
+}
+
+/* ── Success ─────────────────────────────── */
+.toast-container .toast-success {
+  background-color: #0f7a4f !important;
+  border-left-color: #10b981;
+  color: #fff;
+}
+.toast-container .toast-success .toast-progress { background: #10b981; }
+
+/* ── Error ───────────────────────────────── */
+.toast-container .toast-error {
+  background-color: #991b1b !important;
+  border-left-color: #ef4444;
+  color: #fff;
+}
+.toast-container .toast-error .toast-progress { background: #ef4444; }
+
+/* ── Warning ─────────────────────────────── */
+.toast-container .toast-warning {
+  background-color: #92400e !important;
+  border-left-color: #f59e0b;
+  color: #fff;
+}
+.toast-container .toast-warning .toast-progress { background: #f59e0b; }
+
+/* ── Info ────────────────────────────────── */
+.toast-container .toast-info {
+  background-color: #1e3a8a !important;
+  border-left-color: #3b82f6;
+  color: #fff;
+}
+.toast-container .toast-info .toast-progress { background: #3b82f6; }
+
+/* ── Position & z-index ──────────────────── */
+.toast-top-right {
+  top: 72px !important;   /* clears the fixed nav header */
+  right: 16px !important;
+}
+.toast-container { z-index: 99999 !important; }
 
 /* Theme Toggle Button */
 .theme-toggle {

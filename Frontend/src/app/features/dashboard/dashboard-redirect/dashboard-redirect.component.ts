@@ -14,10 +14,12 @@ export class DashboardRedirectComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.select(selectUserRole).subscribe(role => {
+      if (!role) return;
+      
       switch(role) {
         case 'Admin':            this.router.navigate(['/admin']); break;
-        case 'ProductManager':   this.router.navigate(['/pm']); break;
-        case 'ContentExecutive': this.router.navigate(['/content']); break;
+        case 'ProductManager':   this.router.navigate(['/product-manager']); break;
+        case 'ContentExecutive': this.router.navigate(['/content-executive']); break;
         case 'Customer':         this.router.navigate(['/my-account']); break;
         default:                 this.router.navigate(['/']);
       }

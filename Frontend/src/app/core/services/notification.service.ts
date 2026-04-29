@@ -1,13 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 
 /**
- * Service for displaying notifications to users.
- * 
- * This service provides methods to show success, error, warning, and info messages
- * using Angular Material Snackbar. All notifications auto-dismiss after a configurable timeout.
- * 
- * Requirements: 14.5, 14.6
+ * Service for displaying notifications to users via ngx-toastr.
+ *
+ * Provides success, error, warning, and info toast notifications that
+ * auto-dismiss and support progress bars. Replaces the previous
+ * Angular Material Snackbar implementation.
  */
 @Injectable({
   providedIn: 'root'
@@ -16,63 +15,58 @@ export class NotificationService {
   private readonly defaultDuration = 5000; // 5 seconds
   private readonly successDuration = 3000; // 3 seconds
 
-  private snackBar = inject(MatSnackBar);
+  private toastr = inject(ToastrService);
 
   /**
-   * Displays a success message.
-   * 
+   * Displays a success toast notification.
    * @param message - The success message to display
-   * @param duration - Optional duration in milliseconds (default: 3000ms)
+   * @param title   - Optional title (default: 'Success')
    */
-  showSuccess(message: string, duration: number = this.successDuration): void {
-    this.show(message, 'success-snackbar', duration);
+  showSuccess(message: string, title: string = 'Success'): void {
+    this.toastr.success(message, title, {
+      timeOut: this.successDuration,
+      progressBar: true,
+      closeButton: true,
+    });
   }
 
   /**
-   * Displays an error message.
-   * 
+   * Displays an error toast notification.
    * @param message - The error message to display
-   * @param duration - Optional duration in milliseconds (default: 5000ms)
+   * @param title   - Optional title (default: 'Error')
    */
-  showError(message: string, duration: number = this.defaultDuration): void {
-    this.show(message, 'error-snackbar', duration);
+  showError(message: string, title: string = 'Error'): void {
+    this.toastr.error(message, title, {
+      timeOut: this.defaultDuration,
+      progressBar: true,
+      closeButton: true,
+      disableTimeOut: false,
+    });
   }
 
   /**
-   * Displays a warning message.
-   * 
+   * Displays a warning toast notification.
    * @param message - The warning message to display
-   * @param duration - Optional duration in milliseconds (default: 5000ms)
+   * @param title   - Optional title (default: 'Warning')
    */
-  showWarning(message: string, duration: number = this.defaultDuration): void {
-    this.show(message, 'warning-snackbar', duration);
+  showWarning(message: string, title: string = 'Warning'): void {
+    this.toastr.warning(message, title, {
+      timeOut: this.defaultDuration,
+      progressBar: true,
+      closeButton: true,
+    });
   }
 
   /**
-   * Displays an info message.
-   * 
+   * Displays an info toast notification.
    * @param message - The info message to display
-   * @param duration - Optional duration in milliseconds (default: 5000ms)
+   * @param title   - Optional title (default: 'Info')
    */
-  showInfo(message: string, duration: number = this.defaultDuration): void {
-    this.show(message, 'info-snackbar', duration);
-  }
-
-  /**
-   * Internal method to display a snackbar with the specified configuration.
-   * 
-   * @param message - The message to display
-   * @param panelClass - CSS class for styling the snackbar
-   * @param duration - Duration in milliseconds before auto-dismiss
-   */
-  private show(message: string, panelClass: string, duration: number): void {
-    const config: MatSnackBarConfig = {
-      duration,
-      horizontalPosition: 'right',
-      verticalPosition: 'top',
-      panelClass: [panelClass]
-    };
-
-    this.snackBar.open(message, 'Close', config);
+  showInfo(message: string, title: string = 'Info'): void {
+    this.toastr.info(message, title, {
+      timeOut: this.defaultDuration,
+      progressBar: true,
+      closeButton: true,
+    });
   }
 }

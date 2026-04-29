@@ -4,30 +4,38 @@ import { finalize } from 'rxjs/operators';
 import { LoadingService } from '../services/loading.service';
 
 /**
+ * URLs that should NEVER trigger the global loading overlay.
+ * These are background/silent requests (auth handshakes, token refresh, etc.)
+ * that would otherwise inflate the request counter unexpectedly.
+ */
+const SILENT_URLS = [
+  '/api/auth/refresh',
+  '/api/auth/logout',
+  '/api/auth/profile',
+];
+
+function isSilentRequest(url: string): boolean {
+  return SILENT_URLS.some(u => url.includes(u));
+}
+
+/**
  * HTTP interceptor for managing global loading state.
- * 
- * This interceptor:
- * - Shows loading indicator when an HTTP request starts
- * - Hides loading indicator when the request completes (success or error)
- * - Uses LoadingService to track multiple concurrent requests
- * 
- * The LoadingService maintains a request counter, so the loading indicator
- * remains visible as long as any request is active.
- * 
- * @param req - The outgoing HTTP request
- * @param next - The next handler in the interceptor chain
- * @returns Observable of the HTTP event
+ *
+ * Shows the loading overlay only for "user-visible" requests —
+ * silent background calls (token refresh, logout, profile rehydration)
+ * are intentionally skipped so the counter never gets stuck.
  */
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoadingService);
-  
-  // Show loading indicator when request starts
+
+  // Skip silent background requests entirely
+  if (isSilentRequest(req.url)) {
+    return next(req);
+  }
+
   loadingService.show();
-  
-  // Hide loading indicator when request completes (success or error)
+
   return next(req).pipe(
-    finalize(() => {
-      loadingService.hide();
-    })
+    finalize(() => loadingService.hide())
   );
 };

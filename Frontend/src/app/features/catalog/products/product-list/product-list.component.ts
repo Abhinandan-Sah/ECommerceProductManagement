@@ -3,12 +3,15 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 
 import { CatalogService } from '../../services/catalog.service';
 import { CategoryService } from '../../services/category.service';
+import { WorkflowService } from '../../../workflow/services/workflow.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
+import { WorkflowStateBadgeComponent } from '../../../workflow/components/workflow-state-badge/workflow-state-badge.component';
 import { ProductResponse, PublishStatus } from '../../models/product.model';
 import { CategoryResponse } from '../../models/category.model';
 import { selectUserRole } from '../../../../store/auth/auth.selectors';
@@ -16,13 +19,14 @@ import { selectUserRole } from '../../../../store/auth/auth.selectors';
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, LoadingSpinnerComponent, WorkflowStateBadgeComponent],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
 export class ProductListComponent implements OnInit {
   private catalogService = inject(CatalogService);
   private categoryService = inject(CategoryService);
+  private workflowService = inject(WorkflowService);
   private notify = inject(NotificationService);
   private router = inject(Router);
   private store = inject(Store);
@@ -81,6 +85,7 @@ export class ProductListComponent implements OnInit {
     this.catalogService.getProducts(catId, statusVal).subscribe({
       next: (data) => {
         this.products = data;
+        this.loadApprovalStatuses();
         this.filterProducts();
         this.calculateStats();
         this.isLoading = false;
@@ -88,6 +93,27 @@ export class ProductListComponent implements OnInit {
       error: (err) => {
         this.notify.showError('Failed to load products');
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadApprovalStatuses(): void {
+    const statusRequests = this.products.map(product =>
+      this.workflowService.getApprovalStatus(product.id).pipe(
+        catchError(() => of({ productId: product.id, status: 'Pending' as const, approvedByUserId: undefined, remarks: undefined }))
+      )
+    );
+
+    forkJoin(statusRequests).subscribe({
+      next: (statuses) => {
+        statuses.forEach((status, index) => {
+          if (status && this.products[index]) {
+            this.products[index].approvalStatus = status.status;
+          }
+        });
+      },
+      error: () => {
+        // Silently fail - approval status is optional
       }
     });
   }
@@ -141,6 +167,10 @@ export class ProductListComponent implements OnInit {
       case PublishStatus.Published: return 'badge-published';
       case PublishStatus.Draft: return 'badge-draft';
       case PublishStatus.Archived: return 'badge-archived';
+      case PublishStatus.InEnrichment: return 'badge-draft';
+      case PublishStatus.ReadyForReview: return 'badge-warning';
+      case PublishStatus.Approved: return 'badge-success';
+      case PublishStatus.Rejected: return 'badge-danger';
       default: return 'badge-draft';
     }
   }
@@ -150,6 +180,10 @@ export class ProductListComponent implements OnInit {
       case PublishStatus.Published: return 'Published';
       case PublishStatus.Draft: return 'Draft';
       case PublishStatus.Archived: return 'Archived';
+      case PublishStatus.InEnrichment: return 'In Enrichment';
+      case PublishStatus.ReadyForReview: return 'Ready for Review';
+      case PublishStatus.Approved: return 'Approved';
+      case PublishStatus.Rejected: return 'Rejected';
       default: return 'Unknown';
     }
   }

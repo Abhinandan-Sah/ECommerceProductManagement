@@ -13,5 +13,6 @@ namespace Identity.API.Application.Interfaces.Services
         Task UpdateUserRoleAsync(Guid id, Role role);
         Task SetUserActiveAsync(Guid id, bool isActive);
         Task DeleteUserAsync(Guid id);
+        Task<Dictionary<string, int>> GetUserStatsAsync();
     }
 }

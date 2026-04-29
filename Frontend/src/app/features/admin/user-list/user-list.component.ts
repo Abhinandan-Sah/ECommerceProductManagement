@@ -1,73 +1,63 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { take } from 'rxjs/operators';
 
-import { UserService } from '../../../core/services/user.service';
+import { UserService }        from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { User, Role, PaginatedResponse } from '../../../shared/models/user.model';
-import { selectCurrentUser } from '../../../store/auth/auth.selectors';
+import { selectCurrentUser }  from '../../../store/auth/auth.selectors';
 
-/**
- * UserListComponent provides admin interface for managing all users.
- *
- * Features:
- * - Paginated user list with search and role filtering
- * - Role management (change user roles)
- * - Status management (activate/deactivate users)
- * - User deletion with confirmation
- * - Prevents admins from modifying their own account
- *
- * Requirements: 9.1-9.6, 10.1-10.6, 11.1-11.6, 12.1-12.6, 15.3
- */
 @Component({
   selector: 'app-user-list',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css']
 })
 export class UserListComponent implements OnInit, OnDestroy {
-  private userService  = inject(UserService);
-  private store        = inject(Store);
-  private notify       = inject(NotificationService);
-  private router       = inject(Router);
+  private userService = inject(UserService);
+  private store       = inject(Store);
+  private notify      = inject(NotificationService);
 
-  users: User[] = [];
-  isLoading = true;
-  errorMessage = '';
+  users: User[]    = [];
+  isLoading        = true;
+  errorMessage     = '';
 
   // Pagination
-  currentPage = 1;
-  pageSize = 10;
-  totalUsers = 0;
-  totalPages = 0;
+  currentPage  = 1;
+  pageSize     = 10;
+  totalUsers   = 0;
+  totalPages   = 0;
 
-  // Search and filter
+  // Search & filter
   searchControl = new FormControl('');
-  roleFilter = new FormControl('');
+  roleFilter    = new FormControl('');
 
-  // Available roles for filtering and role management
-  availableRoles = Object.values(Role);
+  // All possible roles for the filter dropdown and the role-change select
+  availableRoles = Object.values(Role);  // ['Admin','ProductManager','ContentExecutive','Customer']
 
-  // Current user ID to prevent self-modification
+  // ID of the currently logged-in user — used to lock self-modification
   currentUserId: string | null = null;
 
-  // Confirmation dialog state
+  // Delete confirmation state
   showDeleteConfirm = false;
   userToDelete: User | null = null;
 
-  // Unsubscribe subject
+  // Expose Math so the template can call Math.min()
+  readonly Math = Math;
+
   private destroy$ = new Subject<void>();
 
-  // Expose Math for template
-  Math = Math;
+  // ─────────────────────────────────────────────────────────────
+  // Lifecycle
+  // ─────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    this.initializeCurrentUser();
-    this.setupSearchAndFilter();
+    this.loadCurrentUserId();
+    this.setupFilters();
     this.loadUsers();
   }
 
@@ -76,126 +66,79 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Get current user ID to prevent self-modification.
-   */
-  private initializeCurrentUser(): void {
-    this.store.select(selectCurrentUser).pipe(
-      take(1)
-    ).subscribe(user => {
+  // ─────────────────────────────────────────────────────────────
+  // Initialisation helpers
+  // ─────────────────────────────────────────────────────────────
+
+  private loadCurrentUserId(): void {
+    this.store.select(selectCurrentUser).pipe(take(1)).subscribe(user => {
       this.currentUserId = user?.id ?? null;
     });
   }
 
-  /**
-   * Set up search and filter with debouncing.
-   */
-  private setupSearchAndFilter(): void {
+  private setupFilters(): void {
     this.searchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(() => {
-        this.currentPage = 1;
-        this.loadUsers();
-      });
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => { this.currentPage = 1; this.loadUsers(); });
 
     this.roleFilter.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.currentPage = 1;
-        this.loadUsers();
-      });
+      .subscribe(() => { this.currentPage = 1; this.loadUsers(); });
   }
 
-  /**
-   * Load users from API with current pagination, search, and filter settings.
-   */
+  // ─────────────────────────────────────────────────────────────
+  // Data loading
+  // ─────────────────────────────────────────────────────────────
+
   loadUsers(): void {
-    this.isLoading = true;
+    this.isLoading   = true;
     this.errorMessage = '';
 
     const search = this.searchControl.value || undefined;
-    const role = this.roleFilter.value || undefined;
+    const role   = this.roleFilter.value   || undefined;
 
     this.userService.getUsers(this.currentPage, this.pageSize, search, role)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: PaginatedResponse<User>) => {
-          this.users = response.data;
-          this.totalUsers = response.total;
-          this.totalPages = response.totalPages;
-          this.currentPage = response.page;
-          this.isLoading = false;
+        next: (res: PaginatedResponse<User>) => {
+          // The backend returns Role as a string ('Admin', 'ProductManager', etc.).
+          // Guard against environments that may return a numeric enum value.
+          const numericToRole: Record<string, Role> = {
+            '1': Role.Admin,
+            '2': Role.ProductManager,
+            '3': Role.ContentExecutive,
+            '4': Role.Customer,
+          };
+
+          this.users = res.data.map(u => {
+            const raw = String(u.role);
+            const normalized =
+              numericToRole[raw] ??
+              (Object.values(Role).includes(u.role) ? u.role : Role.Customer);
+            return { ...u, role: normalized };
+          });
+
+          this.totalUsers  = res.total;
+          this.totalPages  = res.totalPages;
+          this.currentPage = res.page;
+          this.isLoading   = false;
         },
-        error: (error) => {
+        error: err => {
           this.isLoading = false;
-          this.handleError(error, 'Failed to load users');
+          this.handleError(err, 'Failed to load users');
         }
       });
   }
 
-  /**
-   * Navigate to specific page.
-   */
-  goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages || page === this.currentPage) {
-      return;
-    }
-    this.currentPage = page;
-    this.loadUsers();
-  }
+  // ─────────────────────────────────────────────────────────────
+  // Role management
+  // ─────────────────────────────────────────────────────────────
 
   /**
-   * Navigate to previous page.
-   */
-  previousPage(): void {
-    if (this.currentPage > 1) {
-      this.goToPage(this.currentPage - 1);
-    }
-  }
-
-  /**
-   * Navigate to next page.
-   */
-  nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.goToPage(this.currentPage + 1);
-    }
-  }
-
-  /**
-   * Get array of page numbers for pagination controls.
-   */
-  getPageNumbers(): number[] {
-    const pages: number[] = [];
-    const maxPagesToShow = 5;
-
-    let startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
-
-    if (endPage - startPage < maxPagesToShow - 1) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  }
-
-  /**
-   * Check if user is the current logged-in user.
-   */
-  isCurrentUser(user: User): boolean {
-    return user.id === this.currentUserId;
-  }
-
-  /**
-   * Handle role change for a user.
+   * Called when the admin selects a new role from the dropdown.
+   * Optimistically updates the local user object so the coloured
+   * badge refreshes instantly via [attr.data-role] binding;
+   * rolls back on API error.
    */
   onRoleChange(user: User, newRole: string): void {
     if (this.isCurrentUser(user)) {
@@ -203,27 +146,31 @@ export class UserListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (user.role === newRole) {
-      return;
-    }
+    if (user.role === newRole) return;
+
+    const previousRole = user.role;
+
+    // Optimistic update — refreshes the [attr.data-role] binding immediately
+    user.role = newRole as Role;
 
     this.userService.updateUserRole(user.id, newRole)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.notify.showSuccess(`User role updated to ${newRole}`);
-          this.loadUsers();
+          this.notify.showSuccess(`Role updated to ${newRole}`);
         },
-        error: (error) => {
-          this.handleError(error, 'Failed to update user role');
-          this.loadUsers();
+        error: err => {
+          // Roll back on failure
+          user.role = previousRole;
+          this.handleError(err, 'Failed to update user role');
         }
       });
   }
 
-  /**
-   * Toggle user active status.
-   */
+  // ─────────────────────────────────────────────────────────────
+  // Status management
+  // ─────────────────────────────────────────────────────────────
+
   toggleUserStatus(user: User): void {
     if (this.isCurrentUser(user)) {
       this.notify.showError('You cannot change your own status');
@@ -231,117 +178,109 @@ export class UserListComponent implements OnInit, OnDestroy {
     }
 
     const newStatus = !user.isActive;
-    const action = newStatus ? 'activated' : 'deactivated';
+    const label     = newStatus ? 'activated' : 'deactivated';
+
+    // Optimistic update
+    user.isActive = newStatus;
 
     this.userService.updateUserStatus(user.id, newStatus)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.notify.showSuccess(`User ${action} successfully`);
-          this.loadUsers();
-        },
-        error: (error) => {
-          this.handleError(error, `Failed to ${action.slice(0, -1)} user`);
-          this.loadUsers();
+        next: () => this.notify.showSuccess(`User ${label} successfully`),
+        error: err => {
+          user.isActive = !newStatus;   // roll back
+          this.handleError(err, `Failed to ${label.slice(0, -1)} user`);
         }
       });
   }
 
-  /**
-   * Show delete confirmation dialog.
-   */
+  // ─────────────────────────────────────────────────────────────
+  // Delete
+  // ─────────────────────────────────────────────────────────────
+
   confirmDelete(user: User): void {
     if (this.isCurrentUser(user)) {
       this.notify.showError('You cannot delete your own account');
       return;
     }
-
-    this.userToDelete = user;
+    this.userToDelete     = user;
     this.showDeleteConfirm = true;
   }
 
-  /**
-   * Cancel delete operation.
-   */
   cancelDelete(): void {
     this.showDeleteConfirm = false;
-    this.userToDelete = null;
+    this.userToDelete      = null;
   }
 
-  /**
-   * Execute user deletion.
-   */
   executeDelete(): void {
-    if (!this.userToDelete) {
-      return;
-    }
+    if (!this.userToDelete) return;
 
-    const userId = this.userToDelete.id;
-    const userEmail = this.userToDelete.email;
+    const { id, email } = this.userToDelete;
 
-    this.userService.deleteUser(userId)
+    this.userService.deleteUser(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.notify.showSuccess(`User ${userEmail} deleted successfully`);
-          this.showDeleteConfirm = false;
-          this.userToDelete = null;
+          this.notify.showSuccess(`User ${email} deleted`);
+          this.cancelDelete();
           this.loadUsers();
         },
-        error: (error) => {
-          this.handleError(error, 'Failed to delete user');
-          this.showDeleteConfirm = false;
-          this.userToDelete = null;
+        error: err => {
+          this.handleError(err, 'Failed to delete user');
+          this.cancelDelete();
         }
       });
   }
 
-  /**
-   * Get display name for user (uses fullName field directly).
-   */
+  // ─────────────────────────────────────────────────────────────
+  // Pagination
+  // ─────────────────────────────────────────────────────────────
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    this.currentPage = page;
+    this.loadUsers();
+  }
+
+  previousPage(): void { this.goToPage(this.currentPage - 1); }
+  nextPage():     void { this.goToPage(this.currentPage + 1); }
+
+  getPageNumbers(): number[] {
+    const max   = 5;
+    let start   = Math.max(1, this.currentPage - Math.floor(max / 2));
+    let end     = Math.min(this.totalPages, start + max - 1);
+    if (end - start < max - 1) start = Math.max(1, end - max + 1);
+
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────────────────────
+
+  isCurrentUser(user: User): boolean {
+    return !!this.currentUserId && user.id === this.currentUserId;
+  }
+
   getUserDisplayName(user: User): string {
-    return user.fullName || user.email;
+    return user.fullName?.trim() || user.email;
   }
 
-  /**
-   * Get CSS class for status badge.
-   */
-  getStatusClass(user: User): string {
-    return user.isActive ? 'status-active' : 'status-inactive';
-  }
-
-  /**
-   * Get status text.
-   */
-  getStatusText(user: User): string {
-    return user.isActive ? 'Active' : 'Inactive';
-  }
-
-  /**
-   * Handle errors with user-friendly messages.
-   */
-  private handleError(error: any, defaultMessage: string): void {
-    let errorMessage = defaultMessage;
-
-    if (error.status === 401) {
-      errorMessage = 'Session expired. Please log in again.';
-    } else if (error.status === 403) {
-      errorMessage = 'You do not have permission to perform this action.';
-    } else if (error.status === 0) {
-      errorMessage = 'Network error. Please check your connection.';
-    } else if (error.error?.message) {
-      errorMessage = error.error.message;
-    }
-
-    this.errorMessage = errorMessage;
-    this.notify.showError(errorMessage);
-  }
-
-  /**
-   * Clear search and filters.
-   */
   clearFilters(): void {
     this.searchControl.setValue('');
     this.roleFilter.setValue('');
+  }
+
+  private handleError(error: any, fallback: string): void {
+    let msg = fallback;
+    if      (error.status === 401)        msg = 'Session expired. Please log in again.';
+    else if (error.status === 403)        msg = 'You do not have permission to do that.';
+    else if (error.status === 0)          msg = 'Network error. Please check your connection.';
+    else if (error.error?.message)        msg = error.error.message;
+
+    this.errorMessage = msg;
+    this.notify.showError(msg);
   }
 }

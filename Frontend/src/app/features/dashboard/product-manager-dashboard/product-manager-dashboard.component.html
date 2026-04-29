@@ -33,6 +33,25 @@
     </div>
   </div>
 
+  <!-- Quick Actions -->
+  <div class="ec-card p-6 mb-6">
+    <h2 class="font-bold mb-4">Quick Actions</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <a routerLink="/catalog/products/new" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">➕</div>
+        <h3 class="font-medium text-[var(--color-text-primary)]">Add Product</h3>
+      </a>
+      <a routerLink="/product-manager/inventory" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📊</div>
+        <h3 class="font-medium text-[var(--color-text-primary)]">Inventory Dashboard</h3>
+      </a>
+      <a routerLink="/product-manager/reports" class="p-4 border border-[var(--color-border)] rounded-lg text-center hover:bg-[var(--color-bg)] hover:border-[var(--color-primary)] transition-all group shadow-sm bg-[var(--color-surface)]">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📈</div>
+        <h3 class="font-medium text-[var(--color-text-primary)]">Reports</h3>
+      </a>
+    </div>
+  </div>
+
   <!-- Main Panel -->
   <div class="flex flex-col lg:flex-row gap-6">
     <div class="flex-1 overflow-hidden flex flex-col ec-card">
@@ -56,9 +75,9 @@
                 <td class="py-3 px-4 font-medium">{{ prod.name }}</td>
                 <td class="py-3 px-4 text-sm">{{ prod.brand }}</td>
                 <td class="py-3 px-4">
-                  @if (prod.publishStatus === publishStatusEnum.Published) { <span class="status-badge badge-published">Published</span> }
-                  @if (prod.publishStatus === publishStatusEnum.Draft) { <span class="status-badge badge-draft">Draft</span> }
-                  @if (prod.publishStatus === publishStatusEnum.Archived) { <span class="status-badge badge-archived">Archived</span> }
+                  <span [class]="getStatusBadgeClass(prod.publishStatus)" class="status-badge">
+                    {{ getStatusText(prod.publishStatus) }}
+                  </span>
                 </td>
                 <td class="py-3 px-4 text-right flex justify-end gap-3">
                   <a [routerLink]="['/catalog/products', prod.id, 'variants']" class="text-[var(--color-primary)] text-sm font-medium hover:underline">Variants</a>

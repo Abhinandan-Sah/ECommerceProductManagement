@@ -10,6 +10,9 @@ export const selectCurrentUser =
 export const selectIsAuthenticated =
   createSelector(selectAuthState, s => s.isAuthenticated);
 
+export const selectInitialized =
+  createSelector(selectAuthState, s => s.initialized);
+
 export const selectUserRole =
   createSelector(selectAuthState, s => s.user?.role ?? null);
 

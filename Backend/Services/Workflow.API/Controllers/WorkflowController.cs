@@ -18,12 +18,36 @@ namespace Workflow.API.Controllers
             _service = service;
         }
 
+        [HttpGet("products/{id:guid}/pricing")]
+        [Authorize(Roles = "Admin,ProductManager")]
+        public async Task<IActionResult> GetPricing(Guid id)
+        {
+            var pricing = await _service.GetPricingAsync(id);
+            if (pricing == null)
+            {
+                return Ok(new { ProductId = id, MRP = 0, SalePrice = 0, GSTPercent = 0 });
+            }
+            return Ok(pricing);
+        }
+
         [HttpPut("products/{id:guid}/pricing")]
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<IActionResult> UpdatePricing(Guid id, [FromBody] UpdatePricingRequestDto request)
         {
             await _service.UpdatePricingAsync(id, request);
             return Ok(new { message = "Pricing saved successfully." });
+        }
+
+        [HttpGet("products/{id:guid}/inventory")]
+        [Authorize(Roles = "Admin,ProductManager")]
+        public async Task<IActionResult> GetInventory(Guid id)
+        {
+            var inventory = await _service.GetInventoryAsync(id);
+            if (inventory == null)
+            {
+                return Ok(new { ProductId = id, AvailableQty = 0, ReorderLevel = 0, WarehouseLocation = "" });
+            }
+            return Ok(inventory);
         }
 
         [HttpPut("products/{id:guid}/inventory")]
@@ -54,6 +78,32 @@ namespace Workflow.API.Controllers
 
             await _service.UpdateStatusAsync(id, request, userId.Value);
             return Ok(new { message = $"Product status successfully updated to {request.NewStatus}." });
+        }
+
+        [HttpGet("products/{id:guid}/status")]
+        [Authorize(Roles = "Admin,ProductManager,ContentExecutive")]
+        public async Task<IActionResult> GetApprovalStatus(Guid id)
+        {
+            var status = await _service.GetApprovalStatusAsync(id);
+            if (status == null)
+            {
+                return Ok(new ApprovalStatusResponseDto
+                {
+                    ProductId = id,
+                    Status = Domain.Enums.ApprovalStatus.Pending,
+                    ApprovedByUserId = null,
+                    Remarks = null
+                });
+            }
+            return Ok(status);
+        }
+
+        [HttpGet("approvals/pending")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPendingApprovals()
+        {
+            var pending = await _service.GetPendingApprovalsAsync();
+            return Ok(pending);
         }
     }
 }

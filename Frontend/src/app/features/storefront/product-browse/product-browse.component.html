@@ -1,1 +1,180 @@
-<p>product-browse works!</p>
+<div class="pb-page">
+
+  <!-- Page Header -->
+  <div class="pb-hero">
+    <div class="pb-hero-content">
+      <h1 class="pb-hero-title">Browse Products</h1>
+      <p class="pb-hero-sub">Discover our full published catalog — {{ totalCount }} products</p>
+    </div>
+    <div class="pb-view-toggle">
+      <button class="pb-view-btn" [class.active]="viewMode === 'grid'" (click)="viewMode='grid'" title="Grid view" id="view-grid">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+      </button>
+      <button class="pb-view-btn" [class.active]="viewMode === 'list'" (click)="viewMode='list'" title="List view" id="view-list">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="pb-layout">
+    <!-- ============ Sidebar Filters ============ -->
+    <aside class="pb-sidebar">
+
+      <div class="pb-filter-section">
+        <h3 class="pb-filter-title">Search</h3>
+        <div class="pb-search-wrap">
+          <svg class="pb-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="applyFilters()"
+            class="pb-search-input"
+            placeholder="Product name, brand..."
+            id="browse-search"
+          />
+          @if (searchQuery) {
+            <button class="pb-search-clear" (click)="searchQuery=''; applyFilters()">×</button>
+          }
+        </div>
+      </div>
+
+      <div class="pb-filter-section">
+        <h3 class="pb-filter-title">Category</h3>
+        <select [(ngModel)]="selectedCategoryId" (ngModelChange)="applyFilters()" class="pb-select" id="filter-category">
+          <option value="">All Categories</option>
+          @for (cat of categories; track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="pb-filter-section">
+        <h3 class="pb-filter-title">Brand</h3>
+        <select [(ngModel)]="selectedBrand" (ngModelChange)="applyFilters()" class="pb-select" id="filter-brand">
+          <option value="">All Brands</option>
+          @for (brand of brands; track brand) {
+            <option [value]="brand">{{ brand }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="pb-filter-section">
+        <h3 class="pb-filter-title">Sort By</h3>
+        <div class="pb-sort-group">
+          <button class="pb-sort-btn" [class.active]="sortBy === 'name'" (click)="sortBy='name'; applyFilters()">Name</button>
+          <button class="pb-sort-btn" [class.active]="sortBy === 'brand'" (click)="sortBy='brand'; applyFilters()">Brand</button>
+          <button class="pb-sort-btn" [class.active]="sortBy === 'categoryName'" (click)="sortBy='categoryName'; applyFilters()">Category</button>
+        </div>
+      </div>
+
+      @if (searchQuery || selectedCategoryId || selectedBrand) {
+        <button class="pb-clear-btn" (click)="clearFilters()" id="clear-filters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          Clear All Filters
+        </button>
+      }
+    </aside>
+
+    <!-- ============ Product Grid / List ============ -->
+    <main class="pb-main">
+
+      <!-- Loading skeleton -->
+      @if (isLoading) {
+        <div [class]="viewMode === 'grid' ? 'pb-grid' : 'pb-list'">
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <div class="pb-skeleton-card">
+              <div class="pb-skeleton-img"></div>
+              <div class="pb-skeleton-body">
+                <div class="pb-skeleton-line w-3/4"></div>
+                <div class="pb-skeleton-line w-1/2"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- No results -->
+      @else if (filteredProducts.length === 0) {
+        <div class="pb-empty">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <h3>No products found</h3>
+          @if (searchQuery || selectedCategoryId || selectedBrand) {
+            <p>Try adjusting your filters or search term.</p>
+            <button class="pb-clear-btn" (click)="clearFilters()">Clear Filters</button>
+          } @else {
+            <p>There are no published products yet. Check back later.</p>
+          }
+        </div>
+      }
+
+      <!-- Grid View -->
+      @else if (viewMode === 'grid') {
+        <div class="pb-grid">
+          @for (product of filteredProducts; track product.id) {
+            <div class="pb-card">
+              <div class="pb-card-image">
+                @if (product.imageUrl) {
+                  <img [src]="product.imageUrl" [alt]="product.name" class="pb-card-img"
+                    (error)="$any($event.target).style.display='none'" />
+                }
+                <div class="pb-card-initials" [style.display]="product.imageUrl ? 'none' : 'flex'">
+                  {{ getInitials(product.name) }}
+                </div>
+                <div class="pb-card-badge">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  Premium
+                </div>
+              </div>
+              <div class="pb-card-body">
+                <span class="pb-card-brand">{{ product.brand || 'BoltCart' }}</span>
+                <h3 class="pb-card-name">{{ product.name }}</h3>
+                <span class="pb-card-category">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                  {{ product.categoryName || 'General' }}
+                </span>
+                <button class="pb-card-btn" [id]="'view-' + product.id">
+                  View Details
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- List View -->
+      @else {
+        <div class="pb-list">
+          @for (product of filteredProducts; track product.id) {
+            <div class="pb-list-row">
+              <div class="pb-list-thumb">
+                @if (product.imageUrl) {
+                  <img [src]="product.imageUrl" [alt]="product.name" class="pb-list-img"
+                    (error)="$any($event.target).style.display='none'" />
+                }
+                <div class="pb-list-initials" [style.display]="product.imageUrl ? 'none' : 'flex'">
+                  {{ getInitials(product.name) }}
+                </div>
+              </div>
+              <div class="pb-list-info">
+                <span class="pb-card-brand">{{ product.brand || 'BoltCart' }}</span>
+                <h3 class="pb-list-name">{{ product.name }}</h3>
+                <div class="pb-list-meta">
+                  <span class="pb-card-category">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    {{ product.categoryName || 'General' }}
+                  </span>
+                  <span class="pb-list-sku">SKU: {{ product.sku }}</span>
+                </div>
+              </div>
+              <button class="pb-card-btn pb-list-btn" [id]="'list-view-' + product.id">
+                View Details
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </main>
+  </div>
+</div>

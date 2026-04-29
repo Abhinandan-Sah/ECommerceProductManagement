@@ -47,6 +47,13 @@ namespace Workflow.API.Infrastructure.Repositories
             return await _context.Approvals.FirstOrDefaultAsync(a => a.ProductId == productId);
         }
 
+        public async Task<IEnumerable<Approval>> GetPendingApprovalsAsync()
+        {
+            return await _context.Approvals
+                .Where(a => a.Status == Domain.Enums.ApprovalStatus.Pending)
+                .ToListAsync();
+        }
+
         public async Task SaveApprovalAsync(Approval approval)
         {
             if (_context.Entry(approval).State == EntityState.Detached)

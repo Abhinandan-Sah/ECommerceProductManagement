@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { CatalogService } from '../../services/catalog.service';
 import { CategoryService } from '../../services/category.service';
@@ -9,6 +10,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { CategoryResponse } from '../../models/category.model';
 import { PublishStatus } from '../../models/product.model';
 import { MediaManagementComponent } from '../media-management/media-management.component';
+import { extractErrorMessage } from '../../../../core/utils/error-utils';
 
 @Component({
   selector: 'app-product-form',
@@ -32,6 +34,8 @@ export class ProductFormComponent implements OnInit {
   productId: string | null = null;
   isLoading = false;
   isSaving = false;
+  
+  skuConflictError = ''; // For displaying 409 conflict error for SKU
 
   publishStatusEnum = PublishStatus;
 
@@ -96,28 +100,45 @@ export class ProductFormComponent implements OnInit {
     }
 
     this.isSaving = true;
+    this.skuConflictError = '';
     const dto = this.form.value;
 
     if (this.isEditMode) {
       this.catalogService.updateProduct(this.productId!, dto).subscribe({
         next: () => {
+          this.isSaving = false;
           this.notify.showSuccess('Product updated successfully');
           this.router.navigate(['/catalog/products']);
         },
-        error: () => {
-          this.notify.showError('Failed to update product');
+        error: (err: HttpErrorResponse) => {
           this.isSaving = false;
+          const errorMsg = extractErrorMessage(err);
+          
+          // Handle 409 conflict error specifically for SKU field
+          if (err.status === 409) {
+            this.skuConflictError = errorMsg;
+          }
+          
+          this.notify.showError(errorMsg);
         }
       });
     } else {
       this.catalogService.createProduct(dto).subscribe({
         next: (response) => {
+          this.isSaving = false;
           this.notify.showSuccess(`Product created successfully! SKU: ${response.sku}`);
           this.router.navigate(['/catalog/products']);
         },
-        error: () => {
-          this.notify.showError('Failed to create product');
+        error: (err: HttpErrorResponse) => {
           this.isSaving = false;
+          const errorMsg = extractErrorMessage(err);
+          
+          // Handle 409 conflict error specifically for SKU field
+          if (err.status === 409) {
+            this.skuConflictError = errorMsg;
+          }
+          
+          this.notify.showError(errorMsg);
         }
       });
     }

@@ -126,5 +126,13 @@ namespace Identity.API.Controllers
             await _userService.DeleteUserAsync(id);
             return Ok(new { message = "User deleted successfully." });
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetUserStats()
+        {
+            var stats = await _userService.GetUserStatsAsync();
+            return Ok(stats);
+        }
     }
 }

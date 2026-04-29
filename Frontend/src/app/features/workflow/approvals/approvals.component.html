@@ -1,0 +1,86 @@
+<div class="approvals-container">
+  <div class="approvals-header">
+    <div class="header-content">
+      <h1 class="page-title">Pending Approvals</h1>
+      <p class="page-subtitle">Review and manage products submitted for admin approval.</p>
+    </div>
+    <div class="header-actions">
+      <div class="badge-count">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        {{ pendingProducts.length }} Pending
+      </div>
+    </div>
+  </div>
+
+  <div class="approvals-body">
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading pending products...</p>
+      </div>
+    } @else if (pendingProducts.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h3>All Caught Up!</h3>
+        <p>There are no products waiting for approval right now.</p>
+        <button class="btn-secondary" routerLink="/workflow">Go to Workflow</button>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table class="approvals-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>SKU</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of pendingProducts; track product.id) {
+              <tr>
+                <td>
+                  <div class="product-cell">
+                    <div class="product-thumb">{{ getInitials(product.name) }}</div>
+                    <div class="product-info">
+                      <span class="product-name">{{ product.name }}</span>
+                      <span class="product-brand">{{ product.brand }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge-cat">{{ product.categoryName }}</span>
+                </td>
+                <td class="font-mono">{{ product.sku }}</td>
+                <td>
+                  <span class="status-badge pending">
+                    <span class="status-dot"></span>
+                    Ready for Review
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-review" (click)="reviewProduct(product.id)">
+                    Review Data
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

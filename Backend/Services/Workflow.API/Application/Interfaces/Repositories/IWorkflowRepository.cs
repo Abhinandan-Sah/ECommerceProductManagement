@@ -11,6 +11,7 @@ namespace Workflow.API.Application.Interfaces.Repositories
         Task SaveInventoryAsync(Inventory inventory);
 
         Task<Approval?> GetCurrentApprovalStatusAsync(Guid productId);
+        Task<IEnumerable<Approval>> GetPendingApprovalsAsync();
         Task SaveApprovalAsync(Approval approval);
     }
 }

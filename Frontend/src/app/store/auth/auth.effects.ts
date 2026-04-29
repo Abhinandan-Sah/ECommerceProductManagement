@@ -70,9 +70,19 @@ export class AuthEffects {
   loginSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.loginSuccess),
-      tap(() => this.router.navigate(['/dashboard']))
-    ),
-    { dispatch: false }
+      tap(() => {
+        // Check for returnUrl in query params
+        const urlTree = this.router.parseUrl(this.router.url);
+        const returnUrl = urlTree.queryParams['returnUrl'];
+
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
+      }),
+      map(() => AuthActions.loadProfile())
+    )
   );
 
   logout$ = createEffect(() =>
@@ -109,7 +119,10 @@ export class AuthEffects {
       switchMap(() =>
         this.authService.getProfile().pipe(
           map(user => AuthActions.profileLoaded({ user })),
-          catchError(() => of(AuthActions.logoutSuccess()))
+          // A failed profile fetch must NOT log the user out — they have a valid
+          // access token. Just swallow the error; the user data from the token
+          // (name, email, role) is already in the store via loginSuccess/refreshSuccess.
+          catchError(() => of(AuthActions.clearError()))
         )
       )
     )

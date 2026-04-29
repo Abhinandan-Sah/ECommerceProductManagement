@@ -1,224 +1,448 @@
-<div class="page-container">
-  <div class="page-header">
-    <h1 class="page-title">Product Workflow</h1>
-    <p class="text-secondary mt-1">Manage pricing, inventory, and approval status</p>
+<div class="wf-page">
+
+  <!-- Page Header -->
+  <div class="wf-page-header">
+    <div>
+      <h1 class="wf-page-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        Product Workflow
+      </h1>
+      <p class="wf-page-subtitle">Manage pricing, inventory and approval status</p>
+    </div>
   </div>
 
-  <div class="ec-card mb-6">
-    <label class="block text-sm font-medium mb-1">Product ID (GUID)</label>
-    <input
-      type="text"
-      [formControl]="productIdControl"
-      class="ec-input w-full"
-      placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-    />
-    <p class="text-sm text-muted mt-1">Enter the product GUID to manage its workflow</p>
-  </div>
+  <!-- Product Picker Card -->
+  <div class="wf-lookup-card" style="position:relative">
+    <div class="wf-lookup-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </div>
 
-  <div class="tab-bar">
-    @if (canManagePricing) {
-      <button class="tab-btn" [class.active]="activeTab === 'Pricing'" (click)="setTab('Pricing')">Pricing</button>
-    }
-    @if (canManageInventory) {
-      <button class="tab-btn" [class.active]="activeTab === 'Inventory'" (click)="setTab('Inventory')">Inventory</button>
-    }
-    <button class="tab-btn" [class.active]="activeTab === 'Approval'" (click)="setTab('Approval')">Approval</button>
-  </div>
+    <div class="wf-lookup-body" style="position:relative">
+      <label class="wf-lookup-label">Select Product</label>
 
-  <div class="tab-content">
-    <!-- PRICING TAB -->
-    @if (activeTab === 'Pricing') {
-      <div class="ec-card">
-        <h2 class="text-lg font-bold mb-4">Update Pricing</h2>
-        
-        @if (canManagePricing) {
-          <form [formGroup]="pricingForm" (ngSubmit)="savePricing()" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">MRP (₹)*</label>
-                <input type="number" formControlName="MRP" class="ec-input w-full" min="0.01" step="0.01" />
-                @if (pricingForm.get('MRP')?.invalid && pricingForm.get('MRP')?.touched) {
-                  <p class="text-sm error-text mt-1">Valid MRP is required.</p>
-                }
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Sale Price (₹)*</label>
-                <input type="number" formControlName="SalePrice" class="ec-input w-full" min="0.01" step="0.01" />
-                @if (pricingForm.get('SalePrice')?.invalid && pricingForm.get('SalePrice')?.touched) {
-                  <p class="text-sm error-text mt-1">Valid Sale Price is required.</p>
-                }
-              </div>
+      @if (!selectedProduct) {
+        <!-- Search Input -->
+        <div class="wf-picker-search-wrap">
+          <input
+            type="text"
+            [(ngModel)]="productSearch"
+            (input)="onSearchInput()"
+            (focus)="openDropdown()"
+            class="wf-lookup-input wf-picker-input"
+            placeholder="Search by name, brand, SKU or category..."
+            id="product-search-input"
+            autocomplete="off"
+          />
+          @if (isLoadingProducts) {
+            <div class="wf-picker-loading">
+              <span class="wf-spinner" style="border-color:rgba(74,111,165,.3); border-top-color:var(--color-primary)"></span>
             </div>
-            
-            <div class="max-w-[200px]">
-              <label class="block text-sm font-medium mb-1">GST %*</label>
-              <input type="number" formControlName="GSTPercent" class="ec-input w-full" min="0" max="100" step="0.01" />
-              @if (pricingForm.get('GSTPercent')?.invalid && pricingForm.get('GSTPercent')?.touched) {
-                <p class="text-sm error-text mt-1">Valid GST % is required.</p>
-              }
-            </div>
-
-            @if (pricingForm.hasError('salePriceGreater')) {
-              <p class="text-sm error-text mt-2">Sale Price cannot be greater than MRP</p>
-            }
-
-            <div class="pt-4">
-              <button 
-                type="submit" 
-                class="btn-primary"
-                [disabled]="pricingForm.invalid || !productIdControl.value || isSavingPricing"
-              >
-                @if (isSavingPricing) {
-                  <span class="spinner"></span> Saving...
-                } @else {
-                  Save Pricing
-                }
-              </button>
-            </div>
-          </form>
-        } @else {
-          <div class="info-box">
-            Pricing management is restricted to Admin and Product Manager roles.
-          </div>
-        }
-      </div>
-    }
-
-    <!-- INVENTORY TAB -->
-    @if (activeTab === 'Inventory') {
-      <div class="ec-card">
-        <h2 class="text-lg font-bold mb-4">Update Inventory</h2>
-
-        @if (canManageInventory) {
-          <form [formGroup]="inventoryForm" (ngSubmit)="saveInventory()" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">Warehouse Location*</label>
-              <input type="text" formControlName="warehouseLocation" class="ec-input w-full" maxlength="200" />
-              @if (inventoryForm.get('warehouseLocation')?.invalid && inventoryForm.get('warehouseLocation')?.touched) {
-                <p class="text-sm error-text mt-1">Warehouse Location is required.</p>
-              }
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">Available Quantity*</label>
-                <input type="number" formControlName="availableQty" class="ec-input w-full" min="0" />
-                @if (inventoryForm.get('availableQty')?.invalid && inventoryForm.get('availableQty')?.touched) {
-                  <p class="text-sm error-text mt-1">Valid quantity is required.</p>
-                }
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Reorder Level*</label>
-                <input type="number" formControlName="reorderLevel" class="ec-input w-full" min="0" />
-                @if (inventoryForm.get('reorderLevel')?.invalid && inventoryForm.get('reorderLevel')?.touched) {
-                  <p class="text-sm error-text mt-1">Valid reorder level is required.</p>
-                }
-              </div>
-            </div>
-
-            <div class="pt-4">
-              <button 
-                type="submit" 
-                class="btn-primary"
-                [disabled]="inventoryForm.invalid || !productIdControl.value || isSavingInventory"
-              >
-                @if (isSavingInventory) {
-                  <span class="spinner"></span> Saving...
-                } @else {
-                  Save Inventory
-                }
-              </button>
-            </div>
-          </form>
-        } @else {
-          <div class="info-box">
-            Inventory management is restricted to Admin and Product Manager roles.
-          </div>
-        }
-      </div>
-    }
-
-    <!-- APPROVAL TAB -->
-    @if (activeTab === 'Approval') {
-      <div class="ec-card">
-        <h2 class="text-lg font-bold mb-4">Approval Workflow</h2>
-
-        <div class="mb-6">
-          <label class="block text-sm font-medium mb-2">Current Approval Status</label>
-          <span class="status-badge" [attr.data-status]="currentApprovalStatus">
-            {{ currentApprovalStatus }}
-          </span>
+          }
         </div>
 
-        @if (canSubmit) {
-          <div class="mb-6">
-            <button 
-              type="button" 
-              class="btn-accent"
-              [disabled]="!productIdControl.value || isSubmitting || currentApprovalStatus === 'ReadyForReview' || currentApprovalStatus === 'Approved' || currentApprovalStatus === 'Published'"
-              [title]="(currentApprovalStatus === 'ReadyForReview' || currentApprovalStatus === 'Approved' || currentApprovalStatus === 'Published') ? 'Product is already submitted or approved' : ''"
-              (click)="submitForReview()"
-            >
-              @if (isSubmitting) {
-                <span class="spinner"></span> Submitting...
+        <!-- Dropdown -->
+        @if (showDropdown && filteredProducts.length > 0) {
+          <div class="wf-picker-dropdown" id="product-picker-dropdown">
+            @for (product of filteredProducts.slice(0, 12); track product.id) {
+              <button type="button" class="wf-picker-item" (click)="selectProduct(product)" [id]="'pick-' + product.id">
+                <div class="wf-picker-thumb">
+                  {{ getInitials(product.name) }}
+                </div>
+                <div class="wf-picker-info">
+                  <span class="wf-picker-name">{{ product.name }}</span>
+                  <div class="wf-picker-meta">
+                    <span class="wf-picker-brand">{{ product.brand }}</span>
+                    <span class="wf-picker-sep">·</span>
+                    <span class="wf-picker-cat">{{ product.categoryName }}</span>
+                    <span class="wf-picker-sep">·</span>
+                    <span class="wf-picker-sku">SKU: {{ product.sku }}</span>
+                  </div>
+                </div>
+                <div class="wf-picker-arrow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+              </button>
+            }
+            @if (filteredProducts.length > 12) {
+              <div class="wf-picker-more">{{ filteredProducts.length - 12 }} more results — type to narrow down</div>
+            }
+          </div>
+        }
+        @if (showDropdown && filteredProducts.length === 0 && productSearch) {
+          <div class="wf-picker-dropdown">
+            <div class="wf-picker-empty">No products match "{{ productSearch }}"</div>
+          </div>
+        }
+      } @else {
+        <!-- Selected Product Chip -->
+        <div class="wf-selected-product">
+          <div class="wf-selected-thumb">{{ getInitials(selectedProduct.name) }}</div>
+          <div class="wf-selected-info">
+            <span class="wf-selected-name">{{ selectedProduct.name }}</span>
+            <div class="wf-selected-meta">
+              <span>{{ selectedProduct.brand }}</span>
+              <span class="wf-picker-sep">·</span>
+              <span>{{ selectedProduct.categoryName }}</span>
+              <span class="wf-picker-sep">·</span>
+              <span class="wf-picker-sku">SKU: {{ selectedProduct.sku }}</span>
+            </div>
+            <div class="wf-selected-guid">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              {{ selectedProduct.id }}
+            </div>
+          </div>
+          <button type="button" class="wf-selected-clear" (click)="clearSelection()" title="Choose a different product" id="clear-product-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (selectedProduct) {
+      <div class="wf-product-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        Product Selected
+      </div>
+    }
+  </div>
+
+
+  <!-- Tab Navigation -->
+  <div class="wf-tabs">
+    @if (canManagePricing) {
+      <button class="wf-tab" [class.active]="activeTab === 'Pricing'" (click)="setTab('Pricing')" id="tab-pricing">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Pricing
+      </button>
+    }
+    @if (canManageInventory) {
+      <button class="wf-tab" [class.active]="activeTab === 'Inventory'" (click)="setTab('Inventory')" id="tab-inventory">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+        Inventory
+      </button>
+    }
+    <button class="wf-tab" [class.active]="activeTab === 'Approval'" (click)="setTab('Approval')" id="tab-approval">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      Approval
+    </button>
+  </div>
+
+  <!-- ============ PRICING TAB ============ -->
+  @if (activeTab === 'Pricing') {
+    <div class="wf-section">
+      <div class="wf-section-header">
+        <div class="wf-section-icon pricing-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div>
+          <h2 class="wf-section-title">Update Pricing</h2>
+          <p class="wf-section-desc">Set the market price, sale price and applicable GST for this product</p>
+        </div>
+      </div>
+
+      @if (canManagePricing) {
+        <form [formGroup]="pricingForm" (ngSubmit)="savePricing()" class="wf-form">
+
+          <!-- MRP & Sale Price side by side -->
+          <div class="wf-fields-row">
+            <div class="wf-field">
+              <label class="wf-label">MRP <span class="wf-required">*</span></label>
+              <div class="wf-input-prefix-wrap">
+                <span class="wf-prefix">₹</span>
+                <input type="number" formControlName="mrp" class="wf-input wf-input-prefixed" min="0.01" step="0.01" placeholder="0.00" id="mrp-input" />
+              </div>
+              @if (pricingForm.get('mrp')?.invalid && pricingForm.get('mrp')?.touched) {
+                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid MRP is required</p>
+              }
+            </div>
+            <div class="wf-field">
+              <label class="wf-label">Sale Price <span class="wf-required">*</span></label>
+              <div class="wf-input-prefix-wrap">
+                <span class="wf-prefix">₹</span>
+                <input type="number" formControlName="salePrice" class="wf-input wf-input-prefixed" min="0.01" step="0.01" placeholder="0.00" id="sale-price-input" />
+              </div>
+              @if (pricingForm.get('salePrice')?.invalid && pricingForm.get('salePrice')?.touched) {
+                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid Sale Price is required</p>
+              }
+            </div>
+          </div>
+
+          <!-- GST + Discount preview -->
+          <div class="wf-fields-row">
+            <div class="wf-field wf-field-narrow">
+              <label class="wf-label">GST % <span class="wf-required">*</span></label>
+              <div class="wf-input-suffix-wrap">
+                <input type="number" formControlName="gstPercent" class="wf-input wf-input-suffixed" min="0" max="100" step="0.01" placeholder="0" id="gst-input" />
+                <span class="wf-suffix">%</span>
+              </div>
+              @if (pricingForm.get('gstPercent')?.invalid && pricingForm.get('gstPercent')?.touched) {
+                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid GST % (0–100) is required</p>
+              }
+            </div>
+            <!-- Computed discount hint -->
+            @if (pricingForm.get('mrp')?.value > 0 && pricingForm.get('salePrice')?.value > 0) {
+              <div class="wf-field wf-discount-preview">
+                <label class="wf-label">Discount Preview</label>
+                <div class="wf-discount-chip">
+                  {{ getDiscountPercent() }}% off  &nbsp;·&nbsp;  Save ₹{{ getSavingsAmount() }}
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (pricingForm.hasError('salePriceGreater')) {
+            <div class="wf-alert-error">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              Sale Price cannot exceed MRP
+            </div>
+          }
+
+          <div class="wf-form-actions">
+            <button type="submit" class="wf-btn-primary" [disabled]="pricingForm.invalid || !productIdControl.value || isSavingPricing" id="save-pricing-btn">
+              @if (isSavingPricing) {
+                <span class="wf-spinner"></span> Saving Pricing...
               } @else {
-                Submit for Review
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Save Pricing
               }
             </button>
           </div>
-        }
+        </form>
+      } @else {
+        <div class="wf-role-notice">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Pricing management requires Admin or Product Manager role.
+        </div>
+      }
+    </div>
+  }
 
-        @if (canUpdateStatus) {
-          <hr class="my-6 border-color" />
-          
-          <h3 class="text-md font-bold mb-4">Update Approval Status</h3>
-          <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">New Status*</label>
-              <select formControlName="newStatus" class="ec-input w-full bg-transparent">
-                <option value="Draft">Draft</option>
-                <option value="InEnrichment">InEnrichment</option>
-                <option value="ReadyForReview">ReadyForReview</option>
-                <option value="Approved">Approved</option>
-                <option value="Published">Published</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Archived">Archived</option>
-              </select>
+  <!-- ============ INVENTORY TAB ============ -->
+  @if (activeTab === 'Inventory') {
+    <div class="wf-section">
+      <div class="wf-section-header">
+        <div class="wf-section-icon inventory-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+        </div>
+        <div>
+          <h2 class="wf-section-title">Update Inventory</h2>
+          <p class="wf-section-desc">Define stock levels, warehouse location and reorder thresholds</p>
+        </div>
+      </div>
+
+      @if (canManageInventory) {
+        <form [formGroup]="inventoryForm" (ngSubmit)="saveInventory()" class="wf-form">
+
+          <div class="wf-field">
+            <label class="wf-label">Warehouse Location <span class="wf-required">*</span></label>
+            <div class="wf-input-icon-wrap">
+              <svg class="wf-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <input type="text" formControlName="warehouseLocation" class="wf-input wf-input-icon-padded" maxlength="200" placeholder="e.g. Warehouse A – Shelf B3" id="warehouse-input" />
             </div>
+            @if (inventoryForm.get('warehouseLocation')?.invalid && inventoryForm.get('warehouseLocation')?.touched) {
+              <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Warehouse Location is required</p>
+            }
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium mb-1">Remarks <span class="text-muted">(required if Rejecting)</span></label>
-              <textarea formControlName="remarks" rows="3" class="ec-input w-full" maxlength="500"></textarea>
-              <div class="flex justify-between mt-1">
-                <p class="text-sm error-text">
-                  @if (statusForm.hasError('remarksRequired')) {
-                    Remarks are required when rejecting.
-                  }
-                </p>
-                <p class="text-xs text-muted">{{ statusForm.get('remarks')?.value?.length || 0 }}/500</p>
+          <div class="wf-fields-row">
+            <div class="wf-field">
+              <label class="wf-label">Available Quantity <span class="wf-required">*</span></label>
+              <div class="wf-input-suffix-wrap">
+                <input type="number" formControlName="availableQty" class="wf-input wf-input-suffixed" min="0" placeholder="0" id="qty-input" />
+                <span class="wf-suffix">units</span>
               </div>
+              @if (inventoryForm.get('availableQty')?.invalid && inventoryForm.get('availableQty')?.touched) {
+                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid quantity is required</p>
+              }
             </div>
+            <div class="wf-field">
+              <label class="wf-label">Reorder Level <span class="wf-required">*</span></label>
+              <div class="wf-input-suffix-wrap">
+                <input type="number" formControlName="reorderLevel" class="wf-input wf-input-suffixed" min="0" placeholder="0" id="reorder-input" />
+                <span class="wf-suffix">units</span>
+              </div>
+              @if (inventoryForm.get('reorderLevel')?.invalid && inventoryForm.get('reorderLevel')?.touched) {
+                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid reorder level is required</p>
+              }
+            </div>
+          </div>
 
-            <div class="pt-2">
-              <button 
-                type="submit" 
-                class="btn-primary"
-                [disabled]="statusForm.invalid || !productIdControl.value || isUpdatingStatus"
-              >
-                @if (isUpdatingStatus) {
-                  <span class="spinner"></span> Updating...
-                } @else {
-                  Update Status
-                }
-              </button>
+          <!-- Inventory status hint -->
+          @if (inventoryForm.get('availableQty')?.value !== null && inventoryForm.get('availableQty')?.value !== '') {
+            <div class="wf-stock-status" [class.low]="inventoryForm.get('availableQty')?.value <= inventoryForm.get('reorderLevel')?.value && inventoryForm.get('reorderLevel')?.value > 0">
+              @if (inventoryForm.get('availableQty')?.value <= inventoryForm.get('reorderLevel')?.value && inventoryForm.get('reorderLevel')?.value > 0) {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                Stock is at or below reorder threshold — consider restocking
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Stock level is healthy
+              }
             </div>
-          </form>
-        } @else {
-          <div class="info-box mt-6">
-            Status updates are restricted to Admins only.
+          }
+
+          <div class="wf-form-actions">
+            <button type="submit" class="wf-btn-primary" [disabled]="inventoryForm.invalid || !productIdControl.value || isSavingInventory" id="save-inventory-btn">
+              @if (isSavingInventory) {
+                <span class="wf-spinner"></span> Saving Inventory...
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Save Inventory
+              }
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="wf-role-notice">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Inventory management requires Admin or Product Manager role.
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============ APPROVAL TAB ============ -->
+  @if (activeTab === 'Approval') {
+    <div class="wf-section">
+      <div class="wf-section-header">
+        <div class="wf-section-icon approval-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <div>
+          <h2 class="wf-section-title">Approval Workflow</h2>
+          <p class="wf-section-desc">Track and advance the product through the approval lifecycle</p>
+        </div>
+      </div>
+
+      <!-- Current Status Display -->
+      <div class="wf-status-display">
+        <span class="wf-status-label">Current Status</span>
+        <span class="wf-status-badge" [attr.data-status]="currentApprovalStatus">
+          <span class="wf-status-dot"></span>
+          {{ currentApprovalStatus }}
+        </span>
+      </div>
+
+      <!-- Status Flow visual -->
+      <div class="wf-status-flow">
+        @for (step of statusFlow; track step.key) {
+          <div class="wf-flow-step" [class.active]="step.key === currentApprovalStatus" [class.done]="isStatusPast(step.key)">
+            <div class="wf-flow-dot"></div>
+            <span class="wf-flow-label">{{ step.label }}</span>
           </div>
         }
       </div>
-    }
-  </div>
+
+      <!-- Submit for Review -->
+      @if (canSubmit) {
+        <div class="wf-action-card submit-card">
+          <div class="wf-action-card-info">
+            <h3>Submit for Review</h3>
+            <p>Send this product to the review queue for admin approval.</p>
+          </div>
+          <button
+            type="button"
+            class="wf-btn-accent"
+            [disabled]="!productIdControl.value || isSubmitting || currentApprovalStatus === 'Pending' || currentApprovalStatus === 'Approved'"
+            (click)="submitForReview()"
+            id="submit-review-btn"
+          >
+            @if (isSubmitting) {
+              <span class="wf-spinner"></span> Submitting...
+            } @else {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              Submit for Review
+            }
+          </button>
+        </div>
+      }
+
+      <!-- Admin Status Update -->
+      @if (canUpdateStatus) {
+        <div class="wf-divider"></div>
+        
+        <div class="wf-review-summary-card">
+          <div class="wf-subsection-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Review Enrichment Data
+          </div>
+
+          <div class="wf-review-grid">
+            <div class="wf-review-col">
+              <div class="wf-review-sublabel">Pricing Details</div>
+              @if (currentPricing) {
+                <div class="wf-review-data">
+                  <div class="wf-data-item"><span>MRP:</span> <strong>${{ currentPricing.mrp }}</strong></div>
+                  <div class="wf-data-item"><span>Sale Price:</span> <strong class="text-success">${{ currentPricing.salePrice }}</strong></div>
+                  <div class="wf-data-item"><span>GST:</span> <strong>{{ currentPricing.gstPercent }}%</strong></div>
+                </div>
+              } @else {
+                <div class="wf-no-data-hint">No pricing data found</div>
+              }
+            </div>
+            <div class="wf-review-col">
+              <div class="wf-review-sublabel">Inventory Details</div>
+              @if (currentInventory) {
+                <div class="wf-review-data">
+                  <div class="wf-data-item"><span>Stock:</span> <strong>{{ currentInventory.availableQty }}</strong></div>
+                  <div class="wf-data-item"><span>Location:</span> <strong>{{ currentInventory.warehouseLocation }}</strong></div>
+                  <div class="wf-data-item"><span>Reorder:</span> <strong>{{ currentInventory.reorderLevel }}</strong></div>
+                </div>
+              } @else {
+                <div class="wf-no-data-hint">No inventory data found</div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="wf-admin-actions-area">
+          <div [formGroup]="statusForm" class="wf-form">
+            <div class="wf-field">
+              <label class="wf-label">Admin Remarks <span class="wf-label-hint">(optional)</span></label>
+              <textarea formControlName="remarks" rows="2" class="wf-textarea" placeholder="Add notes for the team..." id="remarks-input"></textarea>
+            </div>
+
+            <div class="wf-approval-btns">
+              <button
+                type="button"
+                class="wf-btn-reject"
+                [disabled]="isUpdatingStatus || currentApprovalStatus !== 'Pending'"
+                (click)="rejectProduct()"
+                id="reject-btn"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                Reject Product
+              </button>
+
+              <button
+                type="button"
+                class="wf-btn-approve"
+                [disabled]="isUpdatingStatus || currentApprovalStatus !== 'Pending'"
+                (click)="approveProduct()"
+                id="approve-btn"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Approve Product
+              </button>
+            </div>
+            
+            @if (isUpdatingStatus) {
+              <div class="wf-loading-overlay-inline">
+                <span class="wf-spinner"></span> Updating status...
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="wf-role-notice mt-6">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Status updates are restricted to Admins only.
+        </div>
+      }
+    </div>
+  }
+
 </div>
