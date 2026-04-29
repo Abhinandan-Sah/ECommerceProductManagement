@@ -90,40 +90,40 @@
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Admin</span>
-            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['Admin'] || 0 }}</span>
+            <span class="text-[var(--color-text-secondary)]">{{ getRoleCount('Admin') }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-danger)] h-2 rounded-full" [style.width.%]="(userBreakdown['Admin'] || 0) / (totalUsers || 1) * 100"></div>
+            <div class="bg-[var(--color-danger)] h-2 rounded-full" [style.width.%]="getRoleCount('Admin') / (totalUsers || 1) * 100"></div>
           </div>
         </div>
 
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Product Manager</span>
-            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['ProductManager'] || 0 }}</span>
+            <span class="text-[var(--color-text-secondary)]">{{ getRoleCount('ProductManager') }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-primary)] h-2 rounded-full" [style.width.%]="(userBreakdown['ProductManager'] || 0) / (totalUsers || 1) * 100"></div>
+            <div class="bg-[var(--color-primary)] h-2 rounded-full" [style.width.%]="getRoleCount('ProductManager') / (totalUsers || 1) * 100"></div>
           </div>
         </div>
 
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Content Exec</span>
-            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['ContentExecutive'] || 0 }}</span>
+            <span class="text-[var(--color-text-secondary)]">{{ getRoleCount('ContentExecutive') }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-accent)] h-2 rounded-full" [style.width.%]="(userBreakdown['ContentExecutive'] || 0) / (totalUsers || 1) * 100"></div>
+            <div class="bg-[var(--color-accent)] h-2 rounded-full" [style.width.%]="getRoleCount('ContentExecutive') / (totalUsers || 1) * 100"></div>
           </div>
         </div>
 
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="font-medium">Customer</span>
-            <span class="text-[var(--color-text-secondary)]">{{ userBreakdown['Customer'] || 0 }}</span>
+            <span class="text-[var(--color-text-secondary)]">{{ getRoleCount('Customer') }}</span>
           </div>
           <div class="w-full bg-[var(--color-bg)] rounded-full h-2">
-            <div class="bg-[var(--color-success)] h-2 rounded-full" [style.width.%]="(userBreakdown['Customer'] || 0) / (totalUsers || 1) * 100"></div>
+            <div class="bg-[var(--color-success)] h-2 rounded-full" [style.width.%]="getRoleCount('Customer') / (totalUsers || 1) * 100"></div>
           </div>
         </div>
       </div>

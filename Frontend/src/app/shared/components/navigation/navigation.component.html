@@ -30,23 +30,23 @@
         @if (role !== 'Customer') {
           <nav class="role-nav" aria-label="Role navigation">
             @if (role === 'Admin') {
-              <a routerLink="/admin" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
+              <a routerLink="/admin" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Dashboard</a>
               <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
               <a routerLink="/catalog/categories" routerLinkActive="rnav-active" class="rnav-link">Categories</a>
               <a routerLink="/admin/users" routerLinkActive="rnav-active" class="rnav-link">Users</a>
-              <a routerLink="/workflow" routerLinkActive="rnav-active" class="rnav-link">Workflow</a>
+              <a routerLink="/workflow" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Workflow</a>
               <a routerLink="/workflow/approvals" routerLinkActive="rnav-active" class="rnav-link">Approvals</a>
             }
             @if (role === 'ProductManager') {
-              <a routerLink="/product-manager" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
+              <a routerLink="/product-manager" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Dashboard</a>
               <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
               <a routerLink="/catalog/categories" routerLinkActive="rnav-active" class="rnav-link">Categories</a>
-              <a routerLink="/workflow" routerLinkActive="rnav-active" class="rnav-link">Workflow</a>
+              <a routerLink="/workflow" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Workflow</a>
             }
             @if (role === 'ContentExecutive') {
-              <a routerLink="/content-executive" routerLinkActive="rnav-active" class="rnav-link">Dashboard</a>
+              <a routerLink="/content-executive" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Dashboard</a>
               <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
-              <a routerLink="/workflow" routerLinkActive="rnav-active" class="rnav-link">Workflow</a>
+              <a routerLink="/workflow" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Workflow</a>
             }
             <a routerLink="/profile" routerLinkActive="rnav-active" class="rnav-link">Profile</a>
           </nav>

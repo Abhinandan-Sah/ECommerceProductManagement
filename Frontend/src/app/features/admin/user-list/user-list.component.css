@@ -53,15 +53,15 @@
 }
 
 .table-row:hover {
-  background-color: #f5f9ff;
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 /* Highlight the logged-in admin's own row */
 .current-user-row {
-  background-color: #eff6ff !important;
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
 }
 .current-user-row:hover {
-  background-color: #dbeafe !important;
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
 }
 
 /* ── User cell ──────────────────────────────────────────────── */
@@ -109,8 +109,8 @@
   letter-spacing: 0.04em;
   padding: 2px 8px;
   border-radius: 99px;
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
   line-height: 1.4;
 }
 
@@ -131,8 +131,8 @@
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  background-color: #e2e8f0;
-  color: #1e293b;
+  background-color: var(--color-surface-2, #e2e8f0);
+  color: var(--color-text-primary, #1e293b);
   transition: filter 0.15s, box-shadow 0.15s;
   min-width: 140px;
 }
@@ -189,8 +189,8 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  background-color: #e2e8f0;
-  color: #1e293b;
+  background-color: var(--color-surface-2, #e2e8f0);
+  color: var(--color-text-primary, #1e293b);
   /* slight opacity so it reads as "locked" */
   opacity: 0.85;
   cursor: default;
@@ -239,13 +239,13 @@
 }
 
 .action-btn:hover {
-  background-color: #f1f5f9;
+  background-color: var(--color-surface-2, #f1f5f9);
   color: var(--color-primary);
 }
 
 .action-btn--danger:hover {
-  background-color: #fef2f2;
-  color: #ef4444;
+  background-color: color-mix(in srgb, var(--color-danger, #ef4444) 10%, transparent);
+  color: var(--color-danger, #ef4444);
 }
 
 /* "You cannot modify your account" shield indicator */

@@ -41,11 +41,20 @@ export class AdminDashboardComponent implements OnInit {
 
     this.userService.getUserStats().subscribe({
       next: (stats) => {
+        console.log('User Stats Received:', stats);
         this.userBreakdown = stats;
         this.totalUsers = Object.values(stats).reduce((a, b) => a + b, 0);
       },
-      error: () => {}
+      error: (err) => console.error('Error fetching user stats', err)
     });
+  }
+
+  getRoleCount(roleName: string): number {
+    // Try PascalCase, camelCase, and lowercase
+    return this.userBreakdown[roleName] 
+        || this.userBreakdown[roleName.charAt(0).toLowerCase() + roleName.slice(1)]
+        || this.userBreakdown[roleName.toLowerCase()]
+        || 0;
   }
 
   getStatusBadgeClass(status: PublishStatus): string {
