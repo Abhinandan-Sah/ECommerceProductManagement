@@ -171,6 +171,7 @@ namespace Workflow.API.Application.Services
             {
                 ProductId = approval.ProductId,
                 Status = approval.Status,
+                IsSubmitted = true,
                 ApprovedByUserId = approval.ApprovedByUserId,
                 Remarks = approval.Remarks
             };
@@ -184,6 +185,7 @@ namespace Workflow.API.Application.Services
             {
                 ProductId = a.ProductId,
                 Status = a.Status,
+                IsSubmitted = true,
                 ApprovedByUserId = a.ApprovedByUserId,
                 Remarks = a.Remarks
             });

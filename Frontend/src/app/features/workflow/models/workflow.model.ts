@@ -27,6 +27,7 @@ export interface WorkflowMessageResponse {
 export interface ApprovalStatusResponse {
   productId: string;
   status: ApprovalStatus;
+  isSubmitted?: boolean;
   approvedByUserId?: string;
   remarks?: string;
 }

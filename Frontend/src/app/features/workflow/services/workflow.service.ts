@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import {
   UpdatePricingRequest,
@@ -23,6 +23,10 @@ export class WorkflowService {
   getPricing(productId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${productId}/pricing`).pipe(
       catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          return of(null);
+        }
+
         const message = extractErrorMessage(error);
         this.notificationService.showError(message);
         return throwError(() => error);
@@ -87,6 +91,10 @@ export class WorkflowService {
   getInventory(productId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${productId}/inventory`).pipe(
       catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          return of(null);
+        }
+
         const message = extractErrorMessage(error);
         this.notificationService.showError(message);
         return throwError(() => error);

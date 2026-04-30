@@ -6,6 +6,7 @@ namespace Workflow.API.Application.DTOs
     {
         public Guid ProductId { get; set; }
         public ApprovalStatus Status { get; set; }
+        public bool IsSubmitted { get; set; }
         public Guid? ApprovedByUserId { get; set; }
         public string? Remarks { get; set; }
     }

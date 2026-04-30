@@ -59,6 +59,7 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
 
   activeTab: 'Pricing' | 'Inventory' | 'Approval' = 'Approval';
   currentApprovalStatus: ApprovalStatus = 'Pending';
+  isSubmittedForReview = false;
   
   // Summary data for review
   currentPricing: any = null;
@@ -174,6 +175,7 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
   fetchReviewData(productId: string) {
     this.workflowService.getApprovalStatus(productId).subscribe(status => {
       this.currentApprovalStatus = status?.status ?? 'Pending';
+      this.isSubmittedForReview = status?.isSubmitted ?? false;
     });
 
     // We don't have a direct "getPricing" but we can check if it exists or use the summary logic
@@ -306,6 +308,7 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         this.notificationService.showSuccess(res.message ?? 'Submitted for review');
         this.currentApprovalStatus = 'Pending';
+        this.isSubmittedForReview = true;
         this.isSubmitting = false;
       },
       error: (err: any) => {

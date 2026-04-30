@@ -93,6 +93,7 @@ namespace Workflow.API.Controllers
                 {
                     ProductId = id,
                     Status = Domain.Enums.ApprovalStatus.Pending,
+                    IsSubmitted = false,
                     ApprovedByUserId = null,
                     Remarks = null
                 });

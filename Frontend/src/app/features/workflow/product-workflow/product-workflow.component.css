@@ -331,7 +331,7 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.pricing-icon  { background: #EBF0F8; color: var(--color-primary); }
+.pricing-icon  { background: var(--color-primary-light); color: var(--color-primary); }
 .inventory-icon{ background: var(--color-accent-light); color: var(--color-accent); }
 .approval-icon { background: var(--color-success-bg); color: var(--color-success); }
 
@@ -598,7 +598,7 @@
 }
 .wf-flow-step.done .wf-flow-dot { background: var(--color-primary); border-color: var(--color-primary); }
 .wf-flow-step.active .wf-flow-dot {
-  background: white;
+  background: var(--color-surface);
   border: 3px solid var(--color-primary);
   box-shadow: 0 0 0 4px var(--color-primary-light);
 }
@@ -695,11 +695,11 @@
 
 /* Review Summary Card */
 .wf-review-summary-card {
-  background: #f8fafc;
+  background: var(--color-surface-2);
   border-radius: var(--radius-md);
   padding: 20px;
   margin-top: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
 }
 
 .wf-review-grid {
@@ -711,9 +711,9 @@
 
 .wf-review-col {
   padding: 12px;
-  background: white;
+  background: var(--color-surface);
   border-radius: var(--radius-sm);
-  border: 1px solid #edf2f7;
+  border: 1px solid var(--color-border);
 }
 
 .wf-review-sublabel {
@@ -735,9 +735,16 @@
   display: flex;
   justify-content: space-between;
   font-size: 14px;
+  gap: 12px;
+  color: var(--color-text-primary);
 }
 
 .wf-data-item span { color: var(--color-text-secondary); }
+
+.wf-data-item strong {
+  color: var(--color-text-primary);
+  text-align: right;
+}
 
 .wf-no-data-hint {
   font-style: italic;
@@ -774,14 +781,15 @@
 }
 
 .wf-btn-reject {
-  background: white;
-  color: #e53e3e;
-  border: 2px solid #fed7d7;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 2px solid var(--color-danger);
 }
 
 .wf-btn-reject:hover:not(:disabled) {
-  background: #fff5f5;
-  border-color: #e53e3e;
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: white;
 }
 
 .wf-btn-approve {
@@ -790,7 +798,7 @@
 }
 
 .wf-btn-approve:hover:not(:disabled) {
-  background: #3a5b8c;
+  background: var(--color-primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(74,111,165,0.3);
 }
@@ -811,4 +819,3 @@
   color: var(--color-primary);
   font-weight: 600;
 }
-

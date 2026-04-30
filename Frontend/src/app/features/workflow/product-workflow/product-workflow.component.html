@@ -346,7 +346,7 @@
           <button
             type="button"
             class="wf-btn-accent"
-            [disabled]="!productIdControl.value || isSubmitting || currentApprovalStatus === 'Pending' || currentApprovalStatus === 'Approved'"
+            [disabled]="!productIdControl.value || isSubmitting || (isSubmittedForReview && currentApprovalStatus === 'Pending') || currentApprovalStatus === 'Approved'"
             (click)="submitForReview()"
             id="submit-review-btn"
           >
