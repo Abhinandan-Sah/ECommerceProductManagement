@@ -1,13 +1,22 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Store } from '@ngrx/store';
 
 import { CatalogService } from '../../catalog/services/catalog.service';
 import { MediaAssetService } from '../../catalog/services/media-asset.service';
 import { WorkflowService } from '../../workflow/services/workflow.service';
-import { ProductResponse } from '../../catalog/models/product.model';
+import { ProductResponse, PublishStatus } from '../../catalog/models/product.model';
 import { MediaAssetResponse } from '../../catalog/models/media-asset.model';
 import { ProductVariantResponse } from '../../catalog/models/product-variant.model';
+import { ApprovalStatus } from '../../workflow/models/workflow.model';
+import { selectUserRole } from '../../../store/auth/auth.selectors';
+
+type InventoryInfo = {
+  warehouseLocation: string;
+  availableQty: number;
+  reorderLevel: number;
+};
 
 type PricingInfo = {
   productId: string;
@@ -43,17 +52,33 @@ export class ProductDetailComponent implements OnInit {
   private mediaService = inject(MediaAssetService);
   private workflowService = inject(WorkflowService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private store = inject(Store);
 
   productId!: string;
   product: ProductResponse | null = null;
   mediaAssets: MediaAssetResponse[] = [];
   variants: ProductVariantResponse[] = [];
   pricing: PricingInfo | null = null;
+  inventory: InventoryInfo | null = null;
+  approvalStatus: ApprovalStatus | null = null;
+  isBackOfficeView = false;
   isLoading = true;
   selectedImageUrl = '';
+  userRole: string | null = null;
+  canEditProduct = false;
+  canViewInventory = false;
+  canManageVariants = false;
 
   ngOnInit(): void {
     this.productId = this.route.snapshot.paramMap.get('id')!;
+    this.isBackOfficeView = this.router.url.startsWith('/catalog/');
+    this.store.select(selectUserRole).subscribe(role => {
+      this.userRole = role ?? null;
+      this.canEditProduct = role === 'Admin' || role === 'ProductManager';
+      this.canViewInventory = role === 'Admin' || role === 'ProductManager';
+      this.canManageVariants = role === 'Admin' || role === 'ProductManager' || role === 'ContentExecutive';
+    });
     this.loadProduct();
   }
 
@@ -65,6 +90,12 @@ export class ProductDetailComponent implements OnInit {
         this.loadMedia();
         this.loadVariants();
         this.loadPricing();
+        if (this.isBackOfficeView) {
+          if (this.canViewInventory) {
+            this.loadInventory();
+          }
+          this.loadApprovalStatus();
+        }
       },
       error: () => {
         this.product = null;
@@ -110,6 +141,34 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
+  loadInventory(): void {
+    this.workflowService.getInventory(this.productId).subscribe({
+      next: (inventory) => {
+        this.inventory = inventory
+          ? {
+              warehouseLocation: inventory.warehouseLocation ?? inventory.WarehouseLocation ?? '',
+              availableQty: Number(inventory.availableQty ?? inventory.AvailableQty) || 0,
+              reorderLevel: Number(inventory.reorderLevel ?? inventory.ReorderLevel) || 0
+            }
+          : null;
+      },
+      error: () => {
+        this.inventory = null;
+      }
+    });
+  }
+
+  loadApprovalStatus(): void {
+    this.workflowService.getApprovalStatus(this.productId).subscribe({
+      next: (status) => {
+        this.approvalStatus = status?.status ?? null;
+      },
+      error: () => {
+        this.approvalStatus = null;
+      }
+    });
+  }
+
   selectImage(url: string): void {
     this.selectedImageUrl = url;
   }
@@ -136,6 +195,33 @@ export class ProductDetailComponent implements OnInit {
   hasPricing(): boolean {
     if (!this.pricing) return false;
     return Number(this.pricing.mrp) > 0 || Number(this.pricing.salePrice) > 0;
+  }
+
+  hasInventory(): boolean {
+    if (!this.inventory) return false;
+    return Boolean(this.inventory.warehouseLocation)
+      || Number(this.inventory.availableQty) > 0
+      || Number(this.inventory.reorderLevel) > 0;
+  }
+
+  getStockStatus(): 'Low Stock' | 'Healthy' | 'Not Set' {
+    if (!this.hasInventory() || !this.inventory) return 'Not Set';
+    return this.inventory.reorderLevel > 0 && this.inventory.availableQty <= this.inventory.reorderLevel
+      ? 'Low Stock'
+      : 'Healthy';
+  }
+
+  getPublishStatusText(status: PublishStatus): string {
+    switch (status) {
+      case PublishStatus.Draft: return 'Draft';
+      case PublishStatus.InEnrichment: return 'In Enrichment';
+      case PublishStatus.ReadyForReview: return 'Ready for Review';
+      case PublishStatus.Approved: return 'Approved';
+      case PublishStatus.Published: return 'Published';
+      case PublishStatus.Rejected: return 'Rejected';
+      case PublishStatus.Archived: return 'Archived';
+      default: return 'Unknown';
+    }
   }
 
   private normalizePricing(pricing: PricingApiResponse | null | undefined): PricingInfo | null {

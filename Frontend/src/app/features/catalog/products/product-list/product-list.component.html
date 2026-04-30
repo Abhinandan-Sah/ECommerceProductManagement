@@ -115,8 +115,11 @@
               </td>
               <td class="p-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                  <button (click)="viewVariants(product.id)" class="action-btn text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] p-2 rounded-full transition-colors" title="View Variants">
+                  <button (click)="viewProduct(product.id)" class="action-btn text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] p-2 rounded-full transition-colors" title="View Product">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                  <button (click)="viewVariants(product.id)" class="action-btn text-[var(--color-accent)] hover:bg-[var(--color-accent-light)] p-2 rounded-full transition-colors" title="Manage Variants">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
                   </button>
                   
                   @if (canManageProducts) {

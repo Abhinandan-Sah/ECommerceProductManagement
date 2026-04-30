@@ -1,9 +1,9 @@
 <div class="pd-page">
   <div class="page-container">
     <div class="pd-breadcrumb">
-      <a routerLink="/" class="pd-link">Home</a>
+      <a [routerLink]="isBackOfficeView ? '/catalog/products' : '/'" class="pd-link">{{ isBackOfficeView ? 'Catalog' : 'Home' }}</a>
       <span>•</span>
-      <a routerLink="/store/products" class="pd-link">Products</a>
+      <a [routerLink]="isBackOfficeView ? '/catalog/products' : '/store/products'" class="pd-link">Products</a>
       <span>•</span>
       <span class="pd-current">Details</span>
     </div>
@@ -22,7 +22,7 @@
       <div class="pd-empty">
         <h2>Product not found</h2>
         <p>The product you are looking for is unavailable.</p>
-        <a routerLink="/store/products" class="btn-primary">Back to products</a>
+        <a [routerLink]="isBackOfficeView ? '/catalog/products' : '/store/products'" class="btn-primary">Back to products</a>
       </div>
     } @else {
       <div class="pd-grid">
@@ -50,16 +50,22 @@
           <h1 class="pd-title">{{ product.name }}</h1>
           <p class="pd-category">{{ product.categoryName || 'General' }}</p>
 
-          <!-- <div class="pd-meta">
+          <div class="pd-meta">
             <div>
               <span class="pd-meta-label">SKU</span>
               <span class="pd-meta-value">{{ product.sku }}</span>
             </div>
             <div>
-              <span class="pd-meta-label">Status</span>
-              <span class="pd-meta-value">{{ product.publishStatus }}</span>
+              <span class="pd-meta-label">Publish Status</span>
+              <span class="pd-meta-value">{{ getPublishStatusText(product.publishStatus) }}</span>
             </div>
-          </div> -->
+            @if (isBackOfficeView) {
+              <div>
+                <span class="pd-meta-label">Workflow Status</span>
+                <span class="pd-meta-value">{{ approvalStatus || product.approvalStatus || 'Not submitted' }}</span>
+              </div>
+            }
+          </div>
 
           <div class="pd-section">
             <h3>Pricing</h3>
@@ -87,6 +93,34 @@
             }
           </div>
 
+          @if (isBackOfficeView && canViewInventory) {
+            <div class="pd-section">
+              <h3>Inventory</h3>
+              @if (hasInventory() && inventory) {
+                <div class="pd-price-grid">
+                  <div>
+                    <span class="pd-price-label">Available Qty</span>
+                    <span class="pd-price-value">{{ inventory.availableQty }}</span>
+                  </div>
+                  <div>
+                    <span class="pd-price-label">Reorder Level</span>
+                    <span class="pd-price-value">{{ inventory.reorderLevel }}</span>
+                  </div>
+                  <div>
+                    <span class="pd-price-label">Warehouse</span>
+                    <span class="pd-price-value">{{ inventory.warehouseLocation || 'Not set' }}</span>
+                  </div>
+                  <div>
+                    <span class="pd-price-label">Stock Status</span>
+                    <span class="pd-price-value">{{ getStockStatus() }}</span>
+                  </div>
+                </div>
+              } @else {
+                <p class="pd-muted">Inventory unavailable.</p>
+              }
+            </div>
+          }
+
           <div class="pd-section">
             <h3>Available Variants</h3>
             @if (variants.length > 0) {
@@ -109,7 +143,13 @@
           </div>
 
           <div class="pd-actions">
-            <a routerLink="/store/products" class="btn-outline">Back to products</a>
+            <a [routerLink]="isBackOfficeView ? '/catalog/products' : '/store/products'" class="btn-outline">Back to products</a>
+            @if (isBackOfficeView && canManageVariants) {
+              <a [routerLink]="['/catalog/products', product.id, 'variants']" class="btn-outline">Manage variants</a>
+            }
+            @if (isBackOfficeView && canEditProduct) {
+              <a [routerLink]="['/catalog/products', product.id, 'edit']" class="btn-primary">Edit product</a>
+            }
           </div>
         </div>
       </div>

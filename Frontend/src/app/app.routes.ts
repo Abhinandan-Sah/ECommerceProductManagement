@@ -75,6 +75,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'products', pathMatch: 'full' },
       { path: 'products', loadComponent: () => import('./features/catalog/products/product-list/product-list.component').then(m => m.ProductListComponent) },
       { path: 'products/new', loadComponent: () => import('./features/catalog/products/product-form/product-form.component').then(m => m.ProductFormComponent) },
+      { path: 'products/:id/view', loadComponent: () => import('./features/storefront/product-detail/product-detail.component').then(m => m.ProductDetailComponent) },
       { path: 'products/:id/edit', loadComponent: () => import('./features/catalog/products/product-form/product-form.component').then(m => m.ProductFormComponent) },
       { path: 'products/:productId/media', loadComponent: () => import('./features/catalog/products/product-media/product-media.component').then(m => m.ProductMediaComponent) },
       { path: 'products/:productId/variants', loadComponent: () => import('./features/catalog/products/product-variants/product-variants.component').then(m => m.ProductVariantsComponent) },

@@ -143,6 +143,10 @@ export class ProductListComponent implements OnInit {
     this.router.navigate(['/catalog/products', id, 'edit']);
   }
 
+  public viewProduct(id: string): void {
+    this.router.navigate(['/catalog/products', id, 'view']);
+  }
+
   viewVariants(id: string): void {
     this.router.navigate(['/catalog/products', id, 'variants']);
   }
