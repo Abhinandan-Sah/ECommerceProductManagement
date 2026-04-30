@@ -7,16 +7,13 @@ import { Store } from '@ngrx/store';
 import { CatalogService } from '../../services/catalog.service';
 import { WorkflowService } from '../../../workflow/services/workflow.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { WorkflowStateTimelineComponent } from '../../../workflow/components/workflow-state-timeline/workflow-state-timeline.component';
-import { ProductResponse } from '../../models/product.model';
-import { ProductVariantResponse } from '../../models/product-variant.model';
 import { ApprovalStatus } from '../../../workflow/models/workflow.model';
 import { selectUserRole } from '../../../../store/auth/auth.selectors';
 
 @Component({
   selector: 'app-product-variants',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, WorkflowStateTimelineComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './product-variants.component.html',
   styleUrls: ['./product-variants.component.css']
 })
@@ -34,41 +31,37 @@ export class ProductVariantsComponent implements OnInit {
   variants: any[] = [];
   isLoading = false;
   
-  // Inline edit state
+  // Side panel state
+  isSidePanelOpen = false;
+  panelMode: 'add' | 'edit' = 'add';
   editingVariantId: string | null = null;
-  editForm!: FormGroup;
-
-  // Add new variant state
-  isAdding = false;
-  addForm!: FormGroup;
+  variantForm!: FormGroup;
 
   // RBAC
-  canManageVariants = false;
+  canAddVariants = false;
+  canEditVariants = false;
   canDeleteVariants = false;
 
   ngOnInit(): void {
     this.productId = this.route.snapshot.paramMap.get('productId')!;
     
     this.store.select(selectUserRole).subscribe(role => {
-      this.canManageVariants = ['Admin', 'ProductManager', 'ContentExecutive'].includes(role || '');
+      this.canAddVariants = ['Admin', 'ProductManager', 'ContentExecutive'].includes(role || '');
+      this.canEditVariants = ['Admin', 'ProductManager'].includes(role || '');
       this.canDeleteVariants = role === 'Admin';
     });
 
-    this.initForms();
+    this.initForm();
     this.loadProductDetails();
     this.loadApprovalStatus();
     this.loadVariants();
   }
 
-  initForms(): void {
-    this.addForm = this.fb.group({
-      color: ['', [Validators.required, Validators.maxLength(50)]],
-      size: ['', [Validators.required, Validators.maxLength(50)]]
-    });
-
-    this.editForm = this.fb.group({
-      color: ['', [Validators.required, Validators.maxLength(50)]],
-      size: ['', [Validators.required, Validators.maxLength(50)]]
+  initForm(): void {
+    this.variantForm = this.fb.group({
+      color: ['', [Validators.required, Validators.maxLength(100)]],
+      size: ['', [Validators.required, Validators.maxLength(50)]],
+      barcode: ['', [Validators.required, Validators.maxLength(100)]]
     });
   }
 
@@ -85,7 +78,6 @@ export class ProductVariantsComponent implements OnInit {
         this.currentApprovalStatus = data.status;
       },
       error: () => {
-        // Default to Pending if no approval status found
         this.currentApprovalStatus = 'Pending';
       }
     });
@@ -105,60 +97,63 @@ export class ProductVariantsComponent implements OnInit {
     });
   }
 
-  startAdd(): void {
-    this.isAdding = true;
-    this.addForm.reset();
-  }
-
-  cancelAdd(): void {
-    this.isAdding = false;
-  }
-
-  submitAdd(): void {
-    if (this.addForm.invalid) return;
+  openPanel(mode: 'add' | 'edit', variant?: any): void {
+    this.panelMode = mode;
+    this.isSidePanelOpen = true;
     
-    this.isLoading = true;
-    this.catalogService.createVariant(this.productId, this.addForm.value).subscribe({
-      next: () => {
-        this.notify.showSuccess('Variant added');
-        this.isAdding = false;
-        this.loadVariants();
-      },
-      error: () => {
-        this.notify.showError('Failed to add variant');
-        this.isLoading = false;
-      }
-    });
+    if (mode === 'edit' && variant) {
+      this.editingVariantId = variant.id;
+      this.variantForm.patchValue({
+        color: variant.color,
+        size: variant.size,
+        barcode: variant.barcode
+      });
+    } else {
+      this.editingVariantId = null;
+      this.variantForm.reset();
+    }
   }
 
-  startEdit(variant: any): void {
-    this.editingVariantId = variant.id;
-    this.editForm.patchValue({
-      color: variant.color,
-      size: variant.size
-    });
-  }
-
-  cancelEdit(): void {
+  closePanel(): void {
+    this.isSidePanelOpen = false;
+    this.variantForm.reset();
     this.editingVariantId = null;
   }
 
-  submitEdit(variantId: string): void {
-    if (this.editForm.invalid) return;
-
+  submitVariant(): void {
+    if (this.variantForm.invalid) {
+      this.variantForm.markAllAsTouched();
+      return;
+    }
+    
     this.isLoading = true;
-    this.catalogService.updateVariant(this.productId, variantId, this.editForm.value).subscribe({
-      next: () => {
-        this.notify.showSuccess('Variant updated');
-        this.editingVariantId = null;
-        this.loadVariants();
-        this.loadApprovalStatus(); // Reload approval status in case it changed
-      },
-      error: () => {
-        this.notify.showError('Failed to update variant');
-        this.isLoading = false;
-      }
-    });
+    
+    if (this.panelMode === 'add') {
+      this.catalogService.createVariant(this.productId, this.variantForm.value).subscribe({
+        next: () => {
+          this.notify.showSuccess('Variant added successfully');
+          this.closePanel();
+          this.loadVariants();
+        },
+        error: () => {
+          this.notify.showError('Failed to add variant');
+          this.isLoading = false;
+        }
+      });
+    } else if (this.panelMode === 'edit' && this.editingVariantId) {
+      this.catalogService.updateVariant(this.productId, this.editingVariantId, this.variantForm.value).subscribe({
+        next: () => {
+          this.notify.showSuccess('Variant updated successfully');
+          this.closePanel();
+          this.loadVariants();
+          this.loadApprovalStatus();
+        },
+        error: () => {
+          this.notify.showError('Failed to update variant');
+          this.isLoading = false;
+        }
+      });
+    }
   }
 
   deleteVariant(variantId: string): void {
@@ -166,7 +161,7 @@ export class ProductVariantsComponent implements OnInit {
       this.isLoading = true;
       this.catalogService.deleteVariant(this.productId, variantId).subscribe({
         next: () => {
-          this.notify.showSuccess('Variant deleted');
+          this.notify.showSuccess('Variant deleted successfully');
           this.loadVariants();
         },
         error: () => {

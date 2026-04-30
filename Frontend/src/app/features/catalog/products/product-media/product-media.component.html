@@ -1,0 +1,18 @@
+<div class="page-container max-w-[1000px]">
+
+  <!-- HEADER -->
+  <div class="page-header flex justify-between items-end">
+    <div>
+      <div class="text-sm text-[var(--color-text-secondary)] mb-1 flex items-center gap-2">
+        <a routerLink="/catalog/products" class="hover:text-[var(--color-primary)] hover:underline transition-colors">Products</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        <span class="text-[var(--color-text-primary)] font-medium">Media</span>
+      </div>
+      <h1 class="page-title text-2xl font-bold font-display mt-2">Media — {{ productName }}</h1>
+    </div>
+  </div>
+
+  <div class="ec-card overflow-hidden shadow-sm border border-[var(--color-border)] mt-6 p-6">
+    <app-media-management [productId]="productId"></app-media-management>
+  </div>
+</div>

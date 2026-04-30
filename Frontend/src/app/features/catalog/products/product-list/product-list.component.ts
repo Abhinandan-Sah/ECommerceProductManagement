@@ -54,7 +54,8 @@ export class ProductListComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.select(selectUserRole).subscribe(role => {
-      this.canManageProducts = ['Admin', 'ProductManager', 'ContentExecutive'].includes(role || '');
+      // ContentExecutive cannot call PUT /products/{id} — edit button must be hidden for them
+      this.canManageProducts = ['Admin', 'ProductManager'].includes(role || '');
       this.canDeleteProducts = role === 'Admin';
     });
 

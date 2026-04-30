@@ -30,10 +30,15 @@ namespace Catalog.API.Application.Services
         {
             _logger.LogInformation("Fetching all products (CategoryId: {CategoryId}, Status: {Status})", categoryId, status);
 
-            if (!canViewUnpublished)
-                status = PublishStatus.Published;
+            var publicStatuses = new[] { PublishStatus.Approved, PublishStatus.Published };
+
+            if (!canViewUnpublished && status.HasValue && !publicStatuses.Contains(status.Value))
+                return Enumerable.Empty<ProductResponseDto>();
 
             var products = await _repository.GetAllProductsAsync(categoryId, status);
+            if (!canViewUnpublished && status == null)
+                products = products.Where(p => publicStatuses.Contains(p.PublishStatus));
+
             return products.Select(p => new ProductResponseDto
             {
                 Id = p.Id,
@@ -54,7 +59,7 @@ namespace Catalog.API.Application.Services
             var product = await _repository.GetProductByIdAsync(id);
             if (product == null) return null;
 
-            if (!canViewUnpublished && product.PublishStatus != PublishStatus.Published)
+            if (!canViewUnpublished && product.PublishStatus != PublishStatus.Approved && product.PublishStatus != PublishStatus.Published)
                 return null;
 
             return new ProductResponseDto
@@ -112,12 +117,32 @@ namespace Catalog.API.Application.Services
             };
         }
 
-        public async Task UpdateProductAsync(Guid id, UpdateProductDto dto)
+        public async Task UpdateProductAsync(Guid id, UpdateProductDto dto, string callerRole)
         {
-            _logger.LogInformation("Updating product {ProductId}", id);
+            _logger.LogInformation("Updating product {ProductId} by role {Role}", id, callerRole);
 
             var existingProduct = await _repository.GetProductByIdAsync(id);
             if (existingProduct == null) throw new NotFoundException("Product", id);
+
+            // Role-based PublishStatus validation
+            var adminOnlyStatuses = new[]
+            {
+                PublishStatus.Approved,
+                PublishStatus.Published,
+                PublishStatus.Rejected,
+                PublishStatus.Archived
+            };
+
+            if (callerRole == "ProductManager" && adminOnlyStatuses.Contains(dto.PublishStatus))
+            {
+                _logger.LogWarning(
+                    "ProductManager attempted to set restricted status {Status} on product {ProductId}",
+                    dto.PublishStatus, id);
+                throw new ForbiddenException(
+                    $"ProductManager cannot set PublishStatus to '{dto.PublishStatus}'. " +
+                    "Only Admin can set Approved, Published, Rejected, or Archived. " +
+                    "Use the Workflow approval process instead.");
+            }
 
             // Business rule validation: Category must exist
             var category = await _categoryRepository.GetCategoryByIdAsync(dto.CategoryId);

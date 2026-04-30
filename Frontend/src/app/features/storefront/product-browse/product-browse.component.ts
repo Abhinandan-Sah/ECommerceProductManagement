@@ -50,14 +50,17 @@ export class ProductBrowseComponent implements OnInit {
   loadData() {
     this.isLoading = true;
     forkJoin({
-      products: this.catalogService.getProducts(undefined, PublishStatus.Published).pipe(catchError(() => of([]))),
+      products: this.catalogService.getProducts().pipe(catchError(() => of([]))),
       categories: this.categoryService.getCategories().pipe(catchError(() => of([])))
     }).subscribe(({ products, categories }) => {
       this.categories = categories;
-      const publishedProducts = products.filter(p => p.publishStatus === PublishStatus.Published);
+      const visibleProducts = products.filter(p =>
+        p.publishStatus === PublishStatus.Approved ||
+        p.publishStatus === PublishStatus.Published
+      );
 
       // Fetch first media image for each product
-      const mediaFetches = publishedProducts.map(p =>
+      const mediaFetches = visibleProducts.map(p =>
         this.mediaService.getMediaByProduct(p.id).pipe(
           map(media => {
             const sorted = media.sort((a, b) => a.sortOrder - b.sortOrder);

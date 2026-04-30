@@ -1,127 +1,164 @@
-<div class="page-container max-w-[900px]">
+<div class="page-container max-w-[1000px]">
 
   <!-- HEADER -->
-  <div class="page-header">
+  <div class="page-header flex justify-between items-end">
     <div>
-      <div class="text-sm text-gray-500 mb-1 flex items-center gap-1">
-        <a routerLink="/catalog/products" class="hover:text-blue-500 hover:underline">Products</a>
+      <div class="text-sm text-[var(--color-text-secondary)] mb-1 flex items-center gap-2">
+        <a routerLink="/catalog/products" class="hover:text-[var(--color-primary)] hover:underline transition-colors">Products</a>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        <span class="text-gray-900 font-medium">Variants</span>
+        <span class="text-[var(--color-text-primary)] font-medium">Variants</span>
       </div>
-      <h1 class="page-title">Variants — {{ productName }}</h1>
+      <h1 class="page-title text-2xl font-bold font-display mt-2">Variants — {{ productName }}</h1>
     </div>
 
-    @if (canManageVariants) {
-      <button class="btn-primary flex items-center gap-2" (click)="startAdd()" [disabled]="isAdding">
+    @if (canAddVariants) {
+      <button class="btn-primary flex items-center gap-2 shadow-sm hover:shadow-md transition-all" (click)="openPanel('add')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         Add Variant
       </button>
     }
   </div>
 
-  <!-- WORKFLOW STATE TIMELINE -->
-  <app-workflow-state-timeline [currentState]="currentApprovalStatus"></app-workflow-state-timeline>
-
-  <div class="ec-card overflow-hidden relative">
+  <!-- MAIN TABLE AREA -->
+  <div class="ec-card overflow-hidden relative shadow-sm border border-[var(--color-border)] mt-6">
     
     @if (isLoading) {
-      <div class="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-center justify-center">
-        <div class="w-8 h-8 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <div class="absolute inset-0 bg-[var(--color-surface)]/70 backdrop-blur-sm z-10 flex items-center justify-center">
+        <div class="w-8 h-8 border-3 border-[var(--color-primary-light)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
       </div>
     }
 
     <!-- VARIANTS TABLE -->
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse min-w-[600px]">
+      <table class="w-full text-left border-collapse min-w-[700px]">
         <thead>
-          <tr class="bg-gray-50 border-b border-gray-200">
-            <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">#</th>
-            <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Color</th>
-            <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Size</th>
-            <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Barcode</th>
-            <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+          <tr class="bg-[var(--color-surface-2)] border-b border-[var(--color-border)]">
+            <th class="p-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider w-12">#</th>
+            <th class="p-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Color</th>
+            <th class="p-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Size</th>
+            <th class="p-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Barcode</th>
+            <th class="p-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
           @for (variant of variants; track variant.id; let i = $index) {
-            
-            <!-- VIEW ROW -->
-            @if (editingVariantId !== variant.id) {
-              <tr class="border-b border-gray-100 hover:bg-[#F5F9FF] transition-colors">
-                <td class="p-4 text-sm text-gray-500">{{ i + 1 }}</td>
-                <td class="p-4 font-medium text-gray-900">
-                  <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full border border-gray-200" [style.background-color]="variant.color | lowercase"></span>
-                    {{ variant.color }}
-                  </div>
-                </td>
-                <td class="p-4 text-gray-700">{{ variant.size }}</td>
-                <td class="p-4 font-mono text-sm text-gray-500">{{ variant.barcode || 'N/A' }}</td>
-                <td class="p-4 text-right">
-                  <div class="flex flex-row items-center justify-end gap-2">
-                    @if (canManageVariants) {
-                      <button (click)="startEdit(variant)" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Edit">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                      </button>
-                    }
-                    @if (canDeleteVariants) {
-                      <button (click)="deleteVariant(variant.id)" class="text-red-500 hover:bg-red-50 p-2 rounded" title="Delete">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            }
-
-            <!-- EDIT ROW -->
-            @if (editingVariantId === variant.id) {
-              <tr class="border-b border-blue-100 bg-blue-50/50">
-                <td class="p-4 text-sm text-gray-500">{{ i + 1 }}</td>
-                <td colspan="4" class="p-3">
-                  <form [formGroup]="editForm" (ngSubmit)="submitEdit(variant.id)" class="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
-                    <input type="text" formControlName="color" class="ec-input flex-1 min-w-[120px]" placeholder="Color">
-                    <input type="text" formControlName="size" class="ec-input flex-1 min-w-[120px]" placeholder="Size">
-                    <div class="flex-none px-4 font-mono text-sm text-gray-400" title="Barcode is auto-generated">{{ variant.barcode || 'Auto-generated' }}</div>
-                    
-                    <div class="flex items-center gap-2 justify-end w-full md:w-auto mt-2 md:mt-0">
-                      <button type="button" class="btn-outline px-3 py-1.5 text-sm" (click)="cancelEdit()">Cancel</button>
-                      <button type="submit" class="btn-primary px-4 py-1.5 text-sm" [disabled]="editForm.invalid">Save</button>
-                    </div>
-                  </form>
-                </td>
-              </tr>
-            }
+            <tr class="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)] transition-colors group">
+              <td class="p-4 text-sm text-[var(--color-text-secondary)]">{{ i + 1 }}</td>
+              <td class="p-4 font-medium text-[var(--color-text-primary)]">
+                <div class="flex items-center gap-3">
+                  <span class="w-4 h-4 rounded-full border border-[var(--color-border)] shadow-sm" [style.background-color]="variant.color | lowercase"></span>
+                  {{ variant.color }}
+                </div>
+              </td>
+              <td class="p-4 text-[var(--color-text-primary)] font-medium">{{ variant.size }}</td>
+              <td class="p-4 font-mono text-sm text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] rounded px-2 py-1 inline-block mt-3">{{ variant.barcode || 'N/A' }}</td>
+              <td class="p-4 text-right">
+                <div class="flex flex-row items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  @if (canEditVariants) {
+                    <button (click)="openPanel('edit', variant)" class="text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] p-2 rounded transition-colors" title="Edit">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                  }
+                  @if (canDeleteVariants) {
+                    <button (click)="deleteVariant(variant.id)" class="text-[var(--color-danger)] hover:bg-red-50 p-2 rounded transition-colors" title="Delete">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
           }
 
-          @if (!isLoading && variants.length === 0 && !isAdding) {
+          @if (!isLoading && variants.length === 0) {
             <tr>
-              <td colspan="5" class="py-10 text-center text-gray-500">
-                <p>No variants added yet.</p>
+              <td colspan="5" class="py-16 text-center">
+                <div class="flex flex-col items-center justify-center">
+                  <div class="text-4xl mb-4 opacity-50">🎨</div>
+                  <h3 class="text-lg font-medium text-[var(--color-text-primary)]">No variants yet</h3>
+                  <p class="text-[var(--color-text-secondary)] mt-1 max-w-sm mx-auto">Add colors and sizes for this product to provide more options to your customers.</p>
+                  @if (canAddVariants) {
+                    <button class="btn-outline mt-6" (click)="openPanel('add')">Add First Variant</button>
+                  }
+                </div>
               </td>
             </tr>
           }
         </tbody>
       </table>
     </div>
-
-    <!-- ADD VARIANT FORM -->
-    @if (isAdding) {
-      <div class="p-5 bg-gray-50 border-t border-gray-200">
-        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Add New Variant</h3>
-        <form [formGroup]="addForm" (ngSubmit)="submitAdd()" class="flex flex-col md:flex-row items-start md:items-center gap-4">
-          <div class="w-full md:w-1/3">
-            <input type="text" formControlName="color" class="ec-input w-full" placeholder="Color (e.g. Red, #FF0000)">
-          </div>
-          <div class="w-full md:w-1/3">
-            <input type="text" formControlName="size" class="ec-input w-full" placeholder="Size (e.g. XL, 42)">
-          </div>
-          <div class="flex items-center gap-2 w-full md:w-auto">
-            <button type="button" class="btn-outline px-4 py-2 bg-white" (click)="cancelAdd()">Cancel</button>
-            <button type="submit" class="btn-primary px-6 py-2" [disabled]="addForm.invalid">Add Variant</button>
-          </div>
-        </form>
-      </div>
-    }
   </div>
 </div>
+
+<!-- SLIDE-OVER PANEL FOR ADD/EDIT -->
+@if (isSidePanelOpen) {
+  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity" (click)="closePanel()"></div>
+  <div class="fixed inset-y-0 right-0 w-full max-w-md bg-[var(--color-surface)] shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out border-l border-[var(--color-border)]">
+    
+    <!-- Panel Header -->
+    <div class="px-6 py-5 border-b border-[var(--color-border)] flex items-center justify-between bg-[var(--color-surface-2)]">
+      <h2 class="text-lg font-bold font-display text-[var(--color-text-primary)]">
+        {{ panelMode === 'add' ? 'Add New Variant' : 'Edit Variant' }}
+      </h2>
+      <button (click)="closePanel()" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] p-2 rounded-full hover:bg-[var(--color-border)] transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <!-- Panel Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <form [formGroup]="variantForm" (ngSubmit)="submitVariant()" id="variantForm" class="space-y-6">
+        
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Color <span class="text-[var(--color-danger)]">*</span></label>
+          <div class="flex gap-3 items-center">
+            <input type="text" formControlName="color" class="ec-input flex-1 h-11" placeholder="e.g. Midnight Black, #000000"
+                   [class.border-[var(--color-danger)]]="variantForm.get('color')?.invalid && variantForm.get('color')?.touched">
+            @if (variantForm.get('color')?.value) {
+              <div class="w-11 h-11 rounded border border-[var(--color-border)] shadow-inner flex-shrink-0" 
+                   [style.background-color]="variantForm.get('color')?.value | lowercase"
+                   title="Color Preview"></div>
+            }
+          </div>
+          @if (variantForm.get('color')?.invalid && variantForm.get('color')?.touched) {
+            <p class="text-[var(--color-danger)] text-xs mt-1">Color is required.</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Size <span class="text-[var(--color-danger)]">*</span></label>
+          <input type="text" formControlName="size" class="ec-input w-full h-11" placeholder="e.g. XL, 42, 128GB"
+                 [class.border-[var(--color-danger)]]="variantForm.get('size')?.invalid && variantForm.get('size')?.touched">
+          @if (variantForm.get('size')?.invalid && variantForm.get('size')?.touched) {
+            <p class="text-[var(--color-danger)] text-xs mt-1">Size is required.</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Barcode (SKU) <span class="text-[var(--color-danger)]">*</span></label>
+          <input type="text" formControlName="barcode" class="ec-input w-full h-11 font-mono text-sm" placeholder="e.g. 8901234567890"
+                 [class.border-[var(--color-danger)]]="variantForm.get('barcode')?.invalid && variantForm.get('barcode')?.touched">
+          @if (variantForm.get('barcode')?.invalid && variantForm.get('barcode')?.touched) {
+            <p class="text-[var(--color-danger)] text-xs mt-1">Barcode is required.</p>
+          }
+          <p class="text-[var(--color-text-secondary)] text-xs mt-2">A unique identifier for this specific variant.</p>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Panel Footer -->
+    <div class="px-6 py-5 border-t border-[var(--color-border)] bg-[var(--color-surface-2)] flex justify-end gap-3">
+      <button type="button" class="btn-outline px-6 py-2.5" (click)="closePanel()">Cancel</button>
+      <button type="submit" form="variantForm" class="btn-primary px-6 py-2.5 shadow-md" [disabled]="isLoading || variantForm.invalid">
+        @if (isLoading) {
+          <span class="flex items-center gap-2">
+            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            Saving...
+          </span>
+        } @else {
+          {{ panelMode === 'add' ? 'Add Variant' : 'Save Changes' }}
+        }
+      </button>
+    </div>
+  </div>
+}

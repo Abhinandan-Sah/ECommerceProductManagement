@@ -3,6 +3,7 @@ using Catalog.API.Application.DTOs.MediaAsset;
 using Catalog.API.Application.Interfaces.Repositories;
 using Catalog.API.Application.Interfaces.Services;
 using Catalog.API.Domain.Entities;
+using Catalog.API.Domain.Enums;
 using Catalog.API.Domain.Exceptions;
 
 namespace Catalog.API.Application.Services
@@ -10,17 +11,30 @@ namespace Catalog.API.Application.Services
     public class MediaAssetService : IMediaAssetService
     {
         private readonly IMediaAssetRepository _mediaRepository;
+        private readonly IProductRepository _productRepository;
         private readonly ILogger<MediaAssetService> _logger;
 
-        public MediaAssetService(IMediaAssetRepository mediaRepository, ILogger<MediaAssetService> logger)
+        public MediaAssetService(
+            IMediaAssetRepository mediaRepository,
+            IProductRepository productRepository,
+            ILogger<MediaAssetService> logger)
         {
             _mediaRepository = mediaRepository;
+            _productRepository = productRepository;
             _logger = logger;
         }
 
-        public async Task<IEnumerable<MediaAssetResponseDto>> GetMediaByProductAsync(Guid productId)
+        public async Task<IEnumerable<MediaAssetResponseDto>> GetMediaByProductAsync(Guid productId, string? role)
         {
             _logger.LogInformation("Fetching media assets for product {ProductId}", productId);
+
+            var canViewUnpublished = CanViewUnpublishedProducts(role);
+
+            var product = await _productRepository.GetProductByIdAsync(productId);
+            if (product == null) return Enumerable.Empty<MediaAssetResponseDto>();
+
+            if (!canViewUnpublished && product.PublishStatus != PublishStatus.Approved && product.PublishStatus != PublishStatus.Published)
+                return Enumerable.Empty<MediaAssetResponseDto>();
 
             var media = await _mediaRepository.GetMediaByProductIdAsync(productId);
             return media.Select(m => new MediaAssetResponseDto
@@ -33,9 +47,17 @@ namespace Catalog.API.Application.Services
             });
         }
 
-        public async Task<MediaAssetResponseDto?> GetMediaByIdAsync(Guid productId, Guid id)
+        public async Task<MediaAssetResponseDto?> GetMediaByIdAsync(Guid productId, Guid id, string? role)
         {
             _logger.LogInformation("Fetching media asset {MediaId} for product {ProductId}", id, productId);
+
+            var canViewUnpublished = CanViewUnpublishedProducts(role);
+
+            var product = await _productRepository.GetProductByIdAsync(productId);
+            if (product == null) return null;
+
+            if (!canViewUnpublished && product.PublishStatus != PublishStatus.Approved && product.PublishStatus != PublishStatus.Published)
+                return null;
 
             var media = await _mediaRepository.GetMediaByIdAsync(id);
             if (media == null || media.ProductId != productId) return null;
@@ -48,6 +70,15 @@ namespace Catalog.API.Application.Services
                 SortOrder = media.SortOrder,
                 AltText = media.AltText
             };
+        }
+
+        private static bool CanViewUnpublishedProducts(string? role)
+        {
+            if (string.IsNullOrWhiteSpace(role)) return false;
+
+            return role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+                || role.Equals("ProductManager", StringComparison.OrdinalIgnoreCase)
+                || role.Equals("ContentExecutive", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<MediaAssetResponseDto> AddMediaAsync(Guid productId, CreateMediaAssetDto dto)

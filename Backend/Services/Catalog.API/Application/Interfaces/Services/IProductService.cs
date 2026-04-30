@@ -8,7 +8,7 @@ namespace Catalog.API.Application.Interfaces.Services
         Task<IEnumerable<ProductResponseDto>> GetAllProductsAsync(Guid? categoryId = null, PublishStatus? status = null, bool canViewUnpublished = false);
         Task<ProductResponseDto?> GetProductByIdAsync(Guid id, bool canViewUnpublished = false);
         Task<ProductResponseDto> AddProductAsync(CreateProductDto dto);
-        Task UpdateProductAsync(Guid id, UpdateProductDto dto);
+        Task UpdateProductAsync(Guid id, UpdateProductDto dto, string callerRole);
         Task DeleteProductAsync(Guid id);
     }
 }

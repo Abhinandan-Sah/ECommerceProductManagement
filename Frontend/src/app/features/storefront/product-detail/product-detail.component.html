@@ -1,0 +1,118 @@
+<div class="pd-page">
+  <div class="page-container">
+    <div class="pd-breadcrumb">
+      <a routerLink="/" class="pd-link">Home</a>
+      <span>•</span>
+      <a routerLink="/store/products" class="pd-link">Products</a>
+      <span>•</span>
+      <span class="pd-current">Details</span>
+    </div>
+
+    @if (isLoading) {
+      <div class="pd-skeleton">
+        <div class="pd-skeleton-media"></div>
+        <div class="pd-skeleton-info">
+          <div class="pd-skeleton-line w-2/3"></div>
+          <div class="pd-skeleton-line w-1/3"></div>
+          <div class="pd-skeleton-line w-full"></div>
+          <div class="pd-skeleton-line w-3/4"></div>
+        </div>
+      </div>
+    } @else if (!product) {
+      <div class="pd-empty">
+        <h2>Product not found</h2>
+        <p>The product you are looking for is unavailable.</p>
+        <a routerLink="/store/products" class="btn-primary">Back to products</a>
+      </div>
+    } @else {
+      <div class="pd-grid">
+        <div class="pd-media">
+          <div class="pd-main-image">
+            @if (selectedImageUrl) {
+              <img [src]="selectedImageUrl" [alt]="product.name" />
+            } @else {
+              <div class="pd-fallback">{{ product.name.slice(0, 2).toUpperCase() }}</div>
+            }
+          </div>
+          @if (mediaAssets.length > 1) {
+            <div class="pd-thumbs">
+              @for (asset of mediaAssets; track asset.id) {
+                <button type="button" class="pd-thumb" [class.active]="asset.url === selectedImageUrl" (click)="selectImage(asset.url)">
+                  <img [src]="asset.url" [alt]="product.name" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="pd-info">
+          <span class="pd-brand">{{ product.brand || 'BoltCart' }}</span>
+          <h1 class="pd-title">{{ product.name }}</h1>
+          <p class="pd-category">{{ product.categoryName || 'General' }}</p>
+
+          <!-- <div class="pd-meta">
+            <div>
+              <span class="pd-meta-label">SKU</span>
+              <span class="pd-meta-value">{{ product.sku }}</span>
+            </div>
+            <div>
+              <span class="pd-meta-label">Status</span>
+              <span class="pd-meta-value">{{ product.publishStatus }}</span>
+            </div>
+          </div> -->
+
+          <div class="pd-section">
+            <h3>Pricing</h3>
+            @if (hasPricing() && pricing) {
+              <div class="pd-price-grid">
+                <div>
+                  <span class="pd-price-label">MRP</span>
+                  <span class="pd-price-value">{{ formatPrice(pricing.mrp) }}</span>
+                </div>
+                <div>
+                  <span class="pd-price-label">Sale Price</span>
+                  <span class="pd-price-value">{{ formatPrice(pricing.salePrice) }}</span>
+                </div>
+                <div>
+                  <span class="pd-price-label">You Save</span>
+                  <span class="pd-price-value">{{ formatPrice(getDiscountAmount()) }} ({{ getDiscountPercent() }}%)</span>
+                </div>
+                <div>
+                  <span class="pd-price-label">GST</span>
+                  <span class="pd-price-value">{{ pricing.gstPercent }}%</span>
+                </div>
+              </div>
+            } @else {
+              <p class="pd-muted">Pricing unavailable.</p>
+            }
+          </div>
+
+          <div class="pd-section">
+            <h3>Available Variants</h3>
+            @if (variants.length > 0) {
+              <div class="pd-variant-list">
+                @for (variant of variants; track variant.id) {
+                  <div class="pd-variant-chip">
+                    <span class="pd-color-dot" [style.background-color]="variant.color | lowercase"></span>
+                    <span class="pd-variant-text">{{ variant.color }} • {{ variant.size }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="pd-muted">No variants listed yet.</p>
+            }
+          </div>
+
+          <div class="pd-description">
+            <h3>Description</h3>
+            <p>{{ product.description || 'No description provided.' }}</p>
+          </div>
+
+          <div class="pd-actions">
+            <a routerLink="/store/products" class="btn-outline">Back to products</a>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

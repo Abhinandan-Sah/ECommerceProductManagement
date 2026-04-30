@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CatalogService } from '../../catalog/services/catalog.service';
+import { WorkflowService } from '../../workflow/services/workflow.service';
 import { ProductResponse, PublishStatus } from '../../catalog/models/product.model';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -14,17 +15,19 @@ import { NotificationService } from '../../../core/services/notification.service
 })
 export class ContentExecutiveDashboardComponent implements OnInit {
   private catalogService = inject(CatalogService);
-  private notification   = inject(NotificationService);
+  private workflowService = inject(WorkflowService);
+  private notification = inject(NotificationService);
 
-  products: ProductResponse[] = [];
-  draftProducts: ProductResponse[] = [];
-  
-  totalCount     = 0;
-  publishedToday = 0; 
-  needsReview    = 0;
+  products: ProductResponse[] = []
+  /** Products that can be submitted for review (Draft or InEnrichment) */
+  submittableProducts: ProductResponse[] = [];
+
+  totalCount = 0;
+  submittedCount = 0;
+  needsEnrichment = 0;
 
   publishStatusEnum = PublishStatus;
-  isPublishing = false;
+  isSubmitting = false;
 
   ngOnInit(): void {
     this.loadProducts();
@@ -34,38 +37,35 @@ export class ContentExecutiveDashboardComponent implements OnInit {
     this.catalogService.getProducts().subscribe({
       next: (data) => {
         this.products = data;
-        this.draftProducts = data.filter(p => p.publishStatus === PublishStatus.Draft);
-        
+        // Submittable: Draft or InEnrichment — ReadyForReview already submitted
+        this.submittableProducts = data.filter(
+          p => p.publishStatus === PublishStatus.Draft ||
+            p.publishStatus === PublishStatus.InEnrichment
+        );
+
         this.totalCount = data.length;
-        this.needsReview = this.draftProducts.length;
-        this.publishedToday = Math.floor(Math.random() * 5) + 1; // Simulated
+        this.submittedCount = data.filter(p => p.publishStatus === PublishStatus.ReadyForReview).length;
+        this.needsEnrichment = this.submittableProducts.length;
       },
       error: () => this.notification.showError('Failed to load products')
     });
   }
 
-  publishProduct(id: string): void {
-    const product = this.products.find(p => p.id === id);
-    if (!product) return;
-
-    this.isPublishing = true;
-    const dto = { 
-      name: product.name, 
-      brand: product.brand, 
-      categoryId: product.categoryId || '',
-      description: product.description,
-      publishStatus: PublishStatus.Published 
-    };
-
-    this.catalogService.updateProduct(id, dto).subscribe({
+  /**
+   * Submit a product for review via the Workflow API
+   * (POST /workflow/products/{id}/submit).
+   * ContentExecutive does NOT call PUT /products/{id}.
+   */
+  submitForReview(id: string): void {
+    this.isSubmitting = true;
+    this.workflowService.submitForReview(id).subscribe({
       next: () => {
-        this.notification.showSuccess('Product published successfully');
-        this.isPublishing = false;
+        this.isSubmitting = false;
         this.loadProducts();
       },
       error: () => {
-        this.notification.showError('Failed to publish product');
-        this.isPublishing = false;
+        // WorkflowService already shows a toast on error
+        this.isSubmitting = false;
       }
     });
   }

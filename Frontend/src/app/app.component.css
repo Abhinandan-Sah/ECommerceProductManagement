@@ -1,11 +1,4 @@
 .main-content {
   min-height: calc(100vh - 96px);  /* account for dual nav bar */
   background: var(--color-bg);
-  padding-top: 16px;
-}
-
-@media (max-width: 767px) {
-  .main-content {
-    padding-top: 12px;
-  }
 }

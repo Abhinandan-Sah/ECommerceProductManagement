@@ -132,10 +132,10 @@
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
                   {{ product.categoryName || 'General' }}
                 </span>
-                <button class="pb-card-btn" [id]="'view-' + product.id">
+                <a class="pb-card-btn" [id]="'view-' + product.id" [routerLink]="['/store/products', product.id]">
                   View Details
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-                </button>
+                </a>
               </div>
             </div>
           }
@@ -167,10 +167,10 @@
                   <span class="pb-list-sku">SKU: {{ product.sku }}</span>
                 </div>
               </div>
-              <button class="pb-card-btn pb-list-btn" [id]="'list-view-' + product.id">
+              <a class="pb-card-btn pb-list-btn" [id]="'list-view-' + product.id" [routerLink]="['/store/products', product.id]">
                 View Details
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-              </button>
+              </a>
             </div>
           }
         </div>

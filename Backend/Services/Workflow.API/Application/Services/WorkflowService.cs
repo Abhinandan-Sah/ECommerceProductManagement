@@ -22,9 +22,24 @@ namespace Workflow.API.Application.Services
             _publishEndpoint = publishEndpoint;
         }
 
-        public async Task<Price?> GetPricingAsync(Guid productId)
+        public async Task<Price?> GetPricingAsync(Guid productId, string? role)
         {
-            return await _repository.GetPricingByProductIdAsync(productId);
+            var price = await _repository.GetPricingByProductIdAsync(productId);
+            if (price == null)
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(role) || string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase))
+            {
+                var approval = await _repository.GetCurrentApprovalStatusAsync(productId);
+                if (approval == null || approval.Status != ApprovalStatus.Approved)
+                {
+                    return null;
+                }
+            }
+
+            return price;
         }
 
         public async Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request)

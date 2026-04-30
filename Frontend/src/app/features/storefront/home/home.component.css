@@ -6,12 +6,24 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+.hero-banner {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.category-band {
+  background:
+    linear-gradient(180deg, rgba(44, 62, 93, 0.08), rgba(44, 62, 93, 0) 46px),
+    var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: 28px 0 32px;
+}
+
 .category-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background-color: var(--color-surface-2); 
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   font-weight: 500;
@@ -24,5 +36,85 @@
 .category-chip:hover {
   background-color: var(--color-primary-light);
   color: var(--color-primary);
-  border-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.store-footer {
+  background: var(--color-header-bg);
+  color: rgba(255, 255, 255, 0.82);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 44px 0 20px;
+}
+
+.store-footer-main {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(140px, 1fr));
+  gap: 32px;
+}
+
+.store-footer-brand p {
+  max-width: 360px;
+  margin-top: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.store-footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.store-footer-bolt {
+  color: #FFB800;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.store-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.store-footer-links h3 {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.store-footer-links a,
+.store-footer-links span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.store-footer-links a:hover {
+  color: #FFB800;
+}
+
+.store-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+@media (max-width: 767px) {
+  .store-footer-main {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }

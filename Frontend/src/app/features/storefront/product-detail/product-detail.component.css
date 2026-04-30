@@ -1,0 +1,243 @@
+.pd-page {
+  padding: 2.5rem 0 3.5rem;
+}
+
+.pd-breadcrumb {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.pd-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.pd-link:hover {
+  text-decoration: underline;
+}
+
+.pd-current {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.pd-grid {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
+}
+
+.pd-media {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pd-main-image {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  overflow: hidden;
+}
+
+.pd-main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pd-fallback {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.pd-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 0.75rem;
+}
+
+.pd-thumb {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface);
+  cursor: pointer;
+  padding: 0;
+}
+
+.pd-thumb.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.pd-thumb img {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+}
+
+.pd-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pd-brand {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.pd-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.pd-category {
+  color: var(--color-text-secondary);
+}
+
+.pd-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+}
+
+.pd-meta-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+}
+
+.pd-meta-value {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pd-description h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.pd-description p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.pd-section {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+}
+
+.pd-section h3 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-primary);
+}
+
+.pd-price-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.pd-price-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+}
+
+.pd-price-value {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.pd-variant-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pd-variant-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border);
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.85rem;
+}
+
+.pd-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+}
+
+.pd-muted {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.pd-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pd-skeleton {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.pd-skeleton-media {
+  height: 340px;
+  border-radius: 16px;
+  background: #e5e7eb;
+}
+
+.pd-skeleton-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pd-skeleton-line {
+  height: 18px;
+  border-radius: 8px;
+  background: #e5e7eb;
+}
+
+.pd-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}

@@ -2,6 +2,7 @@ using Catalog.API.Application.DTOs.MediaAsset;
 using Catalog.API.Application.Interfaces.Repositories;
 using Catalog.API.Application.Services;
 using Catalog.API.Domain.Entities;
+using Catalog.API.Domain.Enums;
 using Catalog.API.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,6 +14,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
     public class MediaAssetServiceTests
     {
         private Mock<IMediaAssetRepository> _mockMediaAssetRepository = null!;
+        private Mock<IProductRepository> _mockProductRepository = null!;
         private Mock<ILogger<MediaAssetService>> _mockLogger = null!;
         private MediaAssetService _mediaAssetService = null!;
 
@@ -20,10 +22,12 @@ namespace Catalog.API.Tests.Unit.Application.Services
         public void SetUp()
         {
             _mockMediaAssetRepository = new Mock<IMediaAssetRepository>();
+            _mockProductRepository = new Mock<IProductRepository>();
             _mockLogger = new Mock<ILogger<MediaAssetService>>();
             
             _mediaAssetService = new MediaAssetService(
                 _mockMediaAssetRepository.Object,
+                _mockProductRepository.Object,
                 _mockLogger.Object
             );
         }
@@ -33,18 +37,23 @@ namespace Catalog.API.Tests.Unit.Application.Services
         {
             // Arrange
             var productId = Guid.NewGuid();
+            var publishedProduct = new Product { Id = productId, PublishStatus = PublishStatus.Published };
             var mediaAssets = new List<MediaAsset>
             {
                 new MediaAsset { Id = Guid.NewGuid(), ProductId = productId, Url = "url1.jpg", SortOrder = 1, AltText = "Alt 1" },
                 new MediaAsset { Id = Guid.NewGuid(), ProductId = productId, Url = "url2.jpg", SortOrder = 2, AltText = "Alt 2" }
             };
 
+            _mockProductRepository
+                .Setup(r => r.GetProductByIdAsync(productId))
+                .ReturnsAsync(publishedProduct);
+
             _mockMediaAssetRepository
                 .Setup(r => r.GetMediaByProductIdAsync(productId))
                 .ReturnsAsync(mediaAssets);
 
             // Act
-            var result = await _mediaAssetService.GetMediaByProductAsync(productId);
+            var result = await _mediaAssetService.GetMediaByProductAsync(productId, role: null);
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -57,6 +66,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
             // Arrange
             var productId = Guid.NewGuid();
             var mediaId = Guid.NewGuid();
+            var publishedProduct = new Product { Id = productId, PublishStatus = PublishStatus.Published };
             var mediaAsset = new MediaAsset
             {
                 Id = mediaId,
@@ -66,12 +76,16 @@ namespace Catalog.API.Tests.Unit.Application.Services
                 AltText = "Test Alt"
             };
 
+            _mockProductRepository
+                .Setup(r => r.GetProductByIdAsync(productId))
+                .ReturnsAsync(publishedProduct);
+
             _mockMediaAssetRepository
                 .Setup(r => r.GetMediaByIdAsync(mediaId))
                 .ReturnsAsync(mediaAsset);
 
             // Act
-            var result = await _mediaAssetService.GetMediaByIdAsync(productId, mediaId);
+            var result = await _mediaAssetService.GetMediaByIdAsync(productId, mediaId, role: null);
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -88,13 +102,18 @@ namespace Catalog.API.Tests.Unit.Application.Services
             // Arrange
             var productId = Guid.NewGuid();
             var mediaId = Guid.NewGuid();
+            var publishedProduct = new Product { Id = productId, PublishStatus = PublishStatus.Published };
+
+            _mockProductRepository
+                .Setup(r => r.GetProductByIdAsync(productId))
+                .ReturnsAsync(publishedProduct);
 
             _mockMediaAssetRepository
                 .Setup(r => r.GetMediaByIdAsync(mediaId))
                 .ReturnsAsync((MediaAsset?)null);
 
             // Act
-            var result = await _mediaAssetService.GetMediaByIdAsync(productId, mediaId);
+            var result = await _mediaAssetService.GetMediaByIdAsync(productId, mediaId, role: null);
 
             // Assert
             Assert.That(result, Is.Null);

@@ -158,10 +158,29 @@
       "UpstreamPathTemplate": "/api/workflow/{everything}",
       "UpstreamHttpMethod": [
         "GET",
+        "OPTIONS"
+      ],
+      "SwaggerKey": "workflow",
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 5000
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/workflow/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7245
+        }
+      ],
+      "UpstreamPathTemplate": "/api/workflow/{everything}",
+      "UpstreamHttpMethod": [
         "POST",
         "PUT",
-        "DELETE",
-        "OPTIONS"
+        "DELETE"
       ],
       "SwaggerKey": "workflow",
       "AuthenticationOptions": {

@@ -28,20 +28,23 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void { this.loadFeaturedProducts(); }
 
   loadFeaturedProducts(): void {
-    this.catalogService.getProducts(undefined, PublishStatus.Published).subscribe({
+    this.catalogService.getProducts().subscribe({
       next: (data) => {
-        const published = data
-          .filter(p => p.publishStatus === PublishStatus.Published)
+        const visibleProducts = data
+          .filter(p =>
+            p.publishStatus === PublishStatus.Approved ||
+            p.publishStatus === PublishStatus.Published
+          )
           .slice(0, 8);
 
-        if (published.length === 0) {
+        if (visibleProducts.length === 0) {
           this.products = [];
           this.isLoading = false;
           return;
         }
 
         // Fetch primary image for each product (sorted by sortOrder)
-        const fetches = published.map(p =>
+        const fetches = visibleProducts.map(p =>
           this.mediaService.getMediaByProduct(p.id).pipe(
             map(media => {
               const sorted = media.sort((a, b) => a.sortOrder - b.sortOrder);
@@ -57,7 +60,7 @@ export class HomeComponent implements OnInit {
             this.isLoading = false;
           },
           error: () => {
-            this.products = published.map(p => ({ ...p, imageUrl: '' }));
+            this.products = visibleProducts.map(p => ({ ...p, imageUrl: '' }));
             this.isLoading = false;
           }
         });

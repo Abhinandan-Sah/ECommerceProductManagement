@@ -7,6 +7,7 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./features/storefront/home/home.component').then(m => m.HomeComponent) },
   { path: 'store', loadComponent: () => import('./features/storefront/home/home.component').then(m => m.HomeComponent) },
   { path: 'store/products', loadComponent: () => import('./features/storefront/product-browse/product-browse.component').then(m => m.ProductBrowseComponent) },
+  { path: 'store/products/:id', loadComponent: () => import('./features/storefront/product-detail/product-detail.component').then(m => m.ProductDetailComponent) },
 
   // AUTH routes
   { path: 'login',    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
@@ -75,6 +76,7 @@ export const routes: Routes = [
       { path: 'products', loadComponent: () => import('./features/catalog/products/product-list/product-list.component').then(m => m.ProductListComponent) },
       { path: 'products/new', loadComponent: () => import('./features/catalog/products/product-form/product-form.component').then(m => m.ProductFormComponent) },
       { path: 'products/:id/edit', loadComponent: () => import('./features/catalog/products/product-form/product-form.component').then(m => m.ProductFormComponent) },
+      { path: 'products/:productId/media', loadComponent: () => import('./features/catalog/products/product-media/product-media.component').then(m => m.ProductMediaComponent) },
       { path: 'products/:productId/variants', loadComponent: () => import('./features/catalog/products/product-variants/product-variants.component').then(m => m.ProductVariantsComponent) },
       { path: 'categories', loadComponent: () => import('./features/catalog/categories/category-list/category-list.component').then(m => m.CategoryListComponent) },
     ]

@@ -37,11 +37,12 @@ namespace Catalog.API.Infrastructure.Middleware
             // Map exception type to HTTP status code
             var (statusCode, message) = exception switch
             {
-                NotFoundException      => (HttpStatusCode.NotFound,            exception.Message),
-                BadRequestException    => (HttpStatusCode.BadRequest,          exception.Message),
-                ConflictException      => (HttpStatusCode.Conflict,            exception.Message),
-                UnauthorizedAccessException => (HttpStatusCode.Unauthorized,   "Unauthorized access."),
-                _                      => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+                NotFoundException         => (HttpStatusCode.NotFound,            exception.Message),
+                BadRequestException       => (HttpStatusCode.BadRequest,          exception.Message),
+                ConflictException         => (HttpStatusCode.Conflict,            exception.Message),
+                ForbiddenException        => (HttpStatusCode.Forbidden,           exception.Message),
+                UnauthorizedAccessException => (HttpStatusCode.Unauthorized,      "Unauthorized access."),
+                _                         => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
             };
 
             // Log: Warning for 4xx client errors, Error for 5xx server errors

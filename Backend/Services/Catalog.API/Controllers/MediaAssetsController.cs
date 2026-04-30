@@ -3,6 +3,7 @@ using Catalog.API.Application.DTOs.MediaAsset;
 using Catalog.API.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Catalog.API.Controllers
 {
@@ -20,20 +21,22 @@ namespace Catalog.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MediaAssetResponseDto>>> GetMediaByProductAsync(Guid productId)
         {
-            var response = await _service.GetMediaByProductAsync(productId);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var response = await _service.GetMediaByProductAsync(productId, role);
             return Ok(response);
         }
 
         [HttpGet("{id}", Name = "GetMediaById")]
         public async Task<ActionResult<MediaAssetResponseDto>> GetMediaByIdAsync(Guid productId, Guid id)
         {
-            var response = await _service.GetMediaByIdAsync(productId, id);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var response = await _service.GetMediaByIdAsync(productId, id, role);
             if (response == null) return NotFound();
             return Ok(response);
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,ContentExecutive")]
+        [Authorize(Roles = "Admin,ProductManager,ContentExecutive")]
         public async Task<ActionResult<MediaAssetResponseDto>> AddMediaAsync(Guid productId, [FromBody] CreateMediaAssetDto dto)
         {
             var response = await _service.AddMediaAsync(productId, dto);
@@ -41,7 +44,7 @@ namespace Catalog.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,ContentExecutive")]
+        [Authorize(Roles = "Admin,ProductManager,ContentExecutive")]
         public async Task<ActionResult> DeleteMediaAsync(Guid productId, Guid id)
         {
             await _service.DeleteMediaAsync(productId, id);

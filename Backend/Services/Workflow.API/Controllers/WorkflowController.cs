@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Workflow.API.Application.DTOs;
 using Workflow.API.Application.Extensions;
 using Workflow.API.Application.Interfaces.Services;
+using System.Security.Claims;
 
 namespace Workflow.API.Controllers
 {
@@ -19,13 +20,14 @@ namespace Workflow.API.Controllers
         }
 
         [HttpGet("products/{id:guid}/pricing")]
-        [Authorize(Roles = "Admin,ProductManager")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetPricing(Guid id)
         {
-            var pricing = await _service.GetPricingAsync(id);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var pricing = await _service.GetPricingAsync(id, role);
             if (pricing == null)
             {
-                return Ok(new { ProductId = id, MRP = 0, SalePrice = 0, GSTPercent = 0 });
+                return NotFound();
             }
             return Ok(pricing);
         }

@@ -50,7 +50,8 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<ActionResult> UpdateProductAsync(Guid id, [FromBody] UpdateProductDto updateDto)
         {
-            await _service.UpdateProductAsync(id, updateDto);
+            var callerRole = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+            await _service.UpdateProductAsync(id, updateDto, callerRole);
             return NoContent();
         }
 

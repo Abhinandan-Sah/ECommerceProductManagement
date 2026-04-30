@@ -6,7 +6,7 @@ namespace Workflow.API.Application.Interfaces.Services
     public interface IWorkflowService
     {
         // ─── Pricing ─────────────────────────────────────────────
-        Task<Price?> GetPricingAsync(Guid productId);
+        Task<Price?> GetPricingAsync(Guid productId, string? role);
         Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request);
 
         // ─── Inventory ───────────────────────────────────────────

@@ -32,7 +32,7 @@ export class MediaManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.select(selectUserRole).subscribe(role => {
-      this.canManageMedia = ['Admin', 'ContentExecutive'].includes(role || '');
+      this.canManageMedia = ['Admin', 'ProductManager', 'ContentExecutive'].includes(role || '');
     });
 
     this.initForm();
