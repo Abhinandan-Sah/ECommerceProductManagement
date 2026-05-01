@@ -6,6 +6,7 @@ using Workflow.API.Domain.Enums;
 using Workflow.API.Domain.Exceptions;
 using MassTransit;
 using Shared.Messaging;
+using System.Text.Json;
 
 namespace Workflow.API.Application.Services
 {
@@ -42,7 +43,7 @@ namespace Workflow.API.Application.Services
             return price;
         }
 
-        public async Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request)
+        public async Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request, Guid actionByUserId)
         {
             _logger.LogInformation("Updating pricing for product {ProductId}", productId);
 
@@ -55,6 +56,14 @@ namespace Workflow.API.Application.Services
             }
 
             var price = await _repository.GetPricingByProductIdAsync(productId);
+            var oldValues = price == null
+                ? null
+                : JsonSerializer.Serialize(new
+                {
+                    price.MRP,
+                    price.SalePrice,
+                    price.GSTPercent
+                });
 
             if (price == null)
             {
@@ -66,6 +75,17 @@ namespace Workflow.API.Application.Services
             price.GSTPercent = request.GSTPercent;
 
             await _repository.SavePricingAsync(price);
+            await PublishAuditLogAsync(
+                productId,
+                "PricingUpdated",
+                actionByUserId,
+                oldValues,
+                JsonSerializer.Serialize(new
+                {
+                    price.MRP,
+                    price.SalePrice,
+                    price.GSTPercent
+                }));
 
             _logger.LogInformation("Pricing updated for product {ProductId}", productId);
             return true;
@@ -77,11 +97,20 @@ namespace Workflow.API.Application.Services
             return await _repository.GetInventoryByProductIdAsync(productId);
         }
 
-        public async Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request)
+        public async Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request, Guid actionByUserId)
         {
             _logger.LogInformation("Updating inventory for product {ProductId}", productId);
 
             var inventory = await _repository.GetInventoryByProductIdAsync(productId);
+            var oldValues = inventory == null
+                ? null
+                : JsonSerializer.Serialize(new
+                {
+                    inventory.WarehouseLocation,
+                    inventory.AvailableQty,
+                    inventory.ReservedQty,
+                    inventory.ReorderLevel
+                });
 
             if (inventory == null)
             {
@@ -93,6 +122,18 @@ namespace Workflow.API.Application.Services
             inventory.ReorderLevel = request.ReorderLevel;
 
             await _repository.SaveInventoryAsync(inventory);
+            await PublishAuditLogAsync(
+                productId,
+                "InventoryUpdated",
+                actionByUserId,
+                oldValues,
+                JsonSerializer.Serialize(new
+                {
+                    inventory.WarehouseLocation,
+                    inventory.AvailableQty,
+                    inventory.ReservedQty,
+                    inventory.ReorderLevel
+                }));
 
             _logger.LogInformation("Inventory updated for product {ProductId}", productId);
             return true;
@@ -117,6 +158,12 @@ namespace Workflow.API.Application.Services
             approval.SubmittedByUserId = submittedByUserId; 
 
             await _repository.SaveApprovalAsync(approval);
+            await PublishAuditLogAsync(
+                productId,
+                "SubmittedForReview",
+                submittedByUserId,
+                null,
+                JsonSerializer.Serialize(new { Status = approval.Status.ToString() }));
 
             _logger.LogInformation("Product {ProductId} submitted for review", productId);
             return true;
@@ -154,6 +201,19 @@ namespace Workflow.API.Application.Services
 
             _logger.LogInformation("Product {ProductId} status updated to {NewStatus}", productId, request.NewStatus);
             return true;
+        }
+
+        private Task PublishAuditLogAsync(Guid productId, string action, Guid byUserId, string? oldValues, string? newValues)
+        {
+            return _publishEndpoint.Publish(new AuditLogCreatedEvent
+            {
+                EntityName = "Product",
+                EntityId = productId,
+                Action = action,
+                ByUserId = byUserId,
+                OldValues = oldValues,
+                NewValues = newValues
+            });
         }
 
         public async Task<ApprovalStatusResponseDto?> GetApprovalStatusAsync(Guid productId)

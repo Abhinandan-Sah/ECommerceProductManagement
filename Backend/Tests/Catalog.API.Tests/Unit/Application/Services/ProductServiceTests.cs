@@ -5,9 +5,11 @@ using Catalog.API.Application.Services;
 using Catalog.API.Domain.Entities;
 using Catalog.API.Domain.Enums;
 using Catalog.API.Domain.Exceptions;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
+using Shared.Messaging;
 
 namespace Catalog.API.Tests.Unit.Application.Services
 {
@@ -18,6 +20,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         private Mock<ICategoryRepository> _mockCategoryRepository = null!;
         private Mock<ISkuGenerator> _mockSkuGenerator = null!;
         private Mock<ILogger<ProductService>> _mockLogger = null!;
+        private Mock<IPublishEndpoint> _mockPublishEndpoint = null!;
         private ProductService _productService = null!;
 
         [SetUp]
@@ -27,12 +30,17 @@ namespace Catalog.API.Tests.Unit.Application.Services
             _mockCategoryRepository = new Mock<ICategoryRepository>();
             _mockSkuGenerator = new Mock<ISkuGenerator>();
             _mockLogger = new Mock<ILogger<ProductService>>();
+            _mockPublishEndpoint = new Mock<IPublishEndpoint>();
+            _mockPublishEndpoint
+                .Setup(p => p.Publish(It.IsAny<ProductReportChangedEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
             
             _productService = new ProductService(
                 _mockProductRepository.Object,
                 _mockCategoryRepository.Object,
                 _mockSkuGenerator.Object,
-                _mockLogger.Object
+                _mockLogger.Object,
+                _mockPublishEndpoint.Object
             );
         }
 

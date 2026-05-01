@@ -101,7 +101,7 @@
                   <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Time</th>
                   <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Entity</th>
                   <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Action</th>
-                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">User ID</th>
+                  <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Performed By</th>
                   <th class="p-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Changes</th>
                 </tr>
               </thead>
@@ -118,7 +118,15 @@
                         {{ log.action }}
                       </span>
                     </td>
-                    <td class="p-4 text-sm text-[var(--color-text-muted)] font-mono">{{ log.byUserId }}</td>
+                    <td class="p-4 text-sm">
+                      @if (getAuditUser(log.byUserId); as auditUser) {
+                        <div class="text-[var(--color-text-primary)]">{{ auditUser.fullName }}</div>
+                        <div class="text-xs text-[var(--color-text-secondary)]">{{ auditUser.role }}</div>
+                      } @else {
+                        <div class="text-[var(--color-text-secondary)]">Unknown user</div>
+                      }
+                      <div class="text-xs text-[var(--color-text-muted)] font-mono">{{ log.byUserId }}</div>
+                    </td>
                     <td class="p-4">
                       @if (log.oldValues || log.newValues) {
                         <details class="cursor-pointer">

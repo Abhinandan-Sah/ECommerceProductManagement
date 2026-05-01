@@ -89,6 +89,9 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<ProductStatusChangedConsumer>();
+    x.AddConsumer<AuditLogCreatedConsumer>();
+    x.AddConsumer<ProductReportChangedConsumer>();
+    x.AddConsumer<UserCountChangedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -103,6 +106,9 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint("reporting_audit_queue", e =>
         {
             e.ConfigureConsumer<ProductStatusChangedConsumer>(context);
+            e.ConfigureConsumer<AuditLogCreatedConsumer>(context);
+            e.ConfigureConsumer<ProductReportChangedConsumer>(context);
+            e.ConfigureConsumer<UserCountChangedConsumer>(context);
         });
     });
 });

@@ -36,7 +36,10 @@ namespace Workflow.API.Controllers
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<IActionResult> UpdatePricing(Guid id, [FromBody] UpdatePricingRequestDto request)
         {
-            await _service.UpdatePricingAsync(id, request);
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            await _service.UpdatePricingAsync(id, request, userId.Value);
             return Ok(new { message = "Pricing saved successfully." });
         }
 
@@ -56,7 +59,10 @@ namespace Workflow.API.Controllers
         [Authorize(Roles = "Admin,ProductManager")]
         public async Task<IActionResult> UpdateInventory(Guid id, [FromBody] UpdateInventoryRequestDto request)
         {
-            await _service.UpdateInventoryAsync(id, request);
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            await _service.UpdateInventoryAsync(id, request, userId.Value);
             return Ok(new { message = "Inventory saved successfully." });
         }
 

@@ -1,7 +1,11 @@
 using Catalog.API.Application.DTOs.ProductVariant;
 using Catalog.API.Application.Interfaces.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Messaging;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace Catalog.API.Controllers
 {
@@ -10,10 +14,12 @@ namespace Catalog.API.Controllers
     public class ProductVariantsController : ControllerBase
     {
         private readonly IProductVariantService _service;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public ProductVariantsController(IProductVariantService service)
+        public ProductVariantsController(IProductVariantService service, IPublishEndpoint publishEndpoint)
         {
             _service = service;
+            _publishEndpoint = publishEndpoint;
         }
 
         [HttpGet]
@@ -35,7 +41,24 @@ namespace Catalog.API.Controllers
         [Authorize(Roles = "Admin,ProductManager,ContentExecutive")]
         public async Task<ActionResult<ProductVariantResponseDto>> AddVariantAsync(Guid productId, [FromBody] CreateProductVariantDto dto)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             var response = await _service.AddVariantAsync(productId, dto);
+            await PublishAuditLogAsync(
+                productId,
+                "Created",
+                userId.Value,
+                null,
+                JsonSerializer.Serialize(new
+                {
+                    VariantId = response.Id,
+                    response.ProductId,
+                    response.Color,
+                    response.Size,
+                    response.Barcode
+                }));
+
             return CreatedAtRoute("GetVariantById", new { productId, id = response.Id }, response);
         }
 
@@ -53,6 +76,25 @@ namespace Catalog.API.Controllers
         {
             await _service.DeleteVariantAsync(productId, id);
             return NoContent();
+        }
+
+        private Guid? GetUserId()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(userIdString, out var userId) ? userId : null;
+        }
+
+        private Task PublishAuditLogAsync(Guid productId, string action, Guid byUserId, string? oldValues, string? newValues)
+        {
+            return _publishEndpoint.Publish(new AuditLogCreatedEvent
+            {
+                EntityName = "ProductVariant",
+                EntityId = productId,
+                Action = action,
+                ByUserId = byUserId,
+                OldValues = oldValues,
+                NewValues = newValues
+            });
         }
     }
 }

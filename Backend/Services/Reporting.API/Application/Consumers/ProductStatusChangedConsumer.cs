@@ -16,11 +16,16 @@ namespace Reporting.API.Application.Consumers
     public class ProductStatusChangedConsumer : IConsumer<ProductStatusChangedEvent>
     {
         private readonly IAuditRepository _auditRepository;
+        private readonly IReportingRepository _reportingRepository;
         private readonly ILogger<ProductStatusChangedConsumer> _logger;
         
-        public ProductStatusChangedConsumer(IAuditRepository auditRepository, ILogger<ProductStatusChangedConsumer> logger)
+        public ProductStatusChangedConsumer(
+            IAuditRepository auditRepository,
+            IReportingRepository reportingRepository,
+            ILogger<ProductStatusChangedConsumer> logger)
         {
             _auditRepository = auditRepository;
+            _reportingRepository = reportingRepository;
             _logger = logger;
         }
 

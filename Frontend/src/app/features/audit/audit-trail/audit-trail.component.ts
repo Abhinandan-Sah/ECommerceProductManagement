@@ -2,9 +2,12 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { AuditService } from '../services/audit.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { UserService } from '../../../core/services/user.service';
 import { AuditLog } from '../models/audit.model';
+import { User } from '../../../shared/models/user.model';
 
 interface GroupedAuditLogs {
   date: string;
@@ -25,9 +28,11 @@ export class AuditTrailComponent implements OnInit {
   private auditService = inject(AuditService);
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private userService = inject(UserService);
 
   auditLogs: AuditLog[] = [];
   groupedAuditLogs: GroupedAuditLogs[] = [];
+  usersById: Record<string, User> = {};
   isLoading = false;
 
   currentPage = 1;
@@ -45,7 +50,20 @@ export class AuditTrailComponent implements OnInit {
 
   // Available filter options
   entityTypes: string[] = ['Product', 'Category', 'User', 'ProductVariant', 'MediaAsset'];
-  actionTypes: string[] = ['Created', 'Updated', 'Deleted', 'StatusChanged', 'Published', 'Approved', 'Rejected'];
+  actionTypes: string[] = [
+    'Created',
+    'Updated',
+    'Deleted',
+    'StatusChanged',
+    'ProfileUpdated',
+    'RoleChanged',
+    'SubmittedForReview',
+    'PricingUpdated',
+    'InventoryUpdated',
+    'Published',
+    'Approved',
+    'Rejected'
+  ];
 
   // Expose Math for template usage
   Math = Math;
@@ -79,6 +97,7 @@ export class AuditTrailComponent implements OnInit {
       next: (data) => {
         this.auditLogs = data.items;
         this.applyFilters();
+        this.loadAuditUsers();
         this.totalCount = data.totalCount;
         this.totalPages = data.totalPages;
         this.isLoading = false;
@@ -88,6 +107,30 @@ export class AuditTrailComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  loadAuditUsers(): void {
+    const userIds = Array.from(new Set(this.auditLogs.map(log => log.byUserId)))
+      .filter(userId => userId && !this.usersById[userId]);
+
+    if (userIds.length === 0) return;
+
+    forkJoin(
+      userIds.map(userId =>
+        this.userService.getUserById(userId).pipe(
+          map(user => ({ userId, user })),
+          catchError(() => of({ userId, user: null }))
+        )
+      )
+    ).subscribe(results => {
+      results.forEach(({ userId, user }) => {
+        if (user) this.usersById[userId] = user;
+      });
+    });
+  }
+
+  getAuditUser(userId: string): User | null {
+    return this.usersById[userId] ?? null;
   }
 
   applyFilters(): void {

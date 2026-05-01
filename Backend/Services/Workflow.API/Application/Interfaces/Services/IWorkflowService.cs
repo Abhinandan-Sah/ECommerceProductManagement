@@ -7,11 +7,11 @@ namespace Workflow.API.Application.Interfaces.Services
     {
         // ─── Pricing ─────────────────────────────────────────────
         Task<Price?> GetPricingAsync(Guid productId, string? role);
-        Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request);
+        Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request, Guid actionByUserId);
 
         // ─── Inventory ───────────────────────────────────────────
         Task<Inventory?> GetInventoryAsync(Guid productId);
-        Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request);
+        Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request, Guid actionByUserId);
 
         // ─── Approval Workflow ───────────────────────────────────
         Task<bool> SubmitForReviewAsync(Guid productId, Guid submittedByUserId);

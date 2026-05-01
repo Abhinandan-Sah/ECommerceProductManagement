@@ -6,7 +6,9 @@ using Identity.API.Domain.Entities;
 using Identity.API.Domain.Enums;
 using Identity.API.Domain.Exceptions;
 using Identity.API.Infrastructure.Security;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
+using Shared.Messaging;
 
 namespace Identity.API.Application.Services
 {
@@ -17,15 +19,18 @@ namespace Identity.API.Application.Services
         private readonly JwtTokenGenerator _jwtGenerator;
         private readonly IConfiguration _config;
         private readonly ILogger<AuthService> _logger;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         public AuthService(IAuthRepository authRepo, IUserRepository userRepo,
-            JwtTokenGenerator jwtGenerator, IConfiguration config, ILogger<AuthService> logger)
+            JwtTokenGenerator jwtGenerator, IConfiguration config, ILogger<AuthService> logger,
+            IPublishEndpoint publishEndpoint)
         {
             _authRepo = authRepo;
             _userRepo = userRepo;
             _jwtGenerator = jwtGenerator;
             _config = config;
             _logger = logger;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<bool> EmailExistsAsync(string email)
@@ -46,6 +51,7 @@ namespace Identity.API.Application.Services
             };
 
             await _authRepo.AddUserAsync(user);
+            await _publishEndpoint.Publish(new UserCountChangedEvent { Delta = 1 });
 
             _logger.LogInformation("User {UserId} registered successfully", user.Id);
         }
@@ -133,6 +139,7 @@ namespace Identity.API.Application.Services
 
             await _authRepo.AddResetTokenAsync(resetToken);
             await _authRepo.SaveChangesAsync();
+            await PublishUserAuditAsync(user.Id, "ForgotPasswordRequested");
 
             // In development: Log the reset URL for testing
             // In production: This should be replaced with email service (SendGrid, SMTP)
@@ -160,6 +167,7 @@ namespace Identity.API.Application.Services
 
             await _authRepo.RevokeAllRefreshTokensAsync(tokenRecord.UserId, "Password was reset");
             await _authRepo.SaveChangesAsync();
+            await PublishUserAuditAsync(tokenRecord.UserId, "PasswordReset");
 
             _logger.LogInformation("Password reset successfully for user {UserId}", tokenRecord.UserId);
             return true;
@@ -179,6 +187,7 @@ namespace Identity.API.Application.Services
 
             await _authRepo.RevokeAllRefreshTokensAsync(userId, "Password changed");
             await _userRepo.UpdateUserAsync(user);
+            await PublishUserAuditAsync(userId, "PasswordChanged");
 
             _logger.LogInformation("Password changed successfully for user {UserId}", userId);
             return true;
@@ -227,5 +236,16 @@ namespace Identity.API.Application.Services
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };
+
+        private Task PublishUserAuditAsync(Guid userId, string action)
+        {
+            return _publishEndpoint.Publish(new AuditLogCreatedEvent
+            {
+                EntityName = "User",
+                EntityId = userId,
+                Action = action,
+                ByUserId = userId
+            });
+        }
     }
 }

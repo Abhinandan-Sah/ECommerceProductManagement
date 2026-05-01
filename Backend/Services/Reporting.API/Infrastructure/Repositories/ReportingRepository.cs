@@ -61,5 +61,66 @@ namespace Reporting.API.Infrastructure.Repositories
         {
             return await _context.DashboardSnapshots.OrderByDescending(s => s.SnapshotDate).ToListAsync();
         }
+
+        public async Task UpsertProductReportAsync(ProductReport report)
+        {
+            var existing = await _context.ProductReports.FirstOrDefaultAsync(p => p.ProductId == report.ProductId);
+
+            if (existing == null)
+            {
+                await _context.ProductReports.AddAsync(report);
+            }
+            else
+            {
+                existing.ProductName = report.ProductName;
+                existing.SKU = report.SKU;
+                existing.Status = report.Status;
+                existing.CategoryName = report.CategoryName;
+                existing.PublishedAt = report.PublishedAt;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteProductReportAsync(Guid productId)
+        {
+            var existing = await _context.ProductReports.FirstOrDefaultAsync(p => p.ProductId == productId);
+            if (existing == null) return;
+
+            _context.ProductReports.Remove(existing);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateProductStatusAsync(Guid productId, string status)
+        {
+            var existing = await _context.ProductReports.FirstOrDefaultAsync(p => p.ProductId == productId);
+            if (existing == null) return;
+
+            existing.Status = status;
+            existing.PublishedAt = status == "Published" ? DateTime.UtcNow : existing.PublishedAt;
+            existing.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RefreshDashboardSnapshotAsync(int userDelta = 0)
+        {
+            var latest = await GetLatestDashboardSnapshotAsync();
+            var products = await _context.ProductReports.ToListAsync();
+
+            var snapshot = new DashboardSnapshot
+            {
+                SnapshotDate = DateTime.UtcNow,
+                TotalProducts = products.Count,
+                PublishedProducts = products.Count(p => p.Status == "Published"),
+                PendingApprovals = products.Count(p => p.Status == "ReadyForReview"),
+                RejectedProducts = products.Count(p => p.Status == "Rejected"),
+                TotalUsers = Math.Max(0, (latest?.TotalUsers ?? 0) + userDelta)
+            };
+
+            await _context.DashboardSnapshots.AddAsync(snapshot);
+            await _context.SaveChangesAsync();
+        }
     }
 }

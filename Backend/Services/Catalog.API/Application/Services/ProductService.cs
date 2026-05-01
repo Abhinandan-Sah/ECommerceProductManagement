@@ -4,6 +4,8 @@ using Catalog.API.Application.Interfaces.Services;
 using Catalog.API.Domain.Entities;
 using Catalog.API.Domain.Enums;
 using Catalog.API.Domain.Exceptions;
+using MassTransit;
+using Shared.Messaging;
 
 namespace Catalog.API.Application.Services
 {
@@ -13,17 +15,20 @@ namespace Catalog.API.Application.Services
         private readonly ICategoryRepository _categoryRepository;
         private readonly ISkuGenerator _skuGenerator;
         private readonly ILogger<ProductService> _logger;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         public ProductService(
             IProductRepository repository, 
             ICategoryRepository categoryRepository, 
             ISkuGenerator skuGenerator,
-            ILogger<ProductService> logger)
+            ILogger<ProductService> logger,
+            IPublishEndpoint publishEndpoint)
         {
             _repository = repository;
             _categoryRepository = categoryRepository;
             _skuGenerator = skuGenerator;
             _logger = logger;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<IEnumerable<ProductResponseDto>> GetAllProductsAsync(Guid? categoryId = null, PublishStatus? status = null, bool canViewUnpublished = false)
@@ -101,6 +106,7 @@ namespace Catalog.API.Application.Services
             };
 
             var savedProduct = await _repository.AddProductAsync(productEntity);
+            await PublishProductReportAsync(savedProduct, category.Name);
 
             _logger.LogInformation("Product {ProductId} created successfully with SKU {Sku}", savedProduct.Id, savedProduct.SKU);
 
@@ -161,6 +167,7 @@ namespace Catalog.API.Application.Services
             existingProduct.UpdatedAt = DateTime.UtcNow;
 
             await _repository.UpdateProductAsync(existingProduct);
+            await PublishProductReportAsync(existingProduct, category.Name);
 
             _logger.LogInformation("Product {ProductId} updated successfully", id);
         }
@@ -173,8 +180,26 @@ namespace Catalog.API.Application.Services
             if (product == null) throw new NotFoundException("Product", id);
 
             await _repository.DeleteProductAsync(product);
+            await _publishEndpoint.Publish(new ProductReportChangedEvent
+            {
+                ProductId = product.Id,
+                IsDeleted = true
+            });
 
             _logger.LogInformation("Product {ProductId} deleted successfully", id);
+        }
+
+        private Task PublishProductReportAsync(Product product, string categoryName)
+        {
+            return _publishEndpoint.Publish(new ProductReportChangedEvent
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                SKU = product.SKU,
+                Status = product.PublishStatus.ToString(),
+                CategoryName = categoryName,
+                CreatedByUserId = Guid.Empty
+            });
         }
     }
 }

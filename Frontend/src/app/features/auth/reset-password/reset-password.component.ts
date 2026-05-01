@@ -20,28 +20,25 @@ export class ResetPasswordComponent implements OnInit {
   private router = inject(Router);
 
   form!: FormGroup;
-  token: string | null = null;
   email: string | null = null;
   isSubmitting = false;
   isSuccess = false;
 
   ngOnInit(): void {
-    // Extract token and email from query parameters
-    this.route.queryParams.subscribe(params => {
-      this.token = params['token'] || null;
-      this.email = params['email'] || null;
+    this.initForm();
 
-      if (!this.token) {
-        this.notify.showError('Invalid reset link. Please request a new password reset.');
-        this.router.navigate(['/login']);
+    this.route.queryParams.subscribe(params => {
+      const token = params['token'] || '';
+      this.email = params['email'] || null;
+      if (token) {
+        this.form.patchValue({ token });
       }
     });
-
-    this.initForm();
   }
 
   initForm(): void {
     this.form = this.fb.group({
+      token: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
@@ -58,14 +55,14 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.invalid || !this.token) {
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.isSubmitting = true;
     const payload = {
-      token: this.token,
+      token: this.form.value.token.trim(),
       newPassword: this.form.value.newPassword,
       confirmPassword: this.form.value.confirmPassword
     };

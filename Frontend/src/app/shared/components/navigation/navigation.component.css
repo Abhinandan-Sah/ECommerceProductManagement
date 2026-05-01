@@ -309,7 +309,7 @@
 .mobile-logout:hover { background: var(--color-danger-bg); }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────── */
-@media (max-width: 1023px) {
+@media (max-width: 1279px) {
   .mobile-menu-toggle { display: flex; }
   .role-nav            { display: none; }
   .user-info           { display: none; }

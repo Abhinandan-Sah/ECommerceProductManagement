@@ -12,5 +12,9 @@ namespace Reporting.API.Application.Interfaces.Repositories
         Task<PagedResult<ProductReport>> GetProductReportsAsync(ProductReportFilterDto filter);
         Task<IEnumerable<ProductReport>> GetAllProductReportsAsync();
         Task<IEnumerable<DashboardSnapshot>> GetHistoricalSnapshotsAsync();
+        Task UpsertProductReportAsync(ProductReport report);
+        Task UpdateProductStatusAsync(Guid productId, string status);
+        Task DeleteProductReportAsync(Guid productId);
+        Task RefreshDashboardSnapshotAsync(int userDelta = 0);
     }
 }
