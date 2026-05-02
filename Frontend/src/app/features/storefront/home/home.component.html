@@ -26,14 +26,11 @@
   <section class="category-band">
     <div class="page-container py-0 overflow-x-auto whitespace-nowrap hide-scrollbar">
       <div class="flex gap-4">
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">💻 Electronics</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">👕 Clothing</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">👟 Footwear</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">📚 Books</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">🍳 Home & Kitchen</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">⚽ Sports</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">🧴 Beauty</button>
-        <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">🧸 Toys</button>
+        @for (category of categories; track category.id) {
+          <button class="category-chip hover:-translate-y-1 transition shadow-sm px-6 py-2 rounded-full font-medium">
+            {{ category.parentCategoryName ? category.parentCategoryName + ' > ' : '' }}{{ category.name }}
+          </button>
+        }
       </div>
     </div>
   </section>
@@ -84,9 +81,6 @@
                 [style.display]="product.imageUrl ? 'none' : 'flex'"
               >
                 {{ getInitials(product.name) }}
-              </div>
-              <div class="absolute top-3 right-3">
-                <span class="status-badge badge-published shadow-sm backdrop-blur-md">Premium</span>
               </div>
             </div>
 

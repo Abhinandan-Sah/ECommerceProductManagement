@@ -2,8 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CatalogService } from '../../catalog/services/catalog.service';
+import { CategoryService } from '../../catalog/services/category.service';
 import { MediaAssetService } from '../../catalog/services/media-asset.service';
 import { ProductResponse, PublishStatus } from '../../catalog/models/product.model';
+import { CategoryResponse } from '../../catalog/models/category.model';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
@@ -20,12 +22,25 @@ interface ProductCard extends ProductResponse {
 })
 export class HomeComponent implements OnInit {
   private catalogService = inject(CatalogService);
+  private categoryService = inject(CategoryService);
   private mediaService   = inject(MediaAssetService);
 
   products: ProductCard[] = [];
+  categories: CategoryResponse[] = [];
   isLoading = true;
 
-  ngOnInit(): void { this.loadFeaturedProducts(); }
+  ngOnInit(): void {
+    this.loadCategories();
+    this.loadFeaturedProducts();
+  }
+
+  loadCategories(): void {
+    this.categoryService.getCategories().pipe(
+      catchError(() => of([]))
+    ).subscribe(categories => {
+      this.categories = categories;
+    });
+  }
 
   loadFeaturedProducts(): void {
     this.catalogService.getProducts().subscribe({
