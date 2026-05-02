@@ -51,10 +51,7 @@ export class UserListComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  // ─────────────────────────────────────────────────────────────
   // Lifecycle
-  // ─────────────────────────────────────────────────────────────
-
   ngOnInit(): void {
     this.loadCurrentUserId();
     this.setupFilters();
@@ -66,9 +63,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Initialisation helpers
-  // ─────────────────────────────────────────────────────────────
 
   private loadCurrentUserId(): void {
     this.store.select(selectCurrentUser).pipe(take(1)).subscribe(user => {
@@ -86,9 +81,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       .subscribe(() => { this.currentPage = 1; this.loadUsers(); });
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Data loading
-  // ─────────────────────────────────────────────────────────────
 
   loadUsers(): void {
     this.isLoading   = true;
@@ -130,9 +123,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Role management
-  // ─────────────────────────────────────────────────────────────
 
   /**
    * Called when the admin selects a new role from the dropdown.
@@ -167,9 +158,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Status management
-  // ─────────────────────────────────────────────────────────────
 
   toggleUserStatus(user: User): void {
     if (this.isCurrentUser(user)) {
@@ -194,9 +183,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Delete
-  // ─────────────────────────────────────────────────────────────
 
   confirmDelete(user: User): void {
     if (this.isCurrentUser(user)) {
@@ -232,9 +219,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Pagination
-  // ─────────────────────────────────────────────────────────────
 
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages || page === this.currentPage) return;
@@ -256,9 +241,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Helpers
-  // ─────────────────────────────────────────────────────────────
 
   isCurrentUser(user: User): boolean {
     return !!this.currentUserId && user.id === this.currentUserId;

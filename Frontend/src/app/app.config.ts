@@ -4,7 +4,6 @@ import {
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
@@ -27,7 +26,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([authInterceptor, tokenRefreshInterceptor, errorInterceptor, loadingInterceptor])
     ),
-    provideAnimations(),
     provideToastr({
       positionClass:    'toast-top-right',
       maxOpened:        5,

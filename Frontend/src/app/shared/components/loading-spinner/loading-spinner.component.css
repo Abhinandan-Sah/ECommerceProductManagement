@@ -1,7 +1,4 @@
-/* ===================================================
-   LOADING OVERLAY
-   Covers the full viewport with a blurred backdrop.
-   =================================================== */
+/* LOADING OVERLAY Covers the full viewport with a blurred backdrop. */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -34,11 +31,7 @@
     0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
 
-/* ===================================================
-   DUAL-RING SPINNER
-   Outer ring = subtle glow track
-   Inner div  = fast-spinning accent arc
-   =================================================== */
+/* DUAL-RING SPINNER Outer ring = subtle glow track Inner div  = fast-spinning accent arc */
 .spinner-ring {
   width: 56px;
   height: 56px;

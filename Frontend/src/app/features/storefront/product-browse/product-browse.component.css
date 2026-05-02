@@ -1,6 +1,4 @@
-/* =========================================
-   Product Browse — Premium Storefront Page
-   ========================================= */
+/* Product Browse — Premium Storefront Page */
 
 .pb-page {
   max-width: 1280px;
@@ -8,7 +6,7 @@
   padding: 28px 20px 60px;
 }
 
-/* ---------- Hero Bar ---------- */
+/* Hero Bar */
 .pb-hero {
   display: flex;
   justify-content: space-between;
@@ -54,7 +52,7 @@
 }
 .pb-view-btn:hover:not(.active) { background: var(--color-surface-2); color: var(--color-text-primary); }
 
-/* ---------- Layout ---------- */
+/* Layout */
 .pb-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -65,7 +63,7 @@
   .pb-layout { grid-template-columns: 1fr; }
 }
 
-/* ---------- Sidebar ---------- */
+/* Sidebar */
 .pb-sidebar {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -179,10 +177,10 @@
 }
 .pb-clear-btn:hover { background: var(--color-danger); color: white; }
 
-/* ---------- Main Content ---------- */
+/* Main Content */
 .pb-main { min-height: 400px; }
 
-/* ---------- Product Grid ---------- */
+/* Product Grid */
 .pb-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -299,7 +297,7 @@
   color: white;
 }
 
-/* ---------- List View ---------- */
+/* List View */
 .pb-list { display: flex; flex-direction: column; gap: 12px; }
 
 .pb-list-row {
@@ -353,7 +351,7 @@
   padding: 9px 20px;
 }
 
-/* ---------- Skeleton Loader ---------- */
+/* Skeleton Loader */
 .pb-skeleton-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -376,7 +374,7 @@
   50% { opacity: 0.55; }
 }
 
-/* ---------- Empty State ---------- */
+/* Empty State */
 .pb-empty {
   display: flex;
   flex-direction: column;
