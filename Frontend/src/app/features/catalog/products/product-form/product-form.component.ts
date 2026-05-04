@@ -1,9 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Store } from '@ngrx/store';
 
 import { CatalogService } from '../../services/catalog.service';
 import { CategoryService } from '../../services/category.service';
@@ -12,7 +11,7 @@ import { CategoryResponse } from '../../models/category.model';
 import { PublishStatus } from '../../models/product.model';
 import { MediaManagementComponent } from '../media-management/media-management.component';
 import { extractErrorMessage } from '../../../../core/utils/error-utils';
-import { selectUserRole } from '../../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-product-form',
@@ -28,7 +27,7 @@ export class ProductFormComponent implements OnInit {
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private store = inject(Store);
+  private auth = inject(AuthStateService);
 
   form!: FormGroup;
   categories: CategoryResponse[] = [];
@@ -38,31 +37,30 @@ export class ProductFormComponent implements OnInit {
   isLoading = false;
   isSaving = false;
 
-  skuConflictError = ''; // For displaying 409 conflict error for SKU
+  skuConflictError = '';
 
   publishStatusEnum = PublishStatus;
 
-  /** Current user role read from NgRx auth state */
   userRole: string | null = null;
 
-  /**
-   * Status values that only an Admin is allowed to set.
-   * A ProductManager must not see these as selectable options.
-   */
+  constructor() {
+    effect(() => {
+      this.userRole = this.auth.userRole();
+    });
+  }
+
   readonly adminOnlyStatuses: PublishStatus[] = [
     PublishStatus.Approved,
     PublishStatus.Published,
     PublishStatus.Archived
   ];
 
-  /** True when the currently-loaded status is Admin-only AND the viewer is a ProductManager. */
   get isStatusLockedForProductManager(): boolean {
     if (this.userRole !== 'ProductManager') return false;
     const currentStatus: PublishStatus = this.form?.get('publishStatus')?.value;
     return this.adminOnlyStatuses.includes(currentStatus);
   }
 
-  /** Human-readable label for the current locked status */
   get currentStatusLabel(): string {
     const s: PublishStatus = this.form?.get('publishStatus')?.value;
     switch (s) {
@@ -77,11 +75,6 @@ export class ProductFormComponent implements OnInit {
   ngOnInit(): void {
     this.productId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!this.productId;
-
-    // Read the current user role from the NgRx store
-    this.store.select(selectUserRole).subscribe(role => {
-      this.userRole = role;
-    });
 
     this.loadCategories();
     this.initForm();

@@ -1,24 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-/**
- * Custom validators for form validation.
- * 
- * These validators provide additional validation logic beyond Angular's built-in validators,
- * specifically for email format, password strength, and password confirmation matching.
- * 
- * Requirements: 1.5, 1.6, 6.5, 6.6
- */
-
-/**
- * Validates email format.
- * 
- * Checks that the email contains an @ symbol, has a valid domain structure,
- * and doesn't contain invalid characters.
- * 
- * @returns A validator function that returns null if valid, or an error object if invalid
- * 
- * Validates: Requirements 1.5
- */
 export function emailValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     if (!control.value) {
@@ -32,20 +13,7 @@ export function emailValidator(): ValidatorFn {
   };
 }
 
-/**
- * Validates password strength.
- * 
- * Ensures the password meets minimum security requirements:
- * - At least 8 characters long
- * - Contains at least one uppercase letter
- * - Contains at least one lowercase letter
- * - Contains at least one digit
- * - Contains at least one special character
- * 
- * @returns A validator function that returns null if valid, or an error object with specific requirements that failed
- * 
- * Validates: Requirements 1.6, 6.6
- */
+// Checks the password rules used by registration and password reset.
 export function passwordStrengthValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     if (!control.value) {
@@ -55,27 +23,22 @@ export function passwordStrengthValidator(): ValidatorFn {
     const password = control.value;
     const errors: ValidationErrors = {};
 
-    // Minimum length check
     if (password.length < 8) {
       errors['minLength'] = true;
     }
 
-    // Uppercase letter check
     if (!/[A-Z]/.test(password)) {
       errors['requiresUppercase'] = true;
     }
 
-    // Lowercase letter check
     if (!/[a-z]/.test(password)) {
       errors['requiresLowercase'] = true;
     }
 
-    // Digit check
     if (!/\d/.test(password)) {
       errors['requiresDigit'] = true;
     }
 
-    // Special character check
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
       errors['requiresSpecialChar'] = true;
     }
@@ -84,18 +47,7 @@ export function passwordStrengthValidator(): ValidatorFn {
   };
 }
 
-/**
- * Validates that password confirmation matches the password field.
- * 
- * This validator should be applied to the form group, not individual controls,
- * as it needs to compare two fields.
- * 
- * @param passwordField - The name of the password field
- * @param confirmPasswordField - The name of the confirm password field
- * @returns A validator function that returns null if passwords match, or an error object if they don't
- * 
- * Validates: Requirements 6.5, 6.6
- */
+// Form-level validator for matching password fields
 export function passwordMatchValidator(
   passwordField: string,
   confirmPasswordField: string
@@ -114,12 +66,10 @@ export function passwordMatchValidator(
 
     const passwordsMatch = password.value === confirmPassword.value;
 
-    // Set error on the confirmPassword field
     if (!passwordsMatch) {
       confirmPassword.setErrors({ ...confirmPassword.errors, passwordMismatch: true });
       return { passwordMismatch: true };
     } else {
-      // Clear passwordMismatch error if passwords match
       if (confirmPassword.errors) {
         const errors = { ...confirmPassword.errors };
         delete errors['passwordMismatch'];
@@ -131,12 +81,6 @@ export function passwordMatchValidator(
   };
 }
 
-/**
- * Helper function to get user-friendly error messages for validation errors.
- * 
- * @param errors - The validation errors object from a form control
- * @returns An array of user-friendly error messages
- */
 export function getValidationErrorMessages(errors: ValidationErrors | null): string[] {
   if (!errors) {
     return [];

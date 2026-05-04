@@ -2,12 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { emailValidator } from '../../../shared/utils/validators';
-import { login, clearError } from '../../../store/auth/auth.actions';
-import {
-  selectAuthLoading, selectAuthError
-} from '../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../core/state/auth-state.service';
 
 
 @Component({
@@ -17,11 +13,11 @@ import {
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  private store = inject(Store);
-  private fb    = inject(FormBuilder);
+  private auth = inject(AuthStateService);
+  private fb = inject(FormBuilder);
 
-  loading$ = this.store.select(selectAuthLoading);
-  error$   = this.store.select(selectAuthError);
+  loading = this.auth.loading;
+  error = this.auth.error;
 
   form = this.fb.group({
     email:    ['', [Validators.required, emailValidator()]],
@@ -33,11 +29,10 @@ export class LoginComponent {
       this.form.markAllAsTouched();
       return;
     }
-    this.store.dispatch(clearError());
-    this.store.dispatch(login({
-      email:    this.form.value.email!,
-      password: this.form.value.password!
-    }));
+    this.auth.clearError();
+    this.auth.login(this.form.value.email!, this.form.value.password!).subscribe({
+      error: () => {}
+    });
   }
 
   isInvalid(field: string): boolean {

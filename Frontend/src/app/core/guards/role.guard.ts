@@ -1,21 +1,21 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { filter, switchMap, map, take } from 'rxjs/operators';
-import { selectUserRole, selectInitialized } from '../../store/auth/auth.selectors';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { filter, map, take } from 'rxjs/operators';
+import { AuthStateService } from '../state/auth-state.service';
 import { Role } from '../../shared/models/user.model';
 
 export const roleGuard: CanActivateFn = (route, _state) => {
-  const store  = inject(Store);
+  const auth = inject(AuthStateService);
   const router = inject(Router);
   const requiredRoles = (route.data['roles'] ?? []) as Role[];
 
   // Wait until initAuth resolves before checking the user role
-  return store.select(selectInitialized).pipe(
+  return toObservable(auth.initialized).pipe(
     filter(initialized => initialized === true),
     take(1),
-    switchMap(() => store.select(selectUserRole).pipe(take(1))),
-    map(userRole => {
+    map(() => {
+      const userRole = auth.userRole();
       if (!userRole) {
         router.navigate(['/login']);
         return false;

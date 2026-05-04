@@ -1,18 +1,14 @@
-import { Component, OnInit, OnDestroy, inject, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, HostListener, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { selectUserRole } from '../../../store/auth/auth.selectors';
 import { WorkflowService } from '../services/workflow.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { CatalogService } from '../../catalog/services/catalog.service';
 import { MediaAssetService } from '../../catalog/services/media-asset.service';
 import { ApprovalStatus } from '../models/workflow.model';
 import { ProductResponse } from '../../catalog/models/product.model';
-import { FormControl } from '@angular/forms';
+import { AuthStateService } from '../../../core/state/auth-state.service';
 
 export interface ProductWithImage extends ProductResponse {
   imageUrl?: string;
@@ -25,8 +21,8 @@ export interface ProductWithImage extends ProductResponse {
   templateUrl: './product-workflow.component.html',
   styleUrls: ['./product-workflow.component.css']
 })
-export class ProductWorkflowComponent implements OnInit, OnDestroy {
-  private store = inject(Store);
+export class ProductWorkflowComponent implements OnInit {
+  private auth = inject(AuthStateService);
   private workflowService = inject(WorkflowService);
   private notificationService = inject(NotificationService);
   private catalogService = inject(CatalogService);
@@ -36,7 +32,6 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
   private el = inject(ElementRef);
 
   userRole: string | null = null;
-  private roleSub?: Subscription;
 
   canManagePricing = false;
   canManageInventory = false;
@@ -97,10 +92,9 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
       newStatus: ['Pending', Validators.required],
       remarks:   ['', [Validators.maxLength(500)]]
     }, { validators: this.remarksValidator });
-  }
 
-  ngOnInit() {
-    this.roleSub = this.store.select(selectUserRole).subscribe(role => {
+    effect(() => {
+      const role = this.auth.userRole();
       this.userRole = role;
       this.canManagePricing   = role === 'Admin' || role === 'ProductManager';
       this.canManageInventory = role === 'Admin' || role === 'ProductManager';
@@ -111,7 +105,9 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
       else if (this.canManageInventory) this.activeTab = 'Inventory';
       else                              this.activeTab = 'Approval';
     });
+  }
 
+  ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['productId']) {
         this.productIdControl.setValue(params['productId']);
@@ -123,8 +119,6 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
     // Load all products for the picker
     this.loadProducts();
   }
-
-  ngOnDestroy() { this.roleSub?.unsubscribe(); }
 
   // ---- Product Picker ----
   loadProducts() {
@@ -178,8 +172,6 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
       this.isSubmittedForReview = status?.isSubmitted ?? false;
     });
 
-    // We don't have a direct "getPricing" but we can check if it exists or use the summary logic
-    // For now, let's assume we fetch them to show in the Approval tab
     this.workflowService.getInventory(productId).subscribe(inv => {
       this.currentInventory = inv;
       if (inv) {
@@ -218,7 +210,7 @@ export class ProductWorkflowComponent implements OnInit, OnDestroy {
     this.showDropdown = true;
   }
 
-  /** Close dropdown when clicking outside */
+  // Close dropdown when clicking outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     if (!this.el.nativeElement.contains(event.target)) {

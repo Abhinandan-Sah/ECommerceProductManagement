@@ -1,24 +1,21 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { filter, switchMap, map, take } from 'rxjs/operators';
-import { selectIsAuthenticated, selectInitialized } from '../../store/auth/auth.selectors';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { filter, map, take } from 'rxjs/operators';
+import { AuthStateService } from '../state/auth-state.service';
 
-export const authGuard: CanActivateFn = (_route, state) => {
-  const store  = inject(Store);
+export const authGuard: CanActivateFn = (_route) => {
+  const auth = inject(AuthStateService);
   const router = inject(Router);
 
   // Wait until initAuth has resolved (token refresh complete or failed),
   // then make a single decision based on the resulting isAuthenticated value.
-  return store.select(selectInitialized).pipe(
+  return toObservable(auth.initialized).pipe(
     filter(initialized => initialized === true),
     take(1),
-    switchMap(() => store.select(selectIsAuthenticated).pipe(take(1))),
-    map(isAuthenticated => {
-      if (isAuthenticated) return true;
-      router.navigate(['/login'], {
-        queryParams: { returnUrl: state.url }
-      });
+    map(() => {
+      if (auth.isAuthenticated()) return true;
+      router.navigate(['/login']);
       return false;
     })
   );

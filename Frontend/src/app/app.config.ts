@@ -1,12 +1,9 @@
 import {
   ApplicationConfig, provideZoneChangeDetection,
-  ErrorHandler, isDevMode
+  ErrorHandler
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideStore } from '@ngrx/store';
-import { provideEffects } from '@ngrx/effects';
-import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
@@ -15,9 +12,6 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { tokenRefreshInterceptor } from './core/interceptors/token-refresh.interceptor';
 import { GlobalErrorHandler } from './core/services/global-error-handler.service';
-import { authReducer } from './store/auth/auth.reducer';
-import { uiReducer }   from './store/ui/ui.reducer';
-import { AuthEffects }  from './store/auth/auth.effects';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -37,11 +31,6 @@ export const appConfig: ApplicationConfig = {
       progressBar:      true,
       closeButton:      true,
     }),
-    provideStore({ auth: authReducer, ui: uiReducer }),
-    provideEffects([AuthEffects]),
-    isDevMode()
-      ? provideStoreDevtools({ maxAge: 25, logOnly: false })
-      : [],
     { provide: ErrorHandler, useClass: GlobalErrorHandler }
   ]
 };

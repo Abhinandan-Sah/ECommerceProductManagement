@@ -1,11 +1,10 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
 import { MediaAssetService } from '../../services/media-asset.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MediaAssetResponse } from '../../models/media-asset.model';
-import { selectUserRole } from '../../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-media-management',
@@ -20,7 +19,7 @@ export class MediaManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private mediaService = inject(MediaAssetService);
   private notify = inject(NotificationService);
-  private store = inject(Store);
+  private auth = inject(AuthStateService);
 
   mediaAssets: MediaAssetResponse[] = [];
   isLoading = false;
@@ -30,11 +29,14 @@ export class MediaManagementComponent implements OnInit {
 
   addForm!: FormGroup;
 
-  ngOnInit(): void {
-    this.store.select(selectUserRole).subscribe(role => {
+  constructor() {
+    effect(() => {
+      const role = this.auth.userRole();
       this.canManageMedia = ['Admin', 'ProductManager', 'ContentExecutive'].includes(role || '');
     });
+  }
 
+  ngOnInit(): void {
     this.initForm();
     if (this.productId) {
       this.loadMedia();

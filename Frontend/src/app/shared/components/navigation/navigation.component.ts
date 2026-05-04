@@ -1,25 +1,21 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { User } from '../../models/user.model';
-import { selectCurrentUser, selectIsAuthenticated, selectUserRole } from '../../../store/auth/auth.selectors';
-import { logout } from '../../../store/auth/auth.actions';
+import { AuthStateService } from '../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-navigation',
-  imports: [CommonModule, RouterModule, AsyncPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './navigation.component.html',
   styleUrls: ['./navigation.component.css']
 })
 export class NavigationComponent implements OnInit {
-  private store  = inject(Store);
-  private router = inject(Router);
+  private auth = inject(AuthStateService);
 
-  isAuthenticated$: Observable<boolean>    = this.store.select(selectIsAuthenticated);
-  currentUser$: Observable<User | null>    = this.store.select(selectCurrentUser);
-  userRole$: Observable<string | null>     = this.store.select(selectUserRole);
+  isAuthenticated = this.auth.isAuthenticated;
+  currentUser = this.auth.user;
+  userRole = this.auth.userRole;
   
   isMobileMenuOpen = false;
   isDarkMode = false;
@@ -52,7 +48,7 @@ export class NavigationComponent implements OnInit {
   }
 
   logout(): void {
-    this.store.dispatch(logout());
+    this.auth.logout();
     this.closeMobileMenu();
   }
 

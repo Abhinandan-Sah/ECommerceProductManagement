@@ -1,8 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { Store } from '@ngrx/store';
 import { debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
 import { forkJoin, of } from 'rxjs';
 
@@ -14,7 +13,7 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { WorkflowStateBadgeComponent } from '../../../workflow/components/workflow-state-badge/workflow-state-badge.component';
 import { ProductResponse, PublishStatus } from '../../models/product.model';
 import { CategoryResponse } from '../../models/category.model';
-import { selectUserRole } from '../../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-product-list',
@@ -29,7 +28,7 @@ export class ProductListComponent implements OnInit {
   private workflowService = inject(WorkflowService);
   private notify = inject(NotificationService);
   private router = inject(Router);
-  private store = inject(Store);
+  private auth = inject(AuthStateService);
 
   products: ProductResponse[] = [];
   categories: CategoryResponse[] = [];
@@ -52,12 +51,15 @@ export class ProductListComponent implements OnInit {
   canManageProducts = false;
   canDeleteProducts = false;
 
-  ngOnInit(): void {
-    this.store.select(selectUserRole).subscribe(role => {
-      // ContentExecutive cannot call PUT /products/{id} — edit button must be hidden for them
+  constructor() {
+    effect(() => {
+      const role = this.auth.userRole();
       this.canManageProducts = ['Admin', 'ProductManager'].includes(role || '');
       this.canDeleteProducts = role === 'Admin';
     });
+  }
+
+  ngOnInit(): void {
 
     this.loadCategories();
     this.loadProducts();
@@ -100,7 +102,7 @@ export class ProductListComponent implements OnInit {
 
   loadApprovalStatuses(): void {
     const statusRequests = this.products.map(product =>
-      this.workflowService.getApprovalStatus(product.id).pipe(
+      this.workflowService.getApprovalStatus(product.id, false).pipe(
         catchError(() => of({ productId: product.id, status: 'Pending' as const, approvedByUserId: undefined, remarks: undefined }))
       )
     );

@@ -2,14 +2,6 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl } from '@angular/forms';
 
-/**
- * Reusable component for displaying form validation error messages.
- * 
- * Displays validation errors inline with form fields.
- * Only shows errors after the field has been touched or form submitted.
- * 
- * Requirements: 1.5, 1.6, 6.5, 6.6, 14.4
- */
 @Component({
   selector: 'app-validation-message',
   standalone: true,
@@ -44,14 +36,12 @@ export class ValidationMessageComponent {
 
     const errors = this.control.errors;
 
-    // Check for custom messages first
     for (const errorKey in errors) {
       if (this.customMessages[errorKey]) {
         return this.customMessages[errorKey];
       }
     }
 
-    // Default error messages
     if (errors['required']) {
       return `${this.fieldName} is required.`;
     }
@@ -92,7 +82,6 @@ export class ValidationMessageComponent {
       return `${this.fieldName} must not exceed ${max}.`;
     }
 
-    // Generic error message for unknown errors
     return `${this.fieldName} is invalid.`;
   }
 }

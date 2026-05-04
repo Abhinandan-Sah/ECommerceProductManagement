@@ -155,7 +155,7 @@ body {
 .badge-danger    { background: var(--color-danger-bg);  color: var(--color-danger); border: 1px solid var(--color-danger); }
 .status-dot      { width: 6px; height: 6px; border-radius: 50%; }
 
-/* NGX-TOASTR — CUSTOM THEME Overrides the default toastr skin to match the application's design system tokens. */
+/* Toastr theme */
 
 /* Shared base for all toast types */
 .toast-container .ngx-toastr {

@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApprovalStatus } from '../../models/workflow.model';
 
-/** Maps the integer enum values sent by the .NET backend → string names. */
+// Backend can send status as a number.
 const STATUS_MAP: Record<number, ApprovalStatus> = {
   0: 'Pending',
   1: 'Approved',
@@ -54,11 +54,6 @@ const STATUS_MAP: Record<number, ApprovalStatus> = {
   `]
 })
 export class WorkflowStateBadgeComponent {
-  /**
-   * Accepts the approval status as either:
-   *  - A string name  ('Pending', 'Approved', 'Rejected')
-   *  - An integer     (0, 1, 2)
-   */
   @Input() set state(value: ApprovalStatus | number) {
     this.statusName = typeof value === 'number'
       ? (STATUS_MAP[value] ?? 'Pending')

@@ -4,14 +4,13 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Store } from '@ngrx/store';
 import {
   catchError, switchMap, throwError,
   BehaviorSubject, filter, take, Observable
 } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { TokenStorageService } from '../services/token-storage.service';
-import { logout, refreshSuccess, refreshFailure } from '../../store/auth/auth.actions';
+import { AuthStateService } from '../state/auth-state.service';
 
 let isRefreshing = false;
 let refreshTokenSubject = new BehaviorSubject<string | null>(null);
@@ -19,13 +18,13 @@ let refreshTokenSubject = new BehaviorSubject<string | null>(null);
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService  = inject(AuthService);
   const tokenStorage = inject(TokenStorageService);
-  const store        = inject(Store);
+  const authState    = inject(AuthStateService);
   const router       = inject(Router);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !isAuthEndpoint(req.url)) {
-        return handle401(req, next, authService, tokenStorage, store);
+        return handle401(req, next, authService, tokenStorage, authState);
       }
       if (error.status === 403) {
         router.navigate(['/unauthorized']);
@@ -46,7 +45,7 @@ function handle401(
   next: any,
   authService: AuthService,
   tokenStorage: TokenStorageService,
-  store: Store
+  authState: AuthStateService
 ): Observable<HttpEvent<unknown>> {
   if (!isRefreshing) {
     isRefreshing = true;
@@ -55,7 +54,7 @@ function handle401(
     const token = tokenStorage.getRefreshToken();
     if (!token) {
       isRefreshing = false;
-      store.dispatch(logout());
+      authState.clearSession();
       return throwError(() => new Error('No refresh token'));
     }
 
@@ -65,14 +64,14 @@ function handle401(
         tokenStorage.saveTokens(
           response.accessToken, response.refreshToken
         );
-        store.dispatch(refreshSuccess({ response }));
+        authState.applyTokenResponse(response);
         refreshTokenSubject.next(response.accessToken);
         return next(addToken(req, response.accessToken)) as Observable<HttpEvent<unknown>>;
       }),
       catchError(err => {
         isRefreshing = false;
         refreshTokenSubject.next(null);
-        store.dispatch(logout());
+        authState.clearSession();
         return throwError(() => err);
       })
     );

@@ -1,14 +1,12 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Store } from '@ngrx/store';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { take } from 'rxjs/operators';
 
 import { UserService }        from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { User, Role, PaginatedResponse } from '../../../shared/models/user.model';
-import { selectCurrentUser }  from '../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-user-list',
@@ -19,7 +17,7 @@ import { selectCurrentUser }  from '../../../store/auth/auth.selectors';
 })
 export class UserListComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
-  private store       = inject(Store);
+  private auth        = inject(AuthStateService);
   private notify      = inject(NotificationService);
 
   users: User[]    = [];
@@ -64,11 +62,8 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   // Initialisation helpers
-
   private loadCurrentUserId(): void {
-    this.store.select(selectCurrentUser).pipe(take(1)).subscribe(user => {
-      this.currentUserId = user?.id ?? null;
-    });
+    this.currentUserId = this.auth.user()?.id ?? null;
   }
 
   private setupFilters(): void {
@@ -82,7 +77,6 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   // Data loading
-
   loadUsers(): void {
     this.isLoading   = true;
     this.errorMessage = '';
@@ -124,13 +118,6 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   // Role management
-
-  /**
-   * Called when the admin selects a new role from the dropdown.
-   * Optimistically updates the local user object so the coloured
-   * badge refreshes instantly via [attr.data-role] binding;
-   * rolls back on API error.
-   */
   onRoleChange(user: User, newRole: string): void {
     if (this.isCurrentUser(user)) {
       this.notify.showError('You cannot change your own role');
@@ -141,7 +128,7 @@ export class UserListComponent implements OnInit, OnDestroy {
 
     const previousRole = user.role;
 
-    // Optimistic update — refreshes the [attr.data-role] binding immediately
+    // Update first so the badge feels instant.
     user.role = newRole as Role;
 
     this.userService.updateUserRole(user.id, newRole)
@@ -159,7 +146,6 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   // Status management
-
   toggleUserStatus(user: User): void {
     if (this.isCurrentUser(user)) {
       this.notify.showError('You cannot change your own status');
@@ -169,7 +155,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     const newStatus = !user.isActive;
     const label     = newStatus ? 'activated' : 'deactivated';
 
-    // Optimistic update
+    // Update first so the badge feels instant.
     user.isActive = newStatus;
 
     this.userService.updateUserStatus(user.id, newStatus)

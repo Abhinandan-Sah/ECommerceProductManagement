@@ -1,11 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { filter } from 'rxjs/operators';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
 import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loading-spinner.component';
 import { LoadingService } from './core/services/loading.service';
-import { initAuth } from './store/auth/auth.actions';
+import { AuthStateService } from './core/state/auth-state.service';
 
 @Component({
   selector: 'app-root',
@@ -14,15 +13,15 @@ import { initAuth } from './store/auth/auth.actions';
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  private store        = inject(Store);
-  private router       = inject(Router);
+  private auth = inject(AuthStateService);
+  private router = inject(Router);
   private loadingService = inject(LoadingService);
 
   title = 'identity-ui';
 
   ngOnInit(): void {
     // Restore session from persisted refresh token on every page load
-    this.store.dispatch(initAuth());
+    this.auth.initAuth();
 
     // Safety net: reset the loading counter on every completed navigation.
     // This prevents the spinner from getting permanently stuck if a request

@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Store } from '@ngrx/store';
 
 import { CatalogService } from '../../catalog/services/catalog.service';
 import { MediaAssetService } from '../../catalog/services/media-asset.service';
@@ -10,7 +9,7 @@ import { ProductResponse, PublishStatus } from '../../catalog/models/product.mod
 import { MediaAssetResponse } from '../../catalog/models/media-asset.model';
 import { ProductVariantResponse } from '../../catalog/models/product-variant.model';
 import { ApprovalStatus } from '../../workflow/models/workflow.model';
-import { selectUserRole } from '../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../core/state/auth-state.service';
 
 type InventoryInfo = {
   warehouseLocation: string;
@@ -53,7 +52,7 @@ export class ProductDetailComponent implements OnInit {
   private workflowService = inject(WorkflowService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private store = inject(Store);
+  private auth = inject(AuthStateService);
 
   productId!: string;
   product: ProductResponse | null = null;
@@ -70,15 +69,19 @@ export class ProductDetailComponent implements OnInit {
   canViewInventory = false;
   canManageVariants = false;
 
-  ngOnInit(): void {
-    this.productId = this.route.snapshot.paramMap.get('id')!;
-    this.isBackOfficeView = this.router.url.startsWith('/catalog/');
-    this.store.select(selectUserRole).subscribe(role => {
+  constructor() {
+    effect(() => {
+      const role = this.auth.userRole();
       this.userRole = role ?? null;
       this.canEditProduct = role === 'Admin' || role === 'ProductManager';
       this.canViewInventory = role === 'Admin' || role === 'ProductManager';
       this.canManageVariants = role === 'Admin' || role === 'ProductManager' || role === 'ContentExecutive';
     });
+  }
+
+  ngOnInit(): void {
+    this.productId = this.route.snapshot.paramMap.get('id')!;
+    this.isBackOfficeView = this.router.url.startsWith('/catalog/');
     this.loadProduct();
   }
 
@@ -131,7 +134,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   loadPricing(): void {
-    this.workflowService.getPricing(this.productId).subscribe({
+    this.workflowService.getPricing(this.productId, false).subscribe({
       next: (pricing) => {
         this.pricing = this.normalizePricing(pricing);
       },
@@ -142,7 +145,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   loadInventory(): void {
-    this.workflowService.getInventory(this.productId).subscribe({
+      this.workflowService.getInventory(this.productId, false).subscribe({
       next: (inventory) => {
         this.inventory = inventory
           ? {
@@ -159,7 +162,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   loadApprovalStatus(): void {
-    this.workflowService.getApprovalStatus(this.productId).subscribe({
+    this.workflowService.getApprovalStatus(this.productId, false).subscribe({
       next: (status) => {
         this.approvalStatus = status?.status ?? null;
       },

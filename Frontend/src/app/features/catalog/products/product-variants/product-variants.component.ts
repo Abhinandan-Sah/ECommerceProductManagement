@@ -1,14 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Store } from '@ngrx/store';
 
 import { CatalogService } from '../../services/catalog.service';
 import { WorkflowService } from '../../../workflow/services/workflow.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ApprovalStatus } from '../../../workflow/models/workflow.model';
-import { selectUserRole } from '../../../../store/auth/auth.selectors';
+import { AuthStateService } from '../../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-product-variants',
@@ -23,7 +22,7 @@ export class ProductVariantsComponent implements OnInit {
   private workflowService = inject(WorkflowService);
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
-  private store = inject(Store);
+  private auth = inject(AuthStateService);
 
   productId!: string;
   productName = 'Loading...';
@@ -42,14 +41,17 @@ export class ProductVariantsComponent implements OnInit {
   canEditVariants = false;
   canDeleteVariants = false;
 
-  ngOnInit(): void {
-    this.productId = this.route.snapshot.paramMap.get('productId')!;
-    
-    this.store.select(selectUserRole).subscribe(role => {
+  constructor() {
+    effect(() => {
+      const role = this.auth.userRole();
       this.canAddVariants = ['Admin', 'ProductManager', 'ContentExecutive'].includes(role || '');
       this.canEditVariants = ['Admin', 'ProductManager'].includes(role || '');
       this.canDeleteVariants = role === 'Admin';
     });
+  }
+
+  ngOnInit(): void {
+    this.productId = this.route.snapshot.paramMap.get('productId')!;
 
     this.initForm();
     this.loadProductDetails();

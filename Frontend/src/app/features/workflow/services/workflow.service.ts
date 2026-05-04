@@ -20,15 +20,17 @@ export class WorkflowService {
   private notificationService = inject(NotificationService);
   private baseUrl = '/api/workflow/products';
 
-  getPricing(productId: string): Observable<any> {
+  getPricing(productId: string, notifyOnError = true): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${productId}/pricing`).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 404) {
           return of(null);
         }
 
-        const message = extractErrorMessage(error);
-        this.notificationService.showError(message);
+        if (notifyOnError) {
+          const message = extractErrorMessage(error);
+          this.notificationService.showError(message);
+        }
         return throwError(() => error);
       })
     );
@@ -78,25 +80,29 @@ export class WorkflowService {
     );
   }
 
-  getApprovalStatus(productId: string): Observable<ApprovalStatusResponse> {
+  getApprovalStatus(productId: string, notifyOnError = true): Observable<ApprovalStatusResponse> {
     return this.http.get<ApprovalStatusResponse>(`${this.baseUrl}/${productId}/status`).pipe(
       catchError((error: HttpErrorResponse) => {
-        const message = extractErrorMessage(error);
-        this.notificationService.showError(message);
+        if (notifyOnError) {
+          const message = extractErrorMessage(error);
+          this.notificationService.showError(message);
+        }
         return throwError(() => error);
       })
     );
   }
 
-  getInventory(productId: string): Observable<any> {
+  getInventory(productId: string, notifyOnError = true): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${productId}/inventory`).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 404) {
           return of(null);
         }
 
-        const message = extractErrorMessage(error);
-        this.notificationService.showError(message);
+        if (notifyOnError) {
+          const message = extractErrorMessage(error);
+          this.notificationService.showError(message);
+        }
         return throwError(() => error);
       })
     );

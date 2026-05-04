@@ -25,8 +25,8 @@
     } -->
 
     <!-- ROLE NAV LINKS (internal staff roles — inline in the header) -->
-    @if (isAuthenticated$ | async) {
-      @if (userRole$ | async; as role) {
+    @if (isAuthenticated()) {
+      @if (userRole(); as role) {
         @if (role !== 'Customer') {
           <nav class="role-nav" aria-label="Role navigation">
             @if (role === 'Admin') {
@@ -70,7 +70,7 @@
       </button>
 
       <!-- Mobile hamburger (authenticated only) -->
-      @if (isAuthenticated$ | async) {
+      @if (isAuthenticated()) {
         <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-expanded]="isMobileMenuOpen" aria-label="Menu">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -81,8 +81,8 @@
       }
 
       <!-- Authenticated user chip + logout -->
-      @if (isAuthenticated$ | async) {
-        @if ((currentUser$ | async); as user) {
+      @if (isAuthenticated()) {
+        @if (currentUser(); as user) {
           <div class="user-chip">
             <div class="user-avatar">{{ getDisplayName(user).charAt(0).toUpperCase() }}</div>
             <div class="user-info">
@@ -102,9 +102,9 @@
   </div>
 
   <!-- MOBILE DROPDOWN: only when authenticated & menu open -->
-  @if ((isAuthenticated$ | async) && isMobileMenuOpen) {
+  @if (isAuthenticated() && isMobileMenuOpen) {
     <div class="mobile-menu" (click)="closeMobileMenu()">
-      @if (userRole$ | async; as role) {
+      @if (userRole(); as role) {
 
         @if (role === 'Customer') {
           <a routerLink="/my-account" class="mobile-link" (click)="closeMobileMenu()">My Account</a>

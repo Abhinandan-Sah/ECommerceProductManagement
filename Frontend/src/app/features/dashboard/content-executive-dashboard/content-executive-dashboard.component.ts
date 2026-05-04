@@ -19,7 +19,6 @@ export class ContentExecutiveDashboardComponent implements OnInit {
   private notification = inject(NotificationService);
 
   products: ProductResponse[] = []
-  /** Products that can be submitted for review (Draft or InEnrichment) */
   submittableProducts: ProductResponse[] = [];
 
   totalCount = 0;
@@ -37,7 +36,7 @@ export class ContentExecutiveDashboardComponent implements OnInit {
     this.catalogService.getProducts().subscribe({
       next: (data) => {
         this.products = data;
-        // Submittable: Draft or InEnrichment — ReadyForReview already submitted
+
         this.submittableProducts = data.filter(
           p => p.publishStatus === PublishStatus.Draft ||
             p.publishStatus === PublishStatus.InEnrichment
@@ -51,11 +50,6 @@ export class ContentExecutiveDashboardComponent implements OnInit {
     });
   }
 
-  /**
-   * Submit a product for review via the Workflow API
-   * (POST /workflow/products/{id}/submit).
-   * ContentExecutive does NOT call PUT /products/{id}.
-   */
   submitForReview(id: string): void {
     this.isSubmitting = true;
     this.workflowService.submitForReview(id).subscribe({
@@ -64,7 +58,6 @@ export class ContentExecutiveDashboardComponent implements OnInit {
         this.loadProducts();
       },
       error: () => {
-        // WorkflowService already shows a toast on error
         this.isSubmitting = false;
       }
     });

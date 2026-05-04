@@ -12,17 +12,6 @@ import {
 } from '../../../shared/utils/validators';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 
-/**
- * RegisterComponent provides the user interface for new user registration.
- *
- * Features:
- * - Reactive form with fullName (single field, not firstName/lastName)
- * - Email format and password strength validation
- * - Password match validation via group-level validator
- * - One-shot subscribe for registration (not NgRx state)
- *
- * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 14.4, 15.2
- */
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterModule],
@@ -37,7 +26,7 @@ export class RegisterComponent {
 
   isLoading  = false;
   errorMessage = '';
-  emailConflictError = ''; // For displaying 409 conflict error near email field
+  emailConflictError = '';
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -71,7 +60,6 @@ export class RegisterComponent {
         this.isLoading = false;
         const errorMsg = extractErrorMessage(err);
         
-        // Handle 409 conflict error specifically for email field
         if (err.status === 409) {
           this.emailConflictError = errorMsg;
           this.errorMessage = '';

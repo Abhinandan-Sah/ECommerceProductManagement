@@ -1,10 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { User } from '../../../shared/models/user.model';
-import { selectCurrentUser } from '../../../store/auth/auth.selectors';
-import { Observable } from 'rxjs';
+import { AuthStateService } from '../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-customer-dashboard',
@@ -13,12 +10,9 @@ import { Observable } from 'rxjs';
   templateUrl: './customer-dashboard.component.html',
   styleUrls: ['./customer-dashboard.component.css']
 })
-export class CustomerDashboardComponent implements OnInit {
-  private store = inject(Store);
+export class CustomerDashboardComponent {
+  private auth = inject(AuthStateService);
   
-  user$: Observable<User | null> = this.store.select(selectCurrentUser);
+  user = this.auth.user;
   recentOrders = []; // Mock empty for now
-
-  ngOnInit(): void {
-  }
 }

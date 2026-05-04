@@ -29,7 +29,7 @@ export class TokenStorageService {
     return this.accessToken !== null;
   }
 
-  /** True when a refresh token is persisted (even after page reload) */
+  // True when a refresh token is persisted (even after page reload)
   hasRefreshToken(): boolean {
     return !!localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }

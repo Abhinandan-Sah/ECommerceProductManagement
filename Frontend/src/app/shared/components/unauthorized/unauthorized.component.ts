@@ -2,13 +2,6 @@ import { Component } from '@angular/core';
 
 import { Router, RouterModule } from '@angular/router';
 
-/**
- * UnauthorizedComponent displays an access denied message.
- * 
- * Shown when users attempt to access routes they don't have permission for.
- * 
- * Requirements: 8.5
- */
 @Component({
     selector: 'app-unauthorized',
     imports: [RouterModule],

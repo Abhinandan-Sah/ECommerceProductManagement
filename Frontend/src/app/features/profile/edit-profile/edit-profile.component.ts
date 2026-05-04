@@ -7,20 +7,6 @@ import { NotificationService } from '../../../core/services/notification.service
 import { emailValidator } from '../../../shared/utils/validators';
 import { User, UpdateProfileRequest } from '../../../shared/models/user.model';
 
-/**
- * EditProfileComponent allows users to update their profile information.
- *
- * Features:
- * - Reactive form with fullName and email fields
- * - Pre-populated with current profile data
- * - Form validation with inline error messages
- * - Loading state during profile fetch and update
- * - Success notification and profile refresh after update
- * - Handles email conflict errors (409)
- * - Cancel button to return to profile view
- *
- * Requirements: 7.3, 7.4, 7.5, 7.6, 14.4, 15.2
- */
 @Component({
   selector: 'app-edit-profile',
   imports: [ReactiveFormsModule, RouterModule],
@@ -43,9 +29,6 @@ export class EditProfileComponent implements OnInit {
     this.loadProfile();
   }
 
-  /**
-   * Initialize the edit form with validation rules.
-   */
   private initializeForm(): void {
     this.editForm = this.fb.group({
       email:    ['', [Validators.required, emailValidator()]],
@@ -53,9 +36,6 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  /**
-   * Load current profile data and populate the form.
-   */
   private loadProfile(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -72,9 +52,6 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  /**
-   * Populate form with user data.
-   */
   private populateForm(user: User): void {
     this.editForm.patchValue({
       email:    user.email,
@@ -82,9 +59,6 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  /**
-   * Handle form submission.
-   */
   onSubmit(): void {
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();
@@ -112,9 +86,6 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  /**
-   * Handle profile loading errors.
-   */
   private handleLoadError(error: any): void {
     if (error.status === 401) {
       this.errorMessage = 'Session expired. Please log in again.';
@@ -127,9 +98,6 @@ export class EditProfileComponent implements OnInit {
     this.notificationService.showError(this.errorMessage);
   }
 
-  /**
-   * Handle profile update errors.
-   */
   private handleUpdateError(error: any): void {
     if (error.status === 409) {
       this.errorMessage = 'This email is already in use. Please choose a different email.';
@@ -145,24 +113,15 @@ export class EditProfileComponent implements OnInit {
     this.notificationService.showError(this.errorMessage);
   }
 
-  /**
-   * Cancel editing and return to profile view.
-   */
   cancel(): void {
     this.router.navigate(['/profile']);
   }
 
-  /**
-   * Check if a form field has errors and has been touched.
-   */
   hasError(fieldName: string): boolean {
     const field = this.editForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  /**
-   * Get error message for a specific field.
-   */
   getErrorMessage(fieldName: string): string {
     const field = this.editForm.get(fieldName);
 
@@ -190,9 +149,6 @@ export class EditProfileComponent implements OnInit {
     return 'Invalid input';
   }
 
-  /**
-   * Get user-friendly label for form field.
-   */
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
       email:    'Email',

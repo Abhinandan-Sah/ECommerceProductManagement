@@ -1,14 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { CategoryService } from '../../services/category.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CategoryResponse } from '../../models/category.model';
-import { selectUserRole } from '../../../../store/auth/auth.selectors';
 import { extractErrorMessage } from '../../../../core/utils/error-utils';
+import { AuthStateService } from '../../../../core/state/auth-state.service';
 
 @Component({
   selector: 'app-category-list',
@@ -21,7 +20,7 @@ export class CategoryListComponent implements OnInit {
   private fb = inject(FormBuilder);
   private categoryService = inject(CategoryService);
   private notify = inject(NotificationService);
-  private store = inject(Store);
+  private auth = inject(AuthStateService);
 
   categories: CategoryResponse[] = [];
   rootCategories: CategoryResponse[] = [];
@@ -42,12 +41,15 @@ export class CategoryListComponent implements OnInit {
   canManageCategories = false;
   canDeleteCategories = false;
 
-  ngOnInit(): void {
-    this.store.select(selectUserRole).subscribe(role => {
+  constructor() {
+    effect(() => {
+      const role = this.auth.userRole();
       this.canManageCategories = ['Admin', 'ProductManager'].includes(role || '');
       this.canDeleteCategories = role === 'Admin';
     });
+  }
 
+  ngOnInit(): void {
     this.initForms();
     this.loadCategories();
   }

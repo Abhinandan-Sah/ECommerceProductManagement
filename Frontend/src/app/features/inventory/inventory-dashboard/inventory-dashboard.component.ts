@@ -46,7 +46,7 @@ export class InventoryDashboardComponent implements OnInit {
         // For each product, fetch its inventory data
         // Use catchError to handle products without inventory data
         const inventoryRequests = products.map(product =>
-          this.workflowService.getInventory(product.id).pipe(
+          this.workflowService.getInventory(product.id, false).pipe(
             catchError(() => of(null)) // Return null if inventory doesn't exist
           )
         );

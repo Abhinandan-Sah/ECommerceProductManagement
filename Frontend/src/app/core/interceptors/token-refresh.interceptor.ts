@@ -1,17 +1,16 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { TokenStorageService } from '../services/token-storage.service';
+import { AuthStateService } from '../state/auth-state.service';
 
-// Track if we're currently refreshing to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
 
 export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const tokenStorage = inject(TokenStorageService);
-  const router = inject(Router);
+  const authState = inject(AuthStateService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -34,8 +33,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
       const refreshToken = tokenStorage.getRefreshToken();
       if (!refreshToken) {
         // No refresh token available, redirect to login
-        tokenStorage.clearTokens();
-        router.navigate(['/login']);
+        authState.clearSession();
         return throwError(() => error);
       }
 
@@ -45,6 +43,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
         switchMap((response) => {
           // Save new tokens
           tokenStorage.saveTokens(response.accessToken, response.refreshToken);
+          authState.applyTokenResponse(response);
           isRefreshing = false;
 
           // Retry the original request with new token
@@ -58,8 +57,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
         catchError((refreshError) => {
           // Refresh failed, clear tokens and redirect to login
           isRefreshing = false;
-          tokenStorage.clearTokens();
-          router.navigate(['/login']);
+          authState.clearSession();
           return throwError(() => refreshError);
         })
       );

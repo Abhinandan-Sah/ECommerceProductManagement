@@ -5,8 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "watch": "ng build --watch --configuration development"
   },
   "private": true,
   "dependencies": {
@@ -20,9 +19,6 @@
     "@angular/platform-browser": "^21.2.10",
     "@angular/platform-browser-dynamic": "^21.2.10",
     "@angular/router": "^21.2.10",
-    "@ngrx/effects": "^21.1.0",
-    "@ngrx/store": "^21.1.0",
-    "@ngrx/store-devtools": "^21.1.0",
     "jwt-decode": "^4.0.0",
     "ngx-toastr": "^20.0.5",
     "rxjs": "~7.8.0",

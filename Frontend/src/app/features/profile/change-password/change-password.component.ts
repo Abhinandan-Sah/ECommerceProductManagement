@@ -6,20 +6,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { passwordStrengthValidator, passwordMatchValidator } from '../../../shared/utils/validators';
 
-/**
- * ChangePasswordComponent allows authenticated users to change their password.
- *
- * Features:
- * - Reactive form with currentPassword, newPassword, confirmPassword fields
- * - Password validation (strength requirements)
- * - Password match validation
- * - Loading state during password change
- * - Success notification
- * - Handles incorrect current password errors (400)
- * - Cancel button to return to profile view
- *
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 15.2
- */
 @Component({
   selector: 'app-change-password',
   imports: [ReactiveFormsModule, RouterModule],
@@ -40,9 +26,6 @@ export class ChangePasswordComponent implements OnInit {
     this.initializeForm();
   }
 
-  /**
-   * Initialize the change password form with validation rules.
-   */
   private initializeForm(): void {
     this.changePasswordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
@@ -53,9 +36,6 @@ export class ChangePasswordComponent implements OnInit {
     });
   }
 
-  /**
-   * Handle form submission.
-   */
   onSubmit(): void {
     if (this.changePasswordForm.invalid) {
       this.changePasswordForm.markAllAsTouched();
@@ -82,9 +62,6 @@ export class ChangePasswordComponent implements OnInit {
     });
   }
 
-  /**
-   * Handle password change errors.
-   */
   private handleError(error: any): void {
     if (error.status === 400) {
       this.errorMessage = 'Current password is incorrect. Please try again.';
@@ -100,33 +77,21 @@ export class ChangePasswordComponent implements OnInit {
     this.notificationService.showError(this.errorMessage);
   }
 
-  /**
-   * Cancel password change and return to profile view.
-   */
   cancel(): void {
     this.router.navigate(['/profile']);
   }
 
-  /**
-   * Check if a form field has errors and has been touched.
-   */
   hasError(fieldName: string): boolean {
     const field = this.changePasswordForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  /**
-   * Check if form has password mismatch error.
-   */
   hasPasswordMismatch(): boolean {
     const form = this.changePasswordForm;
     const confirmField = form.get('confirmPassword');
     return !!(form.errors?.['passwordMismatch'] && confirmField?.touched);
   }
 
-  /**
-   * Get error message for a specific field.
-   */
   getErrorMessage(fieldName: string): string {
     const field = this.changePasswordForm.get(fieldName);
 
@@ -149,9 +114,6 @@ export class ChangePasswordComponent implements OnInit {
     return 'Invalid input';
   }
 
-  /**
-   * Get user-friendly label for form field.
-   */
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
       currentPassword: 'Current password',
