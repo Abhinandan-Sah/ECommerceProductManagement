@@ -11,6 +11,10 @@ using NUnit.Framework;
 namespace Identity.API.Tests.Identity.API.Tests.Unit.Application.Services;
 
 [TestFixture]
+[Category("Identity")]
+[Category("Unit")]
+[Category("UserService")]
+[Author("Identity.API Team")]
 public class UserServiceTests
 {
     private Mock<IUserRepository> _mockUserRepo = null!;
@@ -26,6 +30,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that user search returns the repository page used by admin user-management screens.")]
     public async Task GetAllUsersAsync_ReturnsUsers()
     {
         // Arrange
@@ -46,6 +51,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that a known user id is mapped into a user response without losing identity details.")]
     public async Task GetUserByIdAsync_WithValidId_ReturnsUser()
     {
         // Arrange
@@ -70,6 +76,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that missing users are represented as null for callers that handle optional profile lookups.")]
     public async Task GetUserByIdAsync_WithInvalidId_ReturnsNull()
     {
         // Arrange
@@ -84,6 +91,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that customers can update editable profile fields while preserving the existing account record.")]
     public async Task UpdateProfileAsync_WithValidData_UpdatesUser()
     {
         // Arrange
@@ -115,6 +123,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that profile updates fail clearly when the account no longer exists.")]
     public void UpdateProfileAsync_WithInvalidId_ThrowsNotFoundException()
     {
         // Arrange
@@ -133,6 +142,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that deactivating an account revokes active refresh tokens so future sessions cannot continue.")]
     public async Task SetUserActiveAsync_WithValidId_UpdatesActiveStatus()
     {
         // Arrange
@@ -160,6 +170,7 @@ public class UserServiceTests
     }
 
     [Test]
+    [Description("Verifies that deleting an existing user delegates to the repository with the loaded account entity.")]
     public async Task DeleteUserAsync_WithValidId_DeletesUser()
     {
         // Arrange

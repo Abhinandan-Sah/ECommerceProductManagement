@@ -14,6 +14,10 @@ using Shared.Messaging;
 namespace Catalog.API.Tests.Unit.Application.Services
 {
     [TestFixture]
+    [Category("Catalog")]
+    [Category("Unit")]
+    [Category("ProductService")]
+    [Author("Catalog.API Team")]
     public class ProductServiceTests
     {
         private Mock<IProductRepository> _mockProductRepository = null!;
@@ -45,6 +49,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that a published product can be loaded with its category name for catalog display.")]
         public async Task GetProductByIdAsync_ExistingProduct_ReturnsProduct()
         {
             // Arrange
@@ -81,6 +86,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that missing products are returned as null for optional product detail lookups.")]
         public async Task GetProductByIdAsync_NonExistentProduct_ReturnsNull()
         {
             // Arrange
@@ -98,6 +104,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that product creation rejects category ids that do not exist in the catalog.")]
         public async Task AddProductAsync_InvalidCategory_ThrowsBadRequestException()
         {
             // Arrange
@@ -122,6 +129,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that valid product input creates a draft product with a generated SKU.")]
         public async Task AddProductAsync_ValidData_CreatesProduct()
         {
             // Arrange

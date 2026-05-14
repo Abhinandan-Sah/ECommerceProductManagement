@@ -10,6 +10,10 @@ using NUnit.Framework;
 namespace Catalog.API.Tests.Unit.Application.Services
 {
     [TestFixture]
+    [Category("Catalog")]
+    [Category("Unit")]
+    [Category("CategoryService")]
+    [Author("Catalog.API Team")]
     public class CategoryServiceTests
     {
         private Mock<ICategoryRepository> _mockCategoryRepository = null!;
@@ -29,6 +33,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that category navigation can load the full catalog category list.")]
         public async Task GetAllCategoriesAsync_ReturnsAllCategories()
         {
             // Arrange
@@ -51,6 +56,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that a known category id returns the category details required by catalog workflows.")]
         public async Task GetCategoryByIdAsync_ExistingCategory_ReturnsCategory()
         {
             // Arrange
@@ -76,6 +82,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that missing categories are returned as null for optional lookup flows.")]
         public async Task GetCategoryByIdAsync_NonExistentCategory_ReturnsNull()
         {
             // Arrange
@@ -93,6 +100,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that valid category input creates a new top-level catalog category.")]
         public async Task AddCategoryAsync_ValidData_CreatesCategory()
         {
             // Arrange
@@ -125,6 +133,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that updating a deleted or unknown category fails with a not-found error.")]
         public async Task UpdateCategoryAsync_NonExistentCategory_ThrowsNotFoundException()
         {
             // Arrange
@@ -143,6 +152,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that deleting a deleted or unknown category fails with a not-found error.")]
         public async Task DeleteCategoryAsync_NonExistentCategory_ThrowsNotFoundException()
         {
             // Arrange

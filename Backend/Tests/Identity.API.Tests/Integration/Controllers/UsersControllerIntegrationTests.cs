@@ -4,6 +4,10 @@ using NUnit.Framework;
 namespace Identity.API.Tests.Integration.Controllers;
 
 [TestFixture]
+[Category("Identity")]
+[Category("Integration")]
+[Category("UsersController")]
+[Author("Identity.API Team")]
 public class UsersControllerIntegrationTests
 {
     private CustomWebApplicationFactory<Program> _factory = null!;
@@ -24,6 +28,7 @@ public class UsersControllerIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that user profile endpoints reject unauthenticated access before exposing account data.")]
     public async Task GetUserById_WithInvalidId_ReturnsUnauthorized()
     {
         // Arrange
@@ -32,7 +37,7 @@ public class UsersControllerIntegrationTests
         // Act
         var response = await _client.GetAsync($"/api/users/{invalidId}");
 
-        // Assert - Endpoint requires authorization
+        // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 }

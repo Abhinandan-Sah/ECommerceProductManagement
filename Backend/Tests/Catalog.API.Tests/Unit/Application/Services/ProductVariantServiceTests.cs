@@ -10,6 +10,10 @@ using NUnit.Framework;
 namespace Catalog.API.Tests.Unit.Application.Services
 {
     [TestFixture]
+    [Category("Catalog")]
+    [Category("Unit")]
+    [Category("ProductVariantService")]
+    [Author("Catalog.API Team")]
     public class ProductVariantServiceTests
     {
         private Mock<IProductVariantRepository> _mockProductVariantRepository = null!;
@@ -32,6 +36,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that product detail workflows can list all variants for a product.")]
         public async Task GetVariantsByProductAsync_ReturnsVariants()
         {
             // Arrange
@@ -55,6 +60,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that a known variant returns product-scoped option and barcode details.")]
         public async Task GetVariantByIdAsync_ExistingVariant_ReturnsVariant()
         {
             // Arrange
@@ -86,6 +92,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that missing variants are returned as null for optional product variant lookups.")]
         public async Task GetVariantByIdAsync_NonExistentVariant_ReturnsNull()
         {
             // Arrange
@@ -104,6 +111,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that variant creation rejects product ids that do not exist in the catalog.")]
         public async Task AddVariantAsync_InvalidProduct_ThrowsBadRequestException()
         {
             // Arrange
@@ -127,6 +135,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that valid variant input creates a product variant with merchandising attributes.")]
         public async Task AddVariantAsync_ValidData_CreatesVariant()
         {
             // Arrange
@@ -170,6 +179,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that updating a missing variant fails with a not-found error.")]
         public async Task UpdateVariantAsync_NonExistentVariant_ThrowsNotFoundException()
         {
             // Arrange
@@ -194,6 +204,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that deleting a missing variant fails with a not-found error.")]
         public async Task DeleteVariantAsync_NonExistentVariant_ThrowsNotFoundException()
         {
             // Arrange

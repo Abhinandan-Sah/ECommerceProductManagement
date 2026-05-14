@@ -8,6 +8,10 @@ using NUnit.Framework;
 namespace Identity.API.Tests.Integration.Repositories;
 
 [TestFixture]
+[Category("Identity")]
+[Category("Integration")]
+[Category("AuthRepository")]
+[Author("Identity.API Team")]
 public class AuthRepositoryIntegrationTests
 {
     private IdentityDBContext _context = null!;
@@ -32,6 +36,7 @@ public class AuthRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that registration can detect an email already owned by an existing account.")]
     public async Task EmailExistsAsync_WithExistingEmail_ReturnsTrue()
     {
         // Arrange
@@ -53,6 +58,7 @@ public class AuthRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that registration treats unused email addresses as available.")]
     public async Task EmailExistsAsync_WithNonExistingEmail_ReturnsFalse()
     {
         // Act
@@ -63,6 +69,7 @@ public class AuthRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that newly registered users are persisted with their identity profile data.")]
     public async Task AddUserAsync_AddsUserToDatabase()
     {
         // Arrange
@@ -84,6 +91,7 @@ public class AuthRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that login can retrieve an account by its registered email address.")]
     public async Task GetUserByEmailAsync_WithExistingEmail_ReturnsUser()
     {
         // Arrange
@@ -106,6 +114,7 @@ public class AuthRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that login receives no account when credentials reference an unknown email address.")]
     public async Task GetUserByEmailAsync_WithNonExistingEmail_ReturnsNull()
     {
         // Act

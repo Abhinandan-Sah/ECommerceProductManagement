@@ -11,6 +11,10 @@ using NUnit.Framework;
 namespace Catalog.API.Tests.Unit.Application.Services
 {
     [TestFixture]
+    [Category("Catalog")]
+    [Category("Unit")]
+    [Category("MediaAssetService")]
+    [Author("Catalog.API Team")]
     public class MediaAssetServiceTests
     {
         private Mock<IMediaAssetRepository> _mockMediaAssetRepository = null!;
@@ -33,6 +37,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that shoppers can retrieve the media gallery for a published product.")]
         public async Task GetMediaByProductAsync_ReturnsMediaAssets()
         {
             // Arrange
@@ -61,6 +66,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that a known media asset returns its product-scoped image metadata.")]
         public async Task GetMediaByIdAsync_ExistingMedia_ReturnsMediaAsset()
         {
             // Arrange
@@ -97,6 +103,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that missing media assets are returned as null for product media lookups.")]
         public async Task GetMediaByIdAsync_NonExistentMedia_ReturnsNull()
         {
             // Arrange
@@ -120,6 +127,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that valid media input creates a product image with sort and accessibility metadata.")]
         public async Task AddMediaAsync_ValidData_CreatesMediaAsset()
         {
             // Arrange
@@ -158,6 +166,7 @@ namespace Catalog.API.Tests.Unit.Application.Services
         }
 
         [Test]
+        [Description("Verifies that deleting a missing media asset fails with a not-found error.")]
         public async Task DeleteMediaAsync_NonExistentMedia_ThrowsNotFoundException()
         {
             // Arrange

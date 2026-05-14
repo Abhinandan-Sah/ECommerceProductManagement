@@ -8,6 +8,10 @@ using NUnit.Framework;
 namespace Identity.API.Tests.Integration.Repositories;
 
 [TestFixture]
+[Category("Identity")]
+[Category("Integration")]
+[Category("UserRepository")]
+[Author("Identity.API Team")]
 public class UserRepositoryIntegrationTests
 {
     private IdentityDBContext _context = null!;
@@ -32,6 +36,7 @@ public class UserRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that admin user-management queries can retrieve a page of users from storage.")]
     public async Task GetAllUsersAsync_ReturnsAllUsers()
     {
         // Arrange
@@ -49,6 +54,7 @@ public class UserRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that account details can be loaded by id for profile and admin workflows.")]
     public async Task GetUserByIdAsync_WithValidId_ReturnsUser()
     {
         // Arrange
@@ -71,6 +77,7 @@ public class UserRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that id lookups return null when the account does not exist.")]
     public async Task GetUserByIdAsync_WithInvalidId_ReturnsNull()
     {
         // Act
@@ -81,6 +88,7 @@ public class UserRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that persisted account profile changes are saved to the identity database.")]
     public async Task UpdateUserAsync_UpdatesUser()
     {
         // Arrange
@@ -105,6 +113,7 @@ public class UserRepositoryIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that account deletion removes the user record from identity storage.")]
     public async Task DeleteUserAsync_DeletesUser()
     {
         // Arrange

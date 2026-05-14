@@ -6,6 +6,10 @@ using NUnit.Framework;
 namespace Identity.API.Tests.Integration.Controllers;
 
 [TestFixture]
+[Category("Identity")]
+[Category("Integration")]
+[Category("AuthController")]
+[Author("Identity.API Team")]
 public class AuthControllerIntegrationTests
 {
     private CustomWebApplicationFactory<Program> _factory = null!;
@@ -26,6 +30,7 @@ public class AuthControllerIntegrationTests
     }
 
     [Test]
+    [Description("Verifies that public registration accepts a valid customer account request and creates the account.")]
     public async Task Register_WithValidData_ReturnsCreated()
     {
         // Arrange
