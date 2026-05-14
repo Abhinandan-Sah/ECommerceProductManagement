@@ -45,7 +45,7 @@
             maxlength="200"
           />
           @if (isInvalid('name')) {
-            <span class="text-sm text-[var(--color-danger)] mt-1 block">Product name is required.</span>
+            <span class="text-sm text-[var(--color-danger)] mt-1 block">{{ getProductFieldError('name') }}</span>
           }
         </div>
 
@@ -62,7 +62,7 @@
             maxlength="200"
           />
           @if (isInvalid('brand')) {
-            <span class="text-sm text-[var(--color-danger)] mt-1 block">Brand is required.</span>
+            <span class="text-sm text-[var(--color-danger)] mt-1 block">{{ getProductFieldError('brand') }}</span>
           }
         </div>
 
@@ -104,7 +104,7 @@
           maxlength="500"
         ></textarea>
         @if (isInvalid('description')) {
-          <span class="text-sm text-[var(--color-danger)] mt-1 block">Description cannot exceed 500 characters.</span>
+          <span class="text-sm text-[var(--color-danger)] mt-1 block">{{ getProductFieldError('description') }}</span>
         }
       </div>
 

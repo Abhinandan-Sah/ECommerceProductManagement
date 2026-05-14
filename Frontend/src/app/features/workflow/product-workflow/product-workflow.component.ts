@@ -79,7 +79,7 @@ export class ProductWorkflowComponent implements OnInit {
     this.pricingForm = this.fb.group({
       mrp:        ['', [Validators.required, Validators.min(0.01)]],
       salePrice:  ['', [Validators.required, Validators.min(0.01)]],
-      gstPercent: ['', [Validators.required, Validators.min(0), Validators.max(100)]]
+      gstPercent: ['', [Validators.required, Validators.min(0.01), Validators.max(100)]]
     }, { validators: this.priceValidator });
 
     this.inventoryForm = this.fb.group({

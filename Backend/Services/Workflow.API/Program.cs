@@ -1,3 +1,4 @@
+// Configures the Workflow API host, approval services, authentication, and messaging.
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        // Workflow statuses are easier to read and debug as names instead of integer enum values.
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
@@ -66,6 +68,7 @@ var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
 var jwtAudience = builder.Configuration["JwtSettings:Audience"]
     ?? throw new InvalidOperationException("JwtSettings:Audience is not configured");
 
+// Workflow is mostly internal, but pricing/status endpoints still depend on trusted role claims.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -86,6 +89,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<WorkflowDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Status and audit events leave Workflow through RabbitMQ so Reporting stays eventually consistent.
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((_, cfg) =>
@@ -115,6 +119,7 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
+// Claims are needed by the controller to stamp audit records with the acting user.
 app.UseAuthentication();
 app.UseAuthorization();
 

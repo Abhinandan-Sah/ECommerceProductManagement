@@ -1,3 +1,4 @@
+// Configures the Identity API host, authentication, user services, and messaging.
 using Identity.API.Application.Interfaces.Repositories;
 using Identity.API.Application.Interfaces.Services;
 using Identity.API.Application.Services;
@@ -35,6 +36,7 @@ var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
 var jwtAudience = builder.Configuration["JwtSettings:Audience"]
     ?? throw new InvalidOperationException("JwtSettings:Audience is not configured");
 
+// Identity issues the tokens, but it also validates them for profile and admin endpoints.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -59,6 +61,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddControllers();
 
+// User lifecycle events are published so Reporting can update dashboards without querying Identity directly.
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((_, cfg) =>
@@ -120,6 +123,7 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
+// Keep this order: JWT claims are populated before role-based authorization runs.
 app.UseAuthentication();
 app.UseAuthorization();
 

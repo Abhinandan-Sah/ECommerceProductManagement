@@ -176,11 +176,11 @@
             <div class="wf-field wf-field-narrow">
               <label class="wf-label">GST % <span class="wf-required">*</span></label>
               <div class="wf-input-suffix-wrap">
-                <input type="number" formControlName="gstPercent" class="wf-input wf-input-suffixed" min="0" max="100" step="0.01" placeholder="0" id="gst-input" />
+                <input type="number" formControlName="gstPercent" class="wf-input wf-input-suffixed" min="0.01" max="100" step="0.01" placeholder="0.00" id="gst-input" />
                 <span class="wf-suffix">%</span>
               </div>
               @if (pricingForm.get('gstPercent')?.invalid && pricingForm.get('gstPercent')?.touched) {
-                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid GST % (0–100) is required</p>
+                <p class="wf-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Valid GST % greater than 0 and up to 100 is required</p>
               }
             </div>
             <!-- Computed discount hint -->

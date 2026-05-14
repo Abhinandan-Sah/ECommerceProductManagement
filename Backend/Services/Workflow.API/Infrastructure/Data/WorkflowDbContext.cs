@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Workflow.API.Domain.Entities;
 using Workflow.API.Domain.Enums;
 
@@ -12,36 +12,31 @@ namespace Workflow.API.Infrastructure.Data
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<Approval> Approvals { get; set; }
 
-        // ─── THE MAGIC INTERCEPTOR ──────────────────────────────────
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            // Look at all the entities EF Core is about to save...
+            // Apply audit timestamps before EF Core writes tracked entities.
             var entries = ChangeTracker.Entries<BaseEntity>();
 
             foreach (var entry in entries)
             {
-                // If we are INSERTING a new record, ensure CreatedAt is right now
                 if (entry.State == EntityState.Added)
                 {
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                 }
-                // If we are UPDATING an existing record, stamp the UpdatedAt time
                 else if (entry.State == EntityState.Modified)
                 {
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
-            // Continue with the normal save process
             return base.SaveChangesAsync(cancellationToken);
         }
 
-        // ─── FLUENT API CONFIGURATION ───────────────────────────────
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Price Configuration
+            // Store monetary values with fixed precision.
             modelBuilder.Entity<Price>(entity =>
             {
                 entity.HasKey(p => p.Id);
@@ -50,14 +45,14 @@ namespace Workflow.API.Infrastructure.Data
                 entity.Property(p => p.GSTPercent).HasColumnType("decimal(5,2)");
             });
 
-            // Inventory Configuration
+            // Keep warehouse text bounded for predictable storage.
             modelBuilder.Entity<Inventory>(entity =>
             {
                 entity.HasKey(i => i.Id);
                 entity.Property(i => i.WarehouseLocation).HasMaxLength(100);
             });
 
-            // Approval Configuration
+            // Persist approval status as text so reports and database reads stay understandable.
             modelBuilder.Entity<Approval>(entity =>
             {
                 entity.HasKey(a => a.Id);

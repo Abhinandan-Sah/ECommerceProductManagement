@@ -22,7 +22,8 @@ namespace Identity.API.Infrastructure.Security
             _issuer = config["JwtSettings:Issuer"]
                         ?? throw new Exception("JWT Issuer not configured");
             
-            // Support both single audience and multiple audiences
+            // Keep backward compatibility with old single-audience config while allowing gateways
+            // and individual services to validate the same issuer.
             var singleAudience = config["JwtSettings:Audience"];
             var multipleAudiences = config.GetSection("JwtSettings:Audiences").Get<string[]>();
             
@@ -55,7 +56,8 @@ namespace Identity.API.Infrastructure.Security
 
             var token = new JwtSecurityToken(
                 issuer: _issuer,
-                audience: _audiences[0], // JWT spec requires single audience in standard claim, but we can add multiple
+                // The token carries one standard audience; services validate against the configured audience list.
+                audience: _audiences[0],
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(_expiryMinutes),
                 signingCredentials: creds
@@ -66,11 +68,9 @@ namespace Identity.API.Infrastructure.Security
 
         public DateTime GetTokenExpiry() => DateTime.UtcNow.AddMinutes(_expiryMinutes);
 
-        /// <summary>
-        /// Generates a cryptographically secure random refresh token string.
-        /// </summary>
         public static string GenerateRefreshToken()
         {
+            // Refresh tokens need entropy, not readability. The database stores the value so it can be revoked.
             var randomBytes = new byte[64];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);

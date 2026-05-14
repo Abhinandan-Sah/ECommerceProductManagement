@@ -6,32 +6,34 @@ using Catalog.API.Domain.Exceptions;
 
 namespace Catalog.API.Application.Services
 {
+    /// <summary>
+    /// Applies category rules and shapes category data for API responses.
+    /// </summary>
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _repository;
         private readonly ILogger<CategoryService> _logger;
 
+        /// <summary>
+        /// Creates the category service with its repository and logger.
+        /// </summary>
         public CategoryService(ICategoryRepository repository, ILogger<CategoryService> logger)
         {
             _repository = repository;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync()
         {
             _logger.LogInformation("Fetching all categories");
 
             var categories = await _repository.GetAllCategoriesAsync();
 
-            return categories.Select(c => new CategoryResponseDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                ParentCategoryId = c.ParentCategoryId,
-                ParentCategoryName = c.ParentCategory != null ? c.ParentCategory.Name : "None"
-            });
+            return categories.Select(category => MapToDto(category));
         }
 
+        /// <inheritdoc />
         public async Task<CategoryResponseDto?> GetCategoryByIdAsync(Guid id)
         {
             _logger.LogInformation("Fetching category {CategoryId}", id);
@@ -39,15 +41,10 @@ namespace Catalog.API.Application.Services
             var category = await _repository.GetCategoryByIdAsync(id);
             if (category == null) return null;
 
-            return new CategoryResponseDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                ParentCategoryId = category.ParentCategoryId,
-                ParentCategoryName = category.ParentCategory != null ? category.ParentCategory.Name : "None"
-            };
+            return MapToDto(category);
         }
 
+        /// <inheritdoc />
         public async Task<CategoryResponseDto> AddCategoryAsync(CreateCategoryDto dto)
         {
             _logger.LogInformation("Adding new category: {CategoryName}", dto.Name);
@@ -62,14 +59,10 @@ namespace Catalog.API.Application.Services
 
             _logger.LogInformation("Category {CategoryId} created successfully", savedCategory.Id);
 
-            return new CategoryResponseDto
-            {
-                Id = savedCategory.Id,
-                Name = savedCategory.Name,
-                ParentCategoryId = savedCategory.ParentCategoryId
-            };
+            return MapToDto(savedCategory, missingParentName: string.Empty);
         }
 
+        /// <inheritdoc />
         public async Task UpdateCategoryAsync(Guid id, Category categoryUpdate)
         {
             _logger.LogInformation("Updating category {CategoryId}", id);
@@ -83,6 +76,7 @@ namespace Catalog.API.Application.Services
             _logger.LogInformation("Category {CategoryId} updated successfully", id);
         }
 
+        /// <inheritdoc />
         public async Task DeleteCategoryAsync(Guid id)
         {
             _logger.LogInformation("Deleting category {CategoryId}", id);
@@ -94,5 +88,16 @@ namespace Catalog.API.Application.Services
 
             _logger.LogInformation("Category {CategoryId} deleted successfully", id);
         }
+
+        /// <summary>
+        /// Converts a category entity into the response shape used by category endpoints.
+        /// </summary>
+        private static CategoryResponseDto MapToDto(Category category, string missingParentName = "None") => new()
+        {
+            Id = category.Id,
+            Name = category.Name,
+            ParentCategoryId = category.ParentCategoryId,
+            ParentCategoryName = category.ParentCategory != null ? category.ParentCategory.Name : missingParentName
+        };
     }
 }

@@ -7,17 +7,24 @@ using Identity.API.Domain.Exceptions;
 
 namespace Identity.API.Application.Services
 {
+    /// <summary>
+    /// Applies user-management rules before user data is returned or changed.
+    /// </summary>
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepo;
         private readonly ILogger<UserService> _logger;
 
+        /// <summary>
+        /// Creates the user service with its repository and logger.
+        /// </summary>
         public UserService(IUserRepository userRepo, ILogger<UserService> logger)
         {
             _userRepo = userRepo;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(int page, int pageSize, string? search, string? role)
         {
             _logger.LogInformation("Fetching users (Page: {Page}, PageSize: {PageSize})", page, pageSize);
@@ -26,11 +33,13 @@ namespace Identity.API.Application.Services
             return users.Select(MapToDto);
         }
 
+        /// <inheritdoc />
         public async Task<int> GetUsersCountAsync(string? search, string? role)
         {
             return await _userRepo.GetUsersCountAsync(search, role);
         }
 
+        /// <inheritdoc />
         public async Task<UserResponseDto?> GetUserByIdAsync(Guid id)
         {
             _logger.LogInformation("Fetching user {UserId}", id);
@@ -39,11 +48,13 @@ namespace Identity.API.Application.Services
             return user == null ? null : MapToDto(user);
         }
 
+        /// <inheritdoc />
         public async Task<bool> IsEmailTakenAsync(string email, Guid excludeUserId)
         {
             return await _userRepo.IsEmailTakenAsync(email, excludeUserId);
         }
 
+        /// <inheritdoc />
         public async Task<UserResponseDto> UpdateProfileAsync(Guid id, UpdateProfileRequestDto request)
         {
             _logger.LogInformation("Updating profile for user {UserId}", id);
@@ -61,6 +72,7 @@ namespace Identity.API.Application.Services
             return MapToDto(user);
         }
 
+        /// <inheritdoc />
         public async Task UpdateUserRoleAsync(Guid id, Role role)
         {
             _logger.LogInformation("Updating role for user {UserId} to {Role}", id, role);
@@ -76,6 +88,7 @@ namespace Identity.API.Application.Services
             _logger.LogInformation("Role updated for user {UserId}", id);
         }
 
+        /// <inheritdoc />
         public async Task SetUserActiveAsync(Guid id, bool isActive)
         {
             _logger.LogInformation("Setting user {UserId} active status to {IsActive}", id, isActive);
@@ -88,6 +101,7 @@ namespace Identity.API.Application.Services
 
             if (!isActive)
             {
+                // Deactivated users should lose access immediately, not just when the current token expires.
                 await _userRepo.RevokeRefreshTokensAsync(id, "Account deactivated");
             }
 
@@ -96,6 +110,7 @@ namespace Identity.API.Application.Services
             _logger.LogInformation("User {UserId} active status set to {IsActive}", id, isActive);
         }
 
+        /// <inheritdoc />
         public async Task DeleteUserAsync(Guid id)
         {
             _logger.LogInformation("Deleting user {UserId}", id);
@@ -108,11 +123,15 @@ namespace Identity.API.Application.Services
             _logger.LogInformation("User {UserId} deleted successfully", id);
         }
 
+        /// <inheritdoc />
         public async Task<Dictionary<string, int>> GetUserStatsAsync()
         {
             return await _userRepo.GetRoleBreakdownAsync();
         }
 
+        /// <summary>
+        /// Converts a user entity into the response shape returned by user endpoints.
+        /// </summary>
         private static UserResponseDto MapToDto(User user) => new()
         {
             Id = user.Id,

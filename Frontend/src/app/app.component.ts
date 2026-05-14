@@ -23,7 +23,6 @@ export class AppComponent implements OnInit {
     // Restore session from persisted refresh token on every page load
     this.auth.initAuth();
 
-    // Safety net: reset the loading counter on every completed navigation.
     // This prevents the spinner from getting permanently stuck if a request
     // throws an error that bypasses the finalize() in the interceptor.
     this.router.events.pipe(

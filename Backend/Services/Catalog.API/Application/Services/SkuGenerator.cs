@@ -4,11 +4,17 @@ using Catalog.API.Application.Interfaces.Services;
 
 namespace Catalog.API.Application.Services
 {
+    /// <summary>
+    /// Generates readable, unique SKUs from product brand and name.
+    /// </summary>
     public class SkuGenerator : ISkuGenerator
     {
         private readonly IProductRepository _productRepository;
         private readonly ILogger<SkuGenerator> _logger;
 
+        /// <summary>
+        /// Creates the SKU generator with product lookup and logging dependencies.
+        /// </summary>
         public SkuGenerator(
             IProductRepository productRepository,
             ILogger<SkuGenerator> logger)
@@ -17,6 +23,7 @@ namespace Catalog.API.Application.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<string> GenerateSkuAsync(string brand, string productName)
         {
             if (string.IsNullOrWhiteSpace(brand))
@@ -25,17 +32,15 @@ namespace Catalog.API.Application.Services
             if (string.IsNullOrWhiteSpace(productName))
                 throw new ArgumentException("Product name cannot be null or empty", nameof(productName));
 
-            // 1. Normalize brand and product name
+            // Normalize the readable parts first so the SKU stays predictable for support and operations teams.
             var normalizedBrand = NormalizeComponent(brand);
             var normalizedName = NormalizeComponent(productName);
             
-            // 2. Create base SKU prefix
             var basePrefix = $"{normalizedBrand}-{normalizedName}";
             
-            // 3. Query database for existing SKUs with this prefix
+            // The numeric suffix keeps duplicate brand/product combinations unique without losing readability.
             var nextSequence = await GetNextSequenceNumberAsync(basePrefix);
             
-            // 4. Generate final SKU
             var sku = $"{basePrefix}-{nextSequence:D3}";
             
             _logger.LogInformation(
@@ -45,26 +50,29 @@ namespace Catalog.API.Application.Services
             return sku;
         }
 
+        /// <summary>
+        /// Normalizes one brand or product-name segment into the SKU-safe text format.
+        /// </summary>
         private string NormalizeComponent(string component)
         {
-            // Convert to uppercase
+            // Keep only stable, URL-safe characters. This avoids surprises when SKUs are used in exports or URLs.
             var normalized = component.ToUpperInvariant();
             
-            // Replace non-alphanumeric characters with hyphens
             normalized = Regex.Replace(normalized, @"[^A-Z0-9]+", "-");
             
-            // Remove consecutive hyphens
             normalized = Regex.Replace(normalized, @"-+", "-");
             
-            // Trim hyphens from start and end
             normalized = normalized.Trim('-');
             
             return normalized;
         }
 
+        /// <summary>
+        /// Finds the next available numeric suffix for a SKU prefix.
+        /// </summary>
         private async Task<int> GetNextSequenceNumberAsync(string basePrefix)
         {
-            // Query for all SKUs starting with the base prefix
+            // Pull only matching SKUs; the sequence is local to a brand/product prefix.
             var existingSkus = await _productRepository.GetSkusByPrefixAsync(basePrefix);
             
             if (!existingSkus.Any())
@@ -72,20 +80,22 @@ namespace Catalog.API.Application.Services
                 return 1;
             }
             
-            // Extract sequence numbers from existing SKUs
+            // Ignore malformed historical SKUs instead of blocking new catalogue entries.
             var sequenceNumbers = existingSkus
                 .Select(sku => ExtractSequenceNumber(sku))
                 .Where(seq => seq.HasValue)
                 .Select(seq => seq!.Value)
                 .ToList();
             
-            // Return max + 1, or 1 if no valid sequences found
             return sequenceNumbers.Any() ? sequenceNumbers.Max() + 1 : 1;
         }
 
+        /// <summary>
+        /// Reads the numeric suffix from an existing SKU.
+        /// </summary>
         private int? ExtractSequenceNumber(string sku)
         {
-            // Extract the last segment after the final hyphen
+            // The suffix is always the segment after the final hyphen, for example ABC-SHIRT-003.
             var lastHyphenIndex = sku.LastIndexOf('-');
             if (lastHyphenIndex == -1 || lastHyphenIndex == sku.Length - 1)
             {

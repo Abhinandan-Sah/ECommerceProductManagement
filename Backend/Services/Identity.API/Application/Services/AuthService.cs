@@ -12,6 +12,9 @@ using Shared.Messaging;
 
 namespace Identity.API.Application.Services
 {
+    /// <summary>
+    /// Coordinates account sign-in, token handling, and password recovery rules.
+    /// </summary>
     public class AuthService : IAuthService
     {
         private readonly IAuthRepository _authRepo;
@@ -21,6 +24,9 @@ namespace Identity.API.Application.Services
         private readonly ILogger<AuthService> _logger;
         private readonly IPublishEndpoint _publishEndpoint;
 
+        /// <summary>
+        /// Creates the authentication service with persistence, token, logging, and messaging dependencies.
+        /// </summary>
         public AuthService(IAuthRepository authRepo, IUserRepository userRepo,
             JwtTokenGenerator jwtGenerator, IConfiguration config, ILogger<AuthService> logger,
             IPublishEndpoint publishEndpoint)
@@ -33,15 +39,18 @@ namespace Identity.API.Application.Services
             _publishEndpoint = publishEndpoint;
         }
 
+        /// <inheritdoc />
         public async Task<bool> EmailExistsAsync(string email)
         {
             return await _authRepo.EmailExistsAsync(email);
         }
 
+        /// <inheritdoc />
         public async Task RegisterAsync(RegisterRequestDto request)
         {
             _logger.LogInformation("Registering new user with email: {Email}", request.Email);
 
+            // New sign-ups always start as customers. Elevated roles are assigned separately by Admin.
             var user = new User
             {
                 FullName = request.FullName,
@@ -56,6 +65,7 @@ namespace Identity.API.Application.Services
             _logger.LogInformation("User {UserId} registered successfully", user.Id);
         }
 
+        /// <inheritdoc />
         public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto request)
         {
             _logger.LogInformation("Login attempt for email: {Email}", request.Email);
@@ -82,6 +92,7 @@ namespace Identity.API.Application.Services
             return await IssueTokensAsync(user);
         }
 
+        /// <inheritdoc />
         public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
         {
             _logger.LogInformation("Refreshing token");
@@ -91,6 +102,7 @@ namespace Identity.API.Application.Services
             if (stored == null || !stored.IsActive) return null;
             if (!stored.User.IsActive) return null;
 
+            // Rotate refresh tokens on every use so a copied old token cannot be reused later.
             stored.IsRevoked = true;
             stored.RevokedReason = "Replaced by new token";
 
@@ -98,6 +110,7 @@ namespace Identity.API.Application.Services
             return await IssueTokensAsync(stored.User);
         }
 
+        /// <inheritdoc />
         public async Task<bool> LogoutAsync(string refreshToken)
         {
             var stored = await _authRepo.GetRefreshTokenAsync(refreshToken);
@@ -113,6 +126,7 @@ namespace Identity.API.Application.Services
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<string?> ForgotPasswordAsync(string email)
         {
             _logger.LogInformation("Forgot password request for email: {Email}", email);
@@ -120,13 +134,15 @@ namespace Identity.API.Application.Services
             var user = await _authRepo.GetUserByEmailAsync(email);
             if (user == null)
             {
-                // Return null but don't log anything to prevent email enumeration via logs
+                // Keep the same outward behavior for unknown emails; password reset must not become
+                // a way to discover registered accounts.
                 return null;
             }
 
             var existing = await _authRepo.GetActiveResetTokensAsync(user.Id);
             foreach (var t in existing)
             {
+                // Only one active reset link should exist per user. Older emails become harmless.
                 t.IsUsed = true;
             }
 
@@ -141,18 +157,18 @@ namespace Identity.API.Application.Services
             await _authRepo.SaveChangesAsync();
             await PublishUserAuditAsync(user.Id, "ForgotPasswordRequested");
 
-            // In development: Log the reset URL for testing
-            // In production: This should be replaced with email service (SendGrid, SMTP)
+            // Development only: log the reset URL until an email provider is wired in.
             var resetUrl = $"https://app.example.com/reset-password?token={resetToken.Token}";
             _logger.LogWarning("PASSWORD RESET TOKEN (Development Only): User {UserId}, URL: {ResetUrl}", user.Id, resetUrl);
             
-            // TODO: In production, send email with reset URL instead of logging
+            // TODO: Send this through the email service in production instead of logging the token.
             // await _emailService.SendPasswordResetEmailAsync(user.Email, resetUrl);
 
             _logger.LogInformation("Password reset token generated for user {UserId}", user.Id);
             return resetToken.Token;
         }
 
+        /// <inheritdoc />
         public async Task<bool> ResetPasswordAsync(ResetPasswordRequestDto request)
         {
             _logger.LogInformation("Password reset attempt");
@@ -165,6 +181,7 @@ namespace Identity.API.Application.Services
             tokenRecord.User.UpdatedAt = DateTime.UtcNow;
             tokenRecord.IsUsed = true;
 
+            // A password reset invalidates every active session for the account.
             await _authRepo.RevokeAllRefreshTokensAsync(tokenRecord.UserId, "Password was reset");
             await _authRepo.SaveChangesAsync();
             await PublishUserAuditAsync(tokenRecord.UserId, "PasswordReset");
@@ -173,6 +190,7 @@ namespace Identity.API.Application.Services
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto request)
         {
             _logger.LogInformation("Password change attempt for user {UserId}", userId);
@@ -185,6 +203,7 @@ namespace Identity.API.Application.Services
             user.PasswordHash = PasswordHasher.HashPassword(request.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;
 
+            // Force fresh login after password change so all clients receive tokens issued after the change.
             await _authRepo.RevokeAllRefreshTokensAsync(userId, "Password changed");
             await _userRepo.UpdateUserAsync(user);
             await PublishUserAuditAsync(userId, "PasswordChanged");
@@ -193,6 +212,7 @@ namespace Identity.API.Application.Services
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<UserResponseDto?> GetProfileAsync(Guid userId)
         {
             _logger.LogInformation("Fetching profile for user {UserId}", userId);
@@ -201,11 +221,15 @@ namespace Identity.API.Application.Services
             return user == null ? null : MapToDto(user);
         }
 
+        /// <summary>
+        /// Creates a new access token, stores a refresh token, and returns the combined auth response.
+        /// </summary>
         private async Task<AuthResponseDto> IssueTokensAsync(User user)
         {
             var expiryDays = _config.GetValue<int>("RefreshTokenSettings:ExpiryDays", 7);
             var refreshToken = JwtTokenGenerator.GenerateRefreshToken();
 
+            // Access tokens stay stateless; refresh tokens are stored so logout, rotation, and deactivation work.
             await _authRepo.AddRefreshTokenAsync(new RefreshToken
             {
                 Token = refreshToken,
@@ -226,6 +250,9 @@ namespace Identity.API.Application.Services
             };
         }
 
+        /// <summary>
+        /// Converts a user entity into the public profile response shape.
+        /// </summary>
         private static UserResponseDto MapToDto(User user) => new()
         {
             Id = user.Id,
@@ -237,6 +264,9 @@ namespace Identity.API.Application.Services
             UpdatedAt = user.UpdatedAt
         };
 
+        /// <summary>
+        /// Publishes a user audit event for account-security actions.
+        /// </summary>
         private Task PublishUserAuditAsync(Guid userId, string action)
         {
             return _publishEndpoint.Publish(new AuditLogCreatedEvent

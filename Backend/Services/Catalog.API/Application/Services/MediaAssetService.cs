@@ -8,12 +8,18 @@ using Catalog.API.Domain.Exceptions;
 
 namespace Catalog.API.Application.Services
 {
+    /// <summary>
+    /// Applies media visibility rules and shapes product media data for API responses.
+    /// </summary>
     public class MediaAssetService : IMediaAssetService
     {
         private readonly IMediaAssetRepository _mediaRepository;
         private readonly IProductRepository _productRepository;
         private readonly ILogger<MediaAssetService> _logger;
 
+        /// <summary>
+        /// Creates the media asset service with media, product, and logging dependencies.
+        /// </summary>
         public MediaAssetService(
             IMediaAssetRepository mediaRepository,
             IProductRepository productRepository,
@@ -24,10 +30,13 @@ namespace Catalog.API.Application.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<MediaAssetResponseDto>> GetMediaByProductAsync(Guid productId, string? role)
         {
             _logger.LogInformation("Fetching media assets for product {ProductId}", productId);
 
+            // Media follows the same visibility rule as products. A draft image should not leak before
+            // the product itself is ready for customers.
             var canViewUnpublished = CanViewUnpublishedProducts(role);
 
             var product = await _productRepository.GetProductByIdAsync(productId);
@@ -47,10 +56,12 @@ namespace Catalog.API.Application.Services
             });
         }
 
+        /// <inheritdoc />
         public async Task<MediaAssetResponseDto?> GetMediaByIdAsync(Guid productId, Guid id, string? role)
         {
             _logger.LogInformation("Fetching media asset {MediaId} for product {ProductId}", id, productId);
 
+            // Checking the product first prevents direct media URLs from exposing unpublished catalogue items.
             var canViewUnpublished = CanViewUnpublishedProducts(role);
 
             var product = await _productRepository.GetProductByIdAsync(productId);
@@ -72,8 +83,12 @@ namespace Catalog.API.Application.Services
             };
         }
 
+        /// <summary>
+        /// Checks whether a role can see media attached to unpublished products.
+        /// </summary>
         private static bool CanViewUnpublishedProducts(string? role)
         {
+            // Keep this list close to the media visibility checks so role changes are easy to audit.
             if (string.IsNullOrWhiteSpace(role)) return false;
 
             return role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
@@ -81,6 +96,7 @@ namespace Catalog.API.Application.Services
                 || role.Equals("ContentExecutive", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <inheritdoc />
         public async Task<MediaAssetResponseDto> AddMediaAsync(Guid productId, CreateMediaAssetDto dto)
         {
             _logger.LogInformation("Adding media asset for product {ProductId}", productId);
@@ -107,6 +123,7 @@ namespace Catalog.API.Application.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task DeleteMediaAsync(Guid productId, Guid id)
         {
             _logger.LogInformation("Deleting media asset {MediaId} for product {ProductId}", id, productId);

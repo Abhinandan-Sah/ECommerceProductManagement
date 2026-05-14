@@ -10,15 +10,17 @@ using System.Text.Json;
 namespace Reporting.API.Application.Consumers
 {
     /// <summary>
-    /// Listens for ProductStatusChangedEvent from Workflow.API
-    /// and creates an audit log entry.
+    /// Consumes workflow status changes and records them in reporting audit history.
     /// </summary>
     public class ProductStatusChangedConsumer : IConsumer<ProductStatusChangedEvent>
     {
         private readonly IAuditRepository _auditRepository;
         private readonly IReportingRepository _reportingRepository;
         private readonly ILogger<ProductStatusChangedConsumer> _logger;
-        
+
+        /// <summary>
+        /// Creates the product status consumer with audit/reporting repositories and logging.
+        /// </summary>
         public ProductStatusChangedConsumer(
             IAuditRepository auditRepository,
             IReportingRepository reportingRepository,
@@ -29,6 +31,11 @@ namespace Reporting.API.Application.Consumers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Records an audit entry for a product status transition received from Workflow.
+        /// </summary>
+        /// <param name="context">MassTransit context containing the status changed event.</param>
+        /// <returns>A task that completes when the audit log has been saved.</returns>
         public async Task Consume(ConsumeContext<ProductStatusChangedEvent> context)
         {
             var msg = context.Message;
@@ -36,6 +43,7 @@ namespace Reporting.API.Application.Consumers
             _logger.LogInformation("Received ProductStatusChanged event for product {ProductId}: {OldStatus} → {NewStatus}",
                 msg.ProductId, msg.OldStatus, msg.NewStatus);
 
+            // Keep status decisions visible in audit history even though the change happened in Workflow.
             var auditLog = new AuditLog
             {
                 EntityName = "Product",

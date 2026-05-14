@@ -11,12 +11,18 @@ using System;
 
 namespace Reporting.API.Application.Services
 {
+    /// <summary>
+    /// Handles reporting read operations, dashboard caching, and CSV export formatting.
+    /// </summary>
     public class ReportingService : IReportingService
     {
         private readonly IReportingRepository _repository;
         private readonly IMemoryCache _cache;
         private readonly ILogger<ReportingService> _logger;
 
+        /// <summary>
+        /// Creates the reporting service with repository access, memory caching, and logging.
+        /// </summary>
         public ReportingService(IReportingRepository repository, IMemoryCache cache, ILogger<ReportingService> logger)
         {
             _repository = repository;
@@ -24,6 +30,8 @@ namespace Reporting.API.Application.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
+        /// <remarks>Caches the latest dashboard snapshot briefly because dashboard reads are frequent.</remarks>
         public async Task<DashboardSnapshot?> GetDashboardKpiAsync()
         {
             _logger.LogInformation("Fetching dashboard KPI snapshot");
@@ -34,6 +42,8 @@ namespace Reporting.API.Application.Services
                 snapshot = await _repository.GetLatestDashboardSnapshotAsync();
                 if (snapshot != null)
                 {
+                    // Dashboard values change through events, so a short cache keeps the page quick without
+                    // making business users stare at stale numbers for long.
                     _cache.Set(cacheKey, snapshot, TimeSpan.FromMinutes(10));
                     _logger.LogInformation("Dashboard snapshot cached for 10 minutes");
                 }
@@ -45,6 +55,7 @@ namespace Reporting.API.Application.Services
             return snapshot;
         }
 
+        /// <inheritdoc />
         public async Task<PagedResult<ProductReport>> GetProductReportsAsync(ProductReportFilterDto filter)
         {
             _logger.LogInformation("Fetching product reports");
@@ -52,6 +63,7 @@ namespace Reporting.API.Application.Services
             return await _repository.GetProductReportsAsync(filter);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<DashboardSnapshot>> GetSnapshotsAsync()
         {
             _logger.LogInformation("Fetching historical snapshots");
@@ -59,6 +71,8 @@ namespace Reporting.API.Application.Services
             return await _repository.GetHistoricalSnapshotsAsync();
         }
 
+        /// <inheritdoc />
+        /// <remarks>Escapes user-entered text fields so generated CSV can be opened safely by spreadsheet tools.</remarks>
         public async Task<byte[]> ExportProductsToCsvAsync()
         {
             _logger.LogInformation("Exporting products to CSV");
@@ -69,7 +83,7 @@ namespace Reporting.API.Application.Services
 
             foreach (var p in products)
             {
-                // Simple escaping for basic string properties
+                // Escape the fields users can type into; Excel and BI tools are unforgiving about commas.
                 var name = p.ProductName?.Replace("\"", "\"\"") ?? "";
                 if (name.Contains(',') || name.Contains('"')) name = $"\"{name}\"";
 

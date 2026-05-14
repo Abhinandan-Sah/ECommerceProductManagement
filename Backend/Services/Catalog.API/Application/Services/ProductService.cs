@@ -9,6 +9,9 @@ using Shared.Messaging;
 
 namespace Catalog.API.Application.Services
 {
+    /// <summary>
+    /// Applies catalog product rules before product data is returned, created, updated, or deleted.
+    /// </summary>
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
@@ -17,6 +20,9 @@ namespace Catalog.API.Application.Services
         private readonly ILogger<ProductService> _logger;
         private readonly IPublishEndpoint _publishEndpoint;
 
+        /// <summary>
+        /// Creates the product service with persistence, SKU generation, logging, and messaging dependencies.
+        /// </summary>
         public ProductService(
             IProductRepository repository, 
             ICategoryRepository categoryRepository, 
@@ -31,10 +37,13 @@ namespace Catalog.API.Application.Services
             _publishEndpoint = publishEndpoint;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<ProductResponseDto>> GetAllProductsAsync(Guid? categoryId = null, PublishStatus? status = null, bool canViewUnpublished = false)
         {
             _logger.LogInformation("Fetching all products (CategoryId: {CategoryId}, Status: {Status})", categoryId, status);
 
+            // Public users should only see products that have passed review or are live in the catalogue.
+            // Internal roles can still filter and work with drafts during the merchandising flow.
             var publicStatuses = new[] { PublishStatus.Approved, PublishStatus.Published };
 
             if (!canViewUnpublished && status.HasValue && !publicStatuses.Contains(status.Value))
@@ -57,6 +66,7 @@ namespace Catalog.API.Application.Services
             });
         }
 
+        /// <inheritdoc />
         public async Task<ProductResponseDto?> GetProductByIdAsync(Guid id, bool canViewUnpublished = false)
         {
             _logger.LogInformation("Fetching product {ProductId}", id);
@@ -80,11 +90,12 @@ namespace Catalog.API.Application.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<ProductResponseDto> AddProductAsync(CreateProductDto dto)
         {
             _logger.LogInformation("Adding new product: {ProductName}", dto.Name);
 
-            // Business rule validation: Category must exist
+            // Keep product creation strict here so we do not end up with orphaned catalogue data.
             var category = await _categoryRepository.GetCategoryByIdAsync(dto.CategoryId);
             if (category == null)
             {
@@ -92,7 +103,7 @@ namespace Catalog.API.Application.Services
                 throw new BadRequestException($"Category with ID {dto.CategoryId} does not exist.");
             }
 
-            // Generate unique SKU
+            // SKU is generated once from the commercial identity of the product and stays stable afterwards.
             var generatedSku = await _skuGenerator.GenerateSkuAsync(dto.Brand, dto.Name);
 
             var productEntity = new Product
@@ -123,6 +134,7 @@ namespace Catalog.API.Application.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task UpdateProductAsync(Guid id, UpdateProductDto dto, string callerRole)
         {
             _logger.LogInformation("Updating product {ProductId} by role {Role}", id, callerRole);
@@ -130,7 +142,8 @@ namespace Catalog.API.Application.Services
             var existingProduct = await _repository.GetProductByIdAsync(id);
             if (existingProduct == null) throw new NotFoundException("Product", id);
 
-            // Role-based PublishStatus validation
+            // Product managers can prepare catalogue content, but final publish decisions stay with Admin
+            // or the approval workflow. This keeps accidental direct publishing out of day-to-day edits.
             var adminOnlyStatuses = new[]
             {
                 PublishStatus.Approved,
@@ -150,7 +163,7 @@ namespace Catalog.API.Application.Services
                     "Use the Workflow approval process instead.");
             }
 
-            // Business rule validation: Category must exist
+            // Category is rechecked on update because the client may have stale dropdown data.
             var category = await _categoryRepository.GetCategoryByIdAsync(dto.CategoryId);
             if (category == null)
             {
@@ -159,7 +172,7 @@ namespace Catalog.API.Application.Services
             }
 
             existingProduct.Name = dto.Name;
-            // SKU is not updated - it remains unchanged after creation
+            // SKU is intentionally not changed after creation; downstream reports and integrations treat it as stable.
             existingProduct.Brand = dto.Brand;
             existingProduct.Description = dto.Description;
             existingProduct.CategoryId = dto.CategoryId;
@@ -172,6 +185,7 @@ namespace Catalog.API.Application.Services
             _logger.LogInformation("Product {ProductId} updated successfully", id);
         }
 
+        /// <inheritdoc />
         public async Task DeleteProductAsync(Guid id)
         {
             _logger.LogInformation("Deleting product {ProductId}", id);
@@ -189,8 +203,12 @@ namespace Catalog.API.Application.Services
             _logger.LogInformation("Product {ProductId} deleted successfully", id);
         }
 
+        /// <summary>
+        /// Publishes the product fields needed by Reporting.API to maintain its product read model.
+        /// </summary>
         private Task PublishProductReportAsync(Product product, string categoryName)
         {
+            // Reporting owns its read model, so Catalog only publishes the facts needed to rebuild it.
             return _publishEndpoint.Publish(new ProductReportChangedEvent
             {
                 ProductId = product.Id,

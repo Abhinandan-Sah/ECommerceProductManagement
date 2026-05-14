@@ -1,3 +1,4 @@
+// Configures the Reporting API host, projections, caching, authentication, and consumers.
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,7 @@ var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
 var jwtAudience = builder.Configuration["JwtSettings:Audience"]
     ?? throw new InvalidOperationException("JwtSettings:Audience is not configured");
 
+// Reports combine operational and audit data, so every endpoint validates the caller's role.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -80,6 +82,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<ReportingDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Dashboard reads are frequent and tolerate a short delay; writes still go straight to SQL.
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IReportingRepository, ReportingRepository>();
 builder.Services.AddScoped<IReportingService, ReportingService>();
@@ -105,6 +108,7 @@ builder.Services.AddMassTransit(x =>
 
         cfg.ReceiveEndpoint("reporting_audit_queue", e =>
         {
+            // One queue keeps Reporting's projections ordered enough for this dashboard use case.
             e.ConfigureConsumer<ProductStatusChangedConsumer>(context);
             e.ConfigureConsumer<AuditLogCreatedConsumer>(context);
             e.ConfigureConsumer<ProductReportChangedConsumer>(context);

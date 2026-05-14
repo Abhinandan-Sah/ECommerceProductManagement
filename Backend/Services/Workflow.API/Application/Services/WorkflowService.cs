@@ -10,12 +10,18 @@ using System.Text.Json;
 
 namespace Workflow.API.Application.Services
 {
+    /// <summary>
+    /// Applies workflow rules for pricing, inventory, approval, and audit messaging.
+    /// </summary>
     public class WorkflowService : IWorkflowService
     {
         private readonly IWorkflowRepository _repository;
         private readonly ILogger<WorkflowService> _logger;
         private readonly IPublishEndpoint _publishEndpoint;
 
+        /// <summary>
+        /// Creates the workflow service with persistence, logging, and messaging dependencies.
+        /// </summary>
         public WorkflowService(IWorkflowRepository repository, ILogger<WorkflowService> logger, IPublishEndpoint publishEndpoint)
         {
             _repository = repository;
@@ -23,6 +29,7 @@ namespace Workflow.API.Application.Services
             _publishEndpoint = publishEndpoint;
         }
 
+        /// <inheritdoc />
         public async Task<Price?> GetPricingAsync(Guid productId, string? role)
         {
             var price = await _repository.GetPricingByProductIdAsync(productId);
@@ -33,6 +40,7 @@ namespace Workflow.API.Application.Services
 
             if (string.IsNullOrWhiteSpace(role) || string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase))
             {
+                // Pricing is customer-facing, so anonymous/customer calls only get data after approval.
                 var approval = await _repository.GetCurrentApprovalStatusAsync(productId);
                 if (approval == null || approval.Status != ApprovalStatus.Approved)
                 {
@@ -43,11 +51,19 @@ namespace Workflow.API.Application.Services
             return price;
         }
 
+        /// <inheritdoc />
         public async Task<bool> UpdatePricingAsync(Guid productId, UpdatePricingRequestDto request, Guid actionByUserId)
         {
             _logger.LogInformation("Updating pricing for product {ProductId}", productId);
 
-            // Business rule validation: SalePrice must be less than or equal to MRP
+            if (request.MRP <= 0 || request.SalePrice <= 0 || request.GSTPercent <= 0)
+            {
+                _logger.LogWarning("Invalid pricing values for product {ProductId}: MRP {MRP}, SalePrice {SalePrice}, GST {GSTPercent}",
+                    productId, request.MRP, request.SalePrice, request.GSTPercent);
+                throw new BadRequestException("MRP, sale price and GST must be greater than zero.");
+            }
+
+            // Keep the pricing rule here because multiple clients can update pricing, not only the UI.
             if (request.SalePrice > request.MRP)
             {
                 _logger.LogWarning("Sale price {SalePrice} cannot be greater than MRP {MRP} for product {ProductId}",
@@ -56,6 +72,8 @@ namespace Workflow.API.Application.Services
             }
 
             var price = await _repository.GetPricingByProductIdAsync(productId);
+            // Store a compact before/after snapshot for the audit service; it keeps Reporting independent
+            // from Workflow's database schema.
             var oldValues = price == null
                 ? null
                 : JsonSerializer.Serialize(new
@@ -91,17 +109,20 @@ namespace Workflow.API.Application.Services
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<Inventory?> GetInventoryAsync(Guid productId)
         {
             _logger.LogInformation("Getting inventory for product {ProductId}", productId);
             return await _repository.GetInventoryByProductIdAsync(productId);
         }
 
+        /// <inheritdoc />
         public async Task<bool> UpdateInventoryAsync(Guid productId, UpdateInventoryRequestDto request, Guid actionByUserId)
         {
             _logger.LogInformation("Updating inventory for product {ProductId}", productId);
 
             var inventory = await _repository.GetInventoryByProductIdAsync(productId);
+            // Audit values are serialized before mutation so reviewers can see what actually changed.
             var oldValues = inventory == null
                 ? null
                 : JsonSerializer.Serialize(new
@@ -139,6 +160,7 @@ namespace Workflow.API.Application.Services
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<bool> SubmitForReviewAsync(Guid productId, Guid submittedByUserId)
         {
             _logger.LogInformation("Submitting product {ProductId} for review by user {UserId}", productId, submittedByUserId);
@@ -147,6 +169,7 @@ namespace Workflow.API.Application.Services
 
             if (approval == null)
             {
+                // First submission creates the workflow row; later submissions reuse it to keep history simple.
                 approval = new Approval
                 {
                     ProductId = productId,
@@ -169,6 +192,7 @@ namespace Workflow.API.Application.Services
             return true;
         }
 
+        /// <inheritdoc />
         public async Task<bool> UpdateStatusAsync(Guid productId, UpdateStatusRequestDto request, Guid actionByUserId)
         {
             _logger.LogInformation("Updating status for product {ProductId} to {NewStatus} by user {UserId}",
@@ -190,7 +214,7 @@ namespace Workflow.API.Application.Services
 
             await _repository.SaveApprovalAsync(approval);
 
-            // Publish status-change event so Reporting service can write audit logs.
+            // Reporting listens to this event to update both audit trails and dashboard-facing read models.
             await _publishEndpoint.Publish(new ProductStatusChangedEvent
             {
                 ProductId = productId,
@@ -203,8 +227,12 @@ namespace Workflow.API.Application.Services
             return true;
         }
 
+        /// <summary>
+        /// Publishes an audit event for workflow changes without writing audit rows directly.
+        /// </summary>
         private Task PublishAuditLogAsync(Guid productId, string action, Guid byUserId, string? oldValues, string? newValues)
         {
+            // Workflow does not write audit rows directly; the message keeps the service boundary clean.
             return _publishEndpoint.Publish(new AuditLogCreatedEvent
             {
                 EntityName = "Product",
@@ -216,6 +244,7 @@ namespace Workflow.API.Application.Services
             });
         }
 
+        /// <inheritdoc />
         public async Task<ApprovalStatusResponseDto?> GetApprovalStatusAsync(Guid productId)
         {
             _logger.LogInformation("Getting approval status for product {ProductId}", productId);
@@ -237,6 +266,7 @@ namespace Workflow.API.Application.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<ApprovalStatusResponseDto>> GetPendingApprovalsAsync()
         {
             _logger.LogInformation("Getting all pending approvals");

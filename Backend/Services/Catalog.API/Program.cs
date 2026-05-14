@@ -1,3 +1,4 @@
+// Configures the Catalog API host, dependencies, authentication, and messaging.
 using Catalog.API.Application.Interfaces.Repositories;
 using Catalog.API.Application.Interfaces.Services;
 using Catalog.API.Application.Services;
@@ -33,6 +34,7 @@ builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
 builder.Services.AddScoped<IMediaAssetService, MediaAssetService>();
 builder.Services.AddScoped<ISkuGenerator, SkuGenerator>();
 
+// Swagger is auth-aware so secured endpoints can be tested without a separate client.
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -70,6 +72,7 @@ var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
 var jwtAudience = builder.Configuration["JwtSettings:Audience"]
     ?? throw new InvalidOperationException("JwtSettings:Audience is not configured");
 
+// All services validate the same issuer/audience contract so tokens can move through the gateway safely.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -90,6 +93,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<CatalogDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Catalog publishes product changes; Reporting consumes them to maintain its read model.
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((_, cfg) =>
@@ -119,6 +123,7 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
+// Authentication must run before authorization so role policies can read the JWT claims.
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -1,26 +1,43 @@
 namespace Reporting.API.Domain.Entities
 {
+    /// <summary>
+    /// Represents an audit event persisted by the reporting service.
+    /// </summary>
     public class AuditLog : BaseEntity
     {
-        // Unique row id for this audit entry.
+        /// <summary>
+        /// Unique audit log identifier.
+        /// </summary>
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        // Domain entity being tracked (example: Product).
+        /// <summary>
+        /// Domain entity type being tracked, such as Product.
+        /// </summary>
         public string EntityName { get; set; } = string.Empty;
 
-        // Id of the domain entity being tracked.
+        /// <summary>
+        /// Identifier of the domain entity being tracked.
+        /// </summary>
         public Guid EntityId { get; set; }
 
-        // Action performed on the entity (example: StatusChanged).
+        /// <summary>
+        /// Action performed on the entity, such as StatusChanged.
+        /// </summary>
         public string Action { get; set; } = string.Empty;
 
-        // User who performed the action.
+        /// <summary>
+        /// Identifier of the user who performed the action.
+        /// </summary>
         public Guid ByUserId { get; set; }
 
-        // JSON snapshot before the change.
+        /// <summary>
+        /// Serialized JSON snapshot before the change, when available.
+        /// </summary>
         public string? OldValues { get; set; }
 
-        // JSON snapshot after the change.
+        /// <summary>
+        /// Serialized JSON snapshot after the change, when available.
+        /// </summary>
         public string? NewValues { get; set; }
     }
 }

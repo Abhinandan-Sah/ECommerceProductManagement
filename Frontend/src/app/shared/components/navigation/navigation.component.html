@@ -44,6 +44,7 @@
               <a routerLink="/catalog/products" routerLinkActive="rnav-active" class="rnav-link">Products</a>
               <a routerLink="/catalog/categories" routerLinkActive="rnav-active" class="rnav-link">Categories</a>
               <a routerLink="/workflow" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Workflow</a>
+              <a routerLink="/product-manager/two-way-binding" routerLinkActive="rnav-active" class="rnav-link">Binding Demo</a>
             }
             @if (role === 'ContentExecutive') {
               <a routerLink="/content-executive" routerLinkActive="rnav-active" [routerLinkActiveOptions]="{exact: true}" class="rnav-link">Dashboard</a>
@@ -124,6 +125,7 @@
           <a routerLink="/catalog/products" class="mobile-link" (click)="closeMobileMenu()">Products</a>
           <a routerLink="/catalog/categories" class="mobile-link" (click)="closeMobileMenu()">Categories</a>
           <a routerLink="/workflow" class="mobile-link" (click)="closeMobileMenu()">Workflow</a>
+          <a routerLink="/product-manager/two-way-binding" class="mobile-link" (click)="closeMobileMenu()">Binding Demo</a>
         }
         @if (role === 'ContentExecutive') {
           <a routerLink="/content-executive" class="mobile-link" (click)="closeMobileMenu()">Dashboard</a>

@@ -6,6 +6,7 @@ namespace Identity.API.Infrastructure.Security
     {
         public static string HashPassword(string password)
         {
+            // BCrypt stores its own salt and work factor in the hash, which keeps verification simple later.
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 

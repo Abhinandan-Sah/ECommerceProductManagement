@@ -4,7 +4,7 @@ namespace Identity.API.Application.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        /// <summary>
+    /// <summary>
         /// Safely extracts the user ID (NameIdentifier claim) from the current ClaimsPrincipal.
         /// </summary>
         public static Guid? GetUserId(this ClaimsPrincipal principal)

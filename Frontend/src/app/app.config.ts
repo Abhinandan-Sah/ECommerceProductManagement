@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
       autoDismiss:      true,
       newestOnTop:      true,
       preventDuplicates: true,
-      timeOut:          4000,
+      timeOut:          12000,
       extendedTimeOut:  1500,
       progressBar:      true,
       closeButton:      true,

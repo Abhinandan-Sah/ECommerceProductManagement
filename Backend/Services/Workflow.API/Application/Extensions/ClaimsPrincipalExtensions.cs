@@ -7,7 +7,7 @@ namespace Workflow.API.Application.Extensions
     /// </summary>
     public static class ClaimsPrincipalExtensions
     {
-        /// <summary>
+    /// <summary>
         /// Extracts the user ID from the JWT token claims.
         /// </summary>
         /// <param name="principal">The claims principal from the authenticated user.</param>

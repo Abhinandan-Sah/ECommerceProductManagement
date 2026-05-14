@@ -93,9 +93,9 @@ export class ProductFormComponent implements OnInit {
 
   initForm(): void {
     this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(200)]],
-      brand: ['', [Validators.required, Validators.maxLength(200)]],
-      description: ['', [Validators.maxLength(500)]],
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]],
+      brand: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]],
+      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
       categoryId: ['', [Validators.required]],
       publishStatus: [PublishStatus.Draft]
     });
@@ -180,5 +180,28 @@ export class ProductFormComponent implements OnInit {
   isInvalid(controlName: string): boolean {
     const control = this.form.get(controlName);
     return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  getProductFieldError(controlName: 'name' | 'brand' | 'description'): string {
+    const control = this.form.get(controlName);
+    if (!control) return '';
+
+    if (control.hasError('required')) {
+      if (controlName === 'name') return 'Product name is required.';
+      if (controlName === 'brand') return 'Brand is required.';
+      return 'Description is required.';
+    }
+
+    if (control.hasError('minlength')) {
+      if (controlName === 'description') return 'Description must be at least 10 characters.';
+      return `${controlName === 'name' ? 'Product name' : 'Brand'} must be at least 3 characters.`;
+    }
+
+    if (control.hasError('maxlength')) {
+      if (controlName === 'description') return 'Description cannot exceed 500 characters.';
+      return `${controlName === 'name' ? 'Product name' : 'Brand'} cannot exceed 200 characters.`;
+    }
+
+    return '';
   }
 }

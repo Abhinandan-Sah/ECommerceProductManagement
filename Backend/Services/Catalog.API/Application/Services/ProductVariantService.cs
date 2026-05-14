@@ -6,12 +6,18 @@ using Catalog.API.Domain.Exceptions;
 
 namespace Catalog.API.Application.Services
 {
+    /// <summary>
+    /// Applies product variant rules and shapes variant data for API responses.
+    /// </summary>
     public class ProductVariantService : IProductVariantService
     {
         private readonly IProductVariantRepository _variantRepository;
         private readonly IProductRepository _productRepository;
         private readonly ILogger<ProductVariantService> _logger;
 
+        /// <summary>
+        /// Creates the product variant service with product and variant repositories.
+        /// </summary>
         public ProductVariantService(IProductVariantRepository variantRepository, IProductRepository productRepository, ILogger<ProductVariantService> logger)
         {
             _variantRepository = variantRepository;
@@ -19,6 +25,7 @@ namespace Catalog.API.Application.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<ProductVariantResponseDto>> GetVariantsByProductAsync(Guid productId)
         {
             _logger.LogInformation("Fetching variants for product {ProductId}", productId);
@@ -34,6 +41,7 @@ namespace Catalog.API.Application.Services
             });
         }
 
+        /// <inheritdoc />
         public async Task<ProductVariantResponseDto?> GetVariantByIdAsync(Guid productId, Guid id)
         {
             _logger.LogInformation("Fetching variant {VariantId} for product {ProductId}", id, productId);
@@ -51,11 +59,13 @@ namespace Catalog.API.Application.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<ProductVariantResponseDto> AddVariantAsync(Guid productId, CreateProductVariantDto dto)
         {
             _logger.LogInformation("Adding variant for product {ProductId}", productId);
 
-            // Business rule validation: Product must exist
+            // Variants make sense only under a real product. We validate here to return a clear API error
+            // instead of letting the database surface a foreign-key failure.
             var product = await _productRepository.GetProductByIdAsync(productId);
             if (product == null)
             {
@@ -85,6 +95,7 @@ namespace Catalog.API.Application.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task UpdateVariantAsync(Guid productId, Guid id, UpdateProductVariantDto dto)
         {
             _logger.LogInformation("Updating variant {VariantId} for product {ProductId}", id, productId);
@@ -102,6 +113,7 @@ namespace Catalog.API.Application.Services
             _logger.LogInformation("Variant {VariantId} updated successfully", id);
         }
 
+        /// <inheritdoc />
         public async Task DeleteVariantAsync(Guid productId, Guid id)
         {
             _logger.LogInformation("Deleting variant {VariantId} for product {ProductId}", id, productId);

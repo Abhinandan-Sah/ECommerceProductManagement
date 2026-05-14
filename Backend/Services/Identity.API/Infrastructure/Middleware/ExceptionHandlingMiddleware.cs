@@ -4,10 +4,6 @@ using Identity.API.Domain.Exceptions;
 
 namespace Identity.API.Infrastructure.Middleware
 {
-    /// <summary>
-    /// Global exception handling middleware.
-    /// Catches all unhandled exceptions and returns a consistent JSON error response.
-    /// </summary>
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
@@ -34,7 +30,7 @@ namespace Identity.API.Infrastructure.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            // Map exception type to HTTP status code
+            // Domain exceptions are safe to show to clients; unexpected exceptions get a generic message.
             var (statusCode, message) = exception switch
             {
                 NotFoundException      => (HttpStatusCode.NotFound,            exception.Message),
@@ -44,13 +40,13 @@ namespace Identity.API.Infrastructure.Middleware
                 _                      => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
             };
 
-            // Log: Warning for 4xx client errors, Error for 5xx server errors
+            // Client-side problems should be visible in logs, but only server faults need full stack traces.
             if (statusCode == HttpStatusCode.InternalServerError)
                 _logger.LogError(exception, "Unhandled exception occurred");
             else
                 _logger.LogWarning("Handled exception: {Message}", exception.Message);
 
-            // Return a clean, consistent JSON response
+            // Keep the error shape consistent across controllers and clients.
             context.Response.StatusCode = (int)statusCode;
             context.Response.ContentType = "application/json";
 

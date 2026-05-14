@@ -10,15 +10,22 @@ using Reporting.API.Infrastructure.Data;
 
 namespace Reporting.API.Infrastructure.Repositories
 {
+    /// <summary>
+    /// Reads and writes audit log records from the reporting database.
+    /// </summary>
     public class AuditRepository : IAuditRepository
     {
         private readonly ReportingDbContext _context;
 
+        /// <summary>
+        /// Creates the audit repository for the current reporting database context.
+        /// </summary>
         public AuditRepository(ReportingDbContext context)
         {
             _context = context;
         }
 
+        /// <inheritdoc />
         public async Task<PagedResult<AuditLog>> GetAllAuditLogsAsync(int pageNumber, int pageSize)
         {
             var query = _context.AuditLogs.AsQueryable();
@@ -31,6 +38,7 @@ namespace Reporting.API.Infrastructure.Repositories
             return new PagedResult<AuditLog> { Items = items, TotalCount = totalCount, PageNumber = pageNumber, PageSize = pageSize };
         }
 
+        /// <inheritdoc />
         public async Task<PagedResult<AuditLog>> GetProductAuditLogsAsync(Guid productId, int pageNumber, int pageSize)
         {
             var query = _context.AuditLogs.Where(a => a.EntityId == productId);
@@ -44,6 +52,7 @@ namespace Reporting.API.Infrastructure.Repositories
             return new PagedResult<AuditLog> { Items = items, TotalCount = totalCount, PageNumber = pageNumber, PageSize = pageSize };
         }
 
+        /// <inheritdoc />
         public async Task<PagedResult<AuditLog>> GetUserAuditLogsAsync(Guid userId, int pageNumber, int pageSize)
         {
             var query = _context.AuditLogs.Where(a => a.ByUserId == userId);
@@ -57,6 +66,7 @@ namespace Reporting.API.Infrastructure.Repositories
             return new PagedResult<AuditLog> { Items = items, TotalCount = totalCount, PageNumber = pageNumber, PageSize = pageSize };
         }
 
+        /// <inheritdoc />
         public async Task AddAuditLogAsync(AuditLog log)
         {
             await _context.AuditLogs.AddAsync(log);
