@@ -43,7 +43,7 @@ namespace Identity.API.Controllers
         /// <response code="200">Users were returned successfully.</response>
         /// <response code="401">Caller is not authenticated.</response>
         /// <response code="403">Caller is not an administrator.</response>
-        // GET /api/users?page=1&pageSize=20&search=john&role=Admin  [Admin only]
+        // GET /api/users?page=1&pageSize=20&search=Abhinandan&role=Admin  [Admin only]
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers(

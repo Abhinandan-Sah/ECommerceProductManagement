@@ -12,7 +12,7 @@
             formControlName="fullName"
             [class.error]="isInvalid('fullName')"
             class="ec-input"
-            placeholder="e.g. John Doe"
+            placeholder="Enter Your Name"
             autocomplete="name"
           />
           @if (isInvalid('fullName')) {
@@ -31,7 +31,7 @@
             formControlName="email"
             [class.error]="isInvalid('email') || emailConflictError"
             class="ec-input"
-            placeholder="john@example.com"
+            placeholder="yourname@example.com"
             autocomplete="email"
           />
           @if (isInvalid('email')) {

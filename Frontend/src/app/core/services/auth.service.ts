@@ -49,13 +49,15 @@ export class AuthService {
     );
   }
 
-  refreshToken(refreshToken: string): Observable<TokenResponse> {
+  refreshToken(refreshToken: string, options: { silent?: boolean } = {}): Observable<TokenResponse> {
     return this.http.post<TokenResponse>(
       `${this.base}/refresh`, { refreshToken }
     ).pipe(
       catchError((error: HttpErrorResponse) => {
-        const message = extractErrorMessage(error);
-        this.notificationService.showError(message);
+        if (!options.silent) {
+          const message = extractErrorMessage(error);
+          this.notificationService.showError(message);
+        }
         return throwError(() => error);
       })
     );
@@ -94,11 +96,13 @@ export class AuthService {
     );
   }
 
-  getProfile(): Observable<User> {
+  getProfile(options: { silent?: boolean } = {}): Observable<User> {
     return this.http.get<User>(`${this.base}/profile`).pipe(
       catchError((error: HttpErrorResponse) => {
-        const message = extractErrorMessage(error);
-        this.notificationService.showError(message);
+        if (!options.silent) {
+          const message = extractErrorMessage(error);
+          this.notificationService.showError(message);
+        }
         return throwError(() => error);
       })
     );

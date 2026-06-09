@@ -33,12 +33,12 @@ export class AuthStateService {
       return;
     }
 
-    this.authService.refreshToken(refreshToken).pipe(
+    this.authService.refreshToken(refreshToken, { silent: true }).pipe(
       tap(response => {
         this.tokenStorage.saveTokens(response.accessToken, response.refreshToken);
         this.applyTokenResponse(response);
       }),
-      switchMap(() => this.loadProfile()),
+      switchMap(() => this.loadProfile(true)),
       catchError(() => {
         this.tokenStorage.clearTokens();
         this.resetAuth(true);
@@ -105,8 +105,8 @@ export class AuthStateService {
     this.errorSignal.set(null);
   }
 
-  private loadProfile(): Observable<User | null> {
-    return this.authService.getProfile().pipe(
+  private loadProfile(silent = false): Observable<User | null> {
+    return this.authService.getProfile({ silent }).pipe(
       tap(user => {
         this.userSignal.set(user);
         this.initializedSignal.set(true);

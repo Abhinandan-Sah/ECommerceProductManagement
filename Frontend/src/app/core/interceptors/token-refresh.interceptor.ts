@@ -39,7 +39,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
       isRefreshing = true;
 
-      return authService.refreshToken(refreshToken).pipe(
+      return authService.refreshToken(refreshToken, { silent: true }).pipe(
         switchMap((response) => {
           // Save new tokens
           tokenStorage.saveTokens(response.accessToken, response.refreshToken);
